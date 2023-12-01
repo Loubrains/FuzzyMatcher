@@ -55,6 +55,9 @@ class FuzzyMatcherApp(tk.Tk):
             file_path = filedialog.askopenfilename(title= "Please select a file containing your dataset")
             if file_path:
                 self.df = file_import(file_path)
+                if self.df.empty or self.df.shape[1] < 2:  # Check if the DataFrame is empty or has less than 2 columns
+                    messagebox.showerror("Error", "Dataset is empty or does not contain enough columns.")
+                    return
             else:
                 # User didn't select a file, you can choose to exit or continue prompting
                 messagebox.showinfo("Info", "Please select a dataset to proceed.")
@@ -292,28 +295,35 @@ class FuzzyMatcherApp(tk.Tk):
         pass
 
     def export_to_csv(self):
-        # Convert categorized data to DataFrame
-        categorized_df = pd.DataFrame(list(self.categories.items()), columns=['Category', 'Responses'])
+        # Add UUIDs and all preprocessed response columns to export_df
+        export_df = pd.concat([self.df.iloc[:, 0], self.df_preprocessed], axis=1)
+        
+        # Add and initialize category columns
+        for category in self.categories.keys():
+            export_df[category] = 0
 
-        # Flatten the 'Responses' column
-        categorized_df = categorized_df.explode('Responses')
+        # Find rows containing responses that have been categorized, and set their value to 1 for those categories.
+        for category, responses in self.categories.items():
+            filtered_responses = responses - {''}
+            for response in filtered_responses: # remove empty string
+                for col in self.df_preprocessed.columns:
+                    export_df.loc[export_df[col] == response, category] = 1
 
-        # Ask the user where to save the file
+        # Remove all preprocessed response columns
+        export_df.drop(columns=self.df_preprocessed.columns, inplace=True)
+
+        # Export to CSV
         file_path = filedialog.asksaveasfilename(
             defaultextension=".csv",
             filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
             title="Save As"
         )
 
-        # Check if the user has selected a file path
         if file_path:
-            # Export to CSV
-            categorized_df.to_csv(file_path, index=False)
+            export_df.to_csv(file_path, index=False)
             messagebox.showinfo("Export", "Data exported successfully to " + file_path)
         else:
             messagebox.showinfo("Export", "Export cancelled")
-
-        ### Update this to ensure the correct format (uuids + categories with binary values) ###
 
 # Running the application
 if __name__ == "__main__":
