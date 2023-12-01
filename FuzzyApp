@@ -16,9 +16,10 @@ def file_import(file_path):
     return df
 
 def preprocess_text(text):
-    # Lowercase, removing special characters and numbers
-    text = str(text).lower()
-    text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
+    # Lowercase, remove leading and trailing white space
+    text = str(text).lower().strip()
+    # Remove special characters
+    text = re.sub(r'[^a-z0-9\s]', '', text)
     return text
 
 def fuzzy_matching(df_preprocessed, match_string_entry):
@@ -45,7 +46,7 @@ class FuzzyMatcherApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Fuzzy Matcher")
-        self.geometry("800x600")
+        self.geometry("1000x600")
         self.categorization_var = tk.StringVar(value="Single")
 
         # File upload process
@@ -113,6 +114,10 @@ class FuzzyMatcherApp(tk.Tk):
         # Categorize selected results
         self.categorize_button = tk.Button(self, text="Categorize Selected", command=self.categorize_response)
         self.categorize_button.pack()
+
+        # Export to CSV button
+        self.export_csv_button = tk.Button(self, text="Export to CSV", command=self.export_to_csv)
+        self.export_csv_button.pack()
 
     def initialize_data_structures(self):
         # Preprocess text
@@ -278,10 +283,6 @@ class FuzzyMatcherApp(tk.Tk):
         if self.categorization_var.get() == "Multi" and selected_responses is not None:
             reselect_treeview_items(self.results_tree, selected_responses)
 
-    def finalize_categorization(self):
-        # Logic to finalize categorization
-        pass
-
     def save_session(self):
         # Logic to save current state in json (or other data type), to be reloaded later
         pass
@@ -291,19 +292,17 @@ class FuzzyMatcherApp(tk.Tk):
         pass
 
     def export_to_csv(self):
-        # Check if there is any data to export
-        if not self.categories:
-            messagebox.showinfo("Export", "No data to export.")
-            return
-
         # Convert categorized data to DataFrame
-        categorized_df = pd.DataFrame(self.categories)
+        categorized_df = pd.DataFrame(list(self.categories.items()), columns=['Category', 'Responses'])
+
+        # Flatten the 'Responses' column
+        categorized_df = categorized_df.explode('Responses')
 
         # Ask the user where to save the file
         file_path = filedialog.asksaveasfilename(
             defaultextension=".csv",
             filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
-            title="Save code-frame as"
+            title="Save As"
         )
 
         # Check if the user has selected a file path
