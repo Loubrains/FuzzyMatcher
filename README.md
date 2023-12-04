@@ -28,7 +28,7 @@ The context for this is specifically for speeding up the categorization of open-
 - load previously saved state
 - pass in a list of categoires
 
-### Comments and documentation
+### COMMENTS AND DOCUMENTATION
 
 ### FUTURE:
 - more modularization
