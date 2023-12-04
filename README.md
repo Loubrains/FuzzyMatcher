@@ -15,22 +15,22 @@ The context for this is specifically for speeding up the categorization of open-
 
 # To do
 ### UI:
-- all boxes go to bottom of window
-- widen boxes
-- set column sizes
-- align tops and bottoms of displays
-- sort category results display by count and then alphabetically
+- All display boxes should go to the bottom of the window.
+- Widen display boxes.
+- Set column sizes to minimum required to display results.
+- Align tops and bottoms of display boxes.
+- Sort category results display first by count and second alphabetically.
 
 ### Functionality:
-- redisplay category results upon category updates (consider single vs multi)
-- Recategorize results
-- save current state (json?)
-- load previously saved state
-- pass in a list of categoires
+- Redisplay category results upon category updates (only relevant in single categorization mode).
+- Ability to recategorize results.
+- Save current state (json?)
+- Load previously saved state.
+- Pass in a list of categories.
 
 ### Comments and documentation
 
 ### Future:
-- more modularization
-- unit tests
-- maybe auto mode? (i.e. take a list of categories, auto-match and categorize for each category in the list, for a pre-defined threshold).
+- More modularization.
+- Unit testst.
+- Maybe an auto mode? i.e. take a list of categories, auto-match and categorize for each category in the list, for a pre-defined threshold.
