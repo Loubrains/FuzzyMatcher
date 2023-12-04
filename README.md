@@ -27,6 +27,7 @@ The context for this is specifically for speeding up the categorization of open-
 - Save current state (json?)
 - Load previously saved state.
 - Pass in a list of categories.
+- Make an executable that includes the python script (for future editing).
 
 ### Comments and documentation
 
