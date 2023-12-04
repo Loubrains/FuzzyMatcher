@@ -125,16 +125,22 @@ class FuzzyMatcherApp(tk.Tk):
     def initialize_data_structures(self):
         # Preprocess text
         self.df_preprocessed = self.df.iloc[:, 1:].map(preprocess_text)
+        self.response_columns= [col for col in self.df_preprocessed.columns]
 
-        # Flatten the DataFrame to a Series of responses
+        # Initialize categorized data (uuids and preprocessed responses)
+        uuids = categorized_data = self.df.iloc[:, 0]
+        self.categorized_data = pd.concat([uuids, self.df_preprocessed], axis=1)
+        # Add 'Uncategorized category' and set all responses to 1
+        self.categorized_data['Uncategorized'] = 1
+
+        # Create a flattened DataFrame of the preprocessed responses
         df_series = self.df_preprocessed.stack().reset_index(drop=True)
-        df_unique = df_series.unique()
 
         # Count each response including duplicates
         self.response_counts = df_series.value_counts().to_dict()
 
-        # Initialize categories and set all unique responses to 'Uncategorized'
-        self.categories = {'Uncategorized': set(df_unique)}
+        # Initialize categories for display and set all unique responses to 'Uncategorized'
+        self.categories_for_display = {'Uncategorized': set(df_series)}
 
         # Initialize match results dataframe
         self.match_results = pd.DataFrame(columns=['response', 'score'])
@@ -169,8 +175,9 @@ class FuzzyMatcherApp(tk.Tk):
 
     def create_category(self):
         new_category = self.new_category_entry.get()
-        if new_category and new_category not in self.categories:
-            self.categories[new_category] = set()
+        if new_category and new_category not in self.categorized_data.columns:
+            self.categorized_data[new_category] = 0
+            self.categories_for_display[new_category] = set()
             self.display_categories()
 
     def display_categories(self):
@@ -179,7 +186,7 @@ class FuzzyMatcherApp(tk.Tk):
         for item in self.categories_tree.get_children():
             self.categories_tree.delete(item)
         
-        for category, responses in self.categories.items():
+        for category, responses in self.categories_for_display.items():
             count = sum(self.response_counts.get(response, 0) for response in responses)
             self.categories_tree.insert('', 'end', values=(category, count))
             self.update_treeview_selection(selected_categories=selected_categories)
@@ -195,8 +202,8 @@ class FuzzyMatcherApp(tk.Tk):
                 self.results_tree.delete(item)
 
             # Display responses and counts for the selected category
-            if category in self.categories:
-                for response in self.categories[category]:
+            if category in self.categories_for_display:
+                for response in self.categories_for_display[category]:
                     count = self.response_counts[response]
                     self.results_tree.insert('', 'end', values=(response, count))
 
@@ -212,22 +219,38 @@ class FuzzyMatcherApp(tk.Tk):
     def categorize_response(self):
         selected_responses = self.selected_responses()
         selected_categories = self.selected_categories()
+
         if not selected_categories or not selected_responses:
             messagebox.showinfo("Info", "Please select both a category and responses to categorize.")
             return
+        
+        # Initalize mask for getting rows in categorized_data corresponding to selected responses
+        mask = pd.Series([False] * len(self.categorized_data))
 
-        if self.categorization_var.get() == "Single" and len(selected_categories) > 1:
-            messagebox.showwarning("Warning", "Only one category can be selected in Single Categorization mode.")
-            return
+        # Iterate over each response column in categorized_data
+        for column in self.categorized_data[self.response_columns]:
+            # Update mask where response matches any of the selected responses
+            mask |= self.categorized_data[column].isin(selected_responses)
+
+        # Single categorization mode behaviour
+        if self.categorization_var.get() == "Single":
+            # Show warning if multiple categories selected
+            if len(selected_categories) > 1:
+                messagebox.showwarning("Warning", "Only one category can be selected in Single Categorization mode.")
+                return
+            
+            # Remove responses from 'Uncategorized' in categorized_data
+            self.categorized_data.loc[mask, 'Uncategorized'] = 0
+            # Remove responses from categories display and matched responses display
+            self.categories_for_display['Uncategorized'] -= selected_responses
+            self.match_results = self.match_results[~self.match_results['response'].isin(self.selected_responses())]
 
         for category in selected_categories:
-            # Add response to categorized data
-            self.categories[category].update(selected_responses)
+            # Categorize data (set selected responses equal to 1 for selected categories)
+            self.categorized_data.loc[mask, category] = 1
 
-            # Remove from 'Uncategorized' if single-categorization
-            if self.categorization_var.get() == "Single":
-                self.categories['Uncategorized'] -= selected_responses
-                self.match_results = self.match_results[~self.match_results['response'].isin(self.selected_responses())]
+            # Add response to categories for display
+            self.categories_for_display[category].update(selected_responses)
 
         # Update categories and results displays
         self.display_categories()
@@ -295,22 +318,8 @@ class FuzzyMatcherApp(tk.Tk):
         pass
 
     def export_to_csv(self):
-        # Add UUIDs and all preprocessed response columns to export_df
-        export_df = pd.concat([self.df.iloc[:, 0], self.df_preprocessed], axis=1)
-        
-        # Add and initialize category columns
-        for category in self.categories.keys():
-            export_df[category] = 0
-
-        # Find rows containing responses that have been categorized, and set their value to 1 for those categories.
-        for category, responses in self.categories.items():
-            filtered_responses = responses - {''}
-            for response in filtered_responses: # remove empty string
-                for col in self.df_preprocessed.columns:
-                    export_df.loc[export_df[col] == response, category] = 1
-
-        # Remove all preprocessed response columns
-        export_df.drop(columns=self.df_preprocessed.columns, inplace=True)
+        # Create export dataframe with all preprocessed response columns removed
+        export_df = self.categorized_data.drop(columns=self.response_columns)
 
         # Export to CSV
         file_path = filedialog.asksaveasfilename(
