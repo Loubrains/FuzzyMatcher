@@ -46,7 +46,7 @@ class FuzzyMatcherApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Fuzzy Matcher")
-        self.geometry("1000x600")
+        self.geometry("1600x900")
 
         # Initialize variable for categorization type
         self.categorization_var = tk.StringVar(value="Single")
@@ -73,22 +73,25 @@ class FuzzyMatcherApp(tk.Tk):
         self.after(100, self.set_categorization_type)
 
         # Configure the grid
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_columnconfigure(2, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=0)
+        self.grid_columnconfigure(0, weight=1)  # Column for match results display
+        self.grid_columnconfigure(1, weight=1)  # Column for category results display
+        self.grid_columnconfigure(2, weight=1)  # Column for categories display
+        self.grid_rowconfigure(0, weight=0)     # Row for buttons and labels
+        self.grid_rowconfigure(1, weight=1)     # Main area for Treeviews
+        self.grid_rowconfigure(2, weight=0)     # Bottom area for export button
 
-        # Create frames
+        # Initialize frames
+        top_frame = tk.Frame(self)
         left_frame = tk.Frame(self)
         middle_frame = tk.Frame(self)
         right_frame = tk.Frame(self)
         bottom_frame = tk.Frame(self)
 
-        left_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        middle_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
-        right_frame.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
-        bottom_frame.grid(row=1, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
+        top_frame.grid(row=0, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
+        left_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+        middle_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
+        right_frame.grid(row=1, column=2, sticky="nsew", padx=10, pady=10)
+        bottom_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
 
         # Left Frame Widgets (Match Results)
         self.match_string_label = tk.Label(left_frame, text="Enter String to Match:")
@@ -106,15 +109,15 @@ class FuzzyMatcherApp(tk.Tk):
         self.results_tree.heading('Count', text='Count')
         results_scrollbar = tk.Scrollbar(left_frame, orient="vertical", command=self.results_tree.yview)
         
-        self.match_string_label.grid(row=0, column=0, sticky="ew")
-        self.match_string_entry.grid(row=1, column=0, sticky="ew")
-        self.threshold_label.grid(row=2, column=0, sticky="ew")
-        self.threshold_slider.grid(row=3, column=0, sticky="ew")
-        self.categorization_label.grid(row=4, column=0, sticky="ew")
-        self.match_button.grid(row=5, column=0, sticky="ew")
-        self.categorize_button.grid(row=5, column=1, sticky="ew")
-        self.results_tree.grid(row=6, column=0, columnspan=2, sticky="nsew")
-        results_scrollbar.grid(row=6, column=2, sticky="ns")
+        self.match_string_label.grid(row=0, column=0, sticky="ew", padx=5)
+        self.match_string_entry.grid(row=1, column=0, sticky="ew", padx=5)
+        self.threshold_label.grid(row=0, column=1, sticky="ew", padx=5)
+        self.threshold_slider.grid(row=1, column=1, sticky="ew", padx=5)
+        self.categorization_label.grid(row=2, column=1, sticky="ew")
+        self.match_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
+        self.categorize_button.grid(row=3, column=1, sticky="ew", padx=10, pady=10)
+        self.results_tree.grid(row=4, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+        results_scrollbar.grid(row=4, column=2, sticky="ns")
         self.results_tree.configure(yscrollcommand=results_scrollbar.set)
 
         # Middle Frame Widgets (Category Results)
@@ -124,8 +127,8 @@ class FuzzyMatcherApp(tk.Tk):
         self.category_results_tree.heading('Count', text='Count')
         category_results_scrollbar = tk.Scrollbar(middle_frame, orient="vertical", command=self.category_results_tree.yview)
         
-        self.display_category_results_button.grid(row=0, column=0, sticky="ew")
-        self.category_results_tree.grid(row=1, column=0, sticky="nsew")
+        self.display_category_results_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
+        self.category_results_tree.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
         category_results_scrollbar.grid(row=1, column=1, sticky="ns")
         self.category_results_tree.configure(yscrollcommand=category_results_scrollbar.set)
 
@@ -137,15 +140,15 @@ class FuzzyMatcherApp(tk.Tk):
         self.categories_tree.heading('Count', text='Count')
         categories_scrollbar = tk.Scrollbar(right_frame, orient="vertical", command=self.categories_tree.yview)
 
-        self.new_category_entry.grid(row=0, column=0, sticky="ew")
-        self.add_category_button.grid(row=1, column=0, sticky="ew")
-        self.categories_tree.grid(row=2, column=0, sticky="nsew")
-        categories_scrollbar.grid(row=2, column=1, sticky="ns")
+        self.new_category_entry.grid(row=0, column=0, sticky="ew", padx=5)
+        self.add_category_button.grid(row=0, column=1, sticky="ew", padx=5)
+        self.categories_tree.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+        categories_scrollbar.grid(row=1, column=2, sticky="ns")
         self.categories_tree.configure(yscrollcommand=categories_scrollbar.set)
 
         # Bottom Frame Widget (Export Button)
         self.export_csv_button = tk.Button(bottom_frame, text="Export to CSV", command=self.export_to_csv)
-        self.export_csv_button.grid(row=0, column=2, sticky="e")
+        self.export_csv_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
 
         # Display categories
         self.display_categories()
