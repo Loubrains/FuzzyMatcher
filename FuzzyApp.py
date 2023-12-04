@@ -47,6 +47,8 @@ class FuzzyMatcherApp(tk.Tk):
         super().__init__()
         self.title("Fuzzy Matcher")
         self.geometry("1000x600")
+
+        # Initialize variable for categorization type
         self.categorization_var = tk.StringVar(value="Single")
 
         # File upload process
@@ -59,9 +61,10 @@ class FuzzyMatcherApp(tk.Tk):
                     messagebox.showerror("Error", "Dataset is empty or does not contain enough columns.")
                     return
             else:
-                # User didn't select a file, you can choose to exit or continue prompting
-                messagebox.showinfo("Info", "Please select a dataset to proceed.")
-                continue
+                # Provide an option to exit the application
+                if messagebox.askyesno("Exit", "No file selected. Do you want to exit the application?"):
+                    self.destroy()  # Close the application
+                    return
 
         # Preprocess text, initialize categories and label all responses as 'Uncategorized'
         self.initialize_data_structures()
@@ -69,58 +72,83 @@ class FuzzyMatcherApp(tk.Tk):
         # Ask for categorization type after file is selected
         self.after(100, self.set_categorization_type)
 
-        # Label for showing the categorization type
-        self.categorization_label = tk.Label(self, text="")
-        self.categorization_label.pack()
+        # Configure the grid
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=0)
 
-        # Match string input
-        self.match_string_label = tk.Label(self, text="Enter String to Match:")
-        self.match_string_label.pack()
-        self.match_string_entry = tk.Entry(self)
-        self.match_string_entry.pack()
+        # Create frames
+        left_frame = tk.Frame(self)
+        middle_frame = tk.Frame(self)
+        right_frame = tk.Frame(self)
+        bottom_frame = tk.Frame(self)
 
-        # Threshold score slider
-        self.threshold_label = tk.Label(self, text="Set Fuzz Threshold (100 is precise, 0 is imprecise):")
-        self.threshold_label.pack()
-        self.threshold_slider = tk.Scale(self, from_=0, to=100, orient="horizontal", resolution=1,
+        left_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        middle_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+        right_frame.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
+        bottom_frame.grid(row=1, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
+
+        # Left Frame Widgets (Match Results)
+        self.match_string_label = tk.Label(left_frame, text="Enter String to Match:")
+        self.match_string_entry = tk.Entry(left_frame)
+        self.threshold_label = tk.Label(left_frame, text="Set Fuzz Threshold (100 is precise, 0 is imprecise):")
+        self.threshold_slider = tk.Scale(left_frame, from_=0, to=100, orient="horizontal", resolution=1,
                                         command=lambda val: self.display_match_results())
         self.threshold_slider.set(60)  # Setting default value to 60
-        self.threshold_slider.pack()
-
-        # Match button
-        self.process_button = tk.Button(self, text="Match", command=self.process_match)
-        self.process_button.pack()
-
-        # Results display area
-        self.results_tree = ttk.Treeview(self, columns=('Response', 'Max Score', 'Count'), show='headings')
+        self.match_button = tk.Button(left_frame, text="Match", command=self.process_match)
+        self.categorize_button = tk.Button(left_frame, text="Categorize Selected", command=self.categorize_response)
+        self.categorization_label = tk.Label(left_frame, text="Categorization Type: Single") # Default text, will be updated later
+        self.results_tree = ttk.Treeview(left_frame, columns=('Response', 'Score', 'Count'), show='headings')
         self.results_tree.heading('Response', text='Response')
-        self.results_tree.heading('Max Score', text='Max Score')
+        self.results_tree.heading('Score', text='Score')
         self.results_tree.heading('Count', text='Count')
-        self.results_tree.pack(expand=True, fill='both')
+        results_scrollbar = tk.Scrollbar(left_frame, orient="vertical", command=self.results_tree.yview)
+        
+        self.match_string_label.grid(row=0, column=0, sticky="ew")
+        self.match_string_entry.grid(row=1, column=0, sticky="ew")
+        self.threshold_label.grid(row=2, column=0, sticky="ew")
+        self.threshold_slider.grid(row=3, column=0, sticky="ew")
+        self.categorization_label.grid(row=4, column=0, sticky="ew")
+        self.match_button.grid(row=5, column=0, sticky="ew")
+        self.categorize_button.grid(row=5, column=1, sticky="ew")
+        self.results_tree.grid(row=6, column=0, columnspan=2, sticky="nsew")
+        results_scrollbar.grid(row=6, column=2, sticky="ns")
+        self.results_tree.configure(yscrollcommand=results_scrollbar.set)
 
-        # Enter new category
-        self.new_category_entry = tk.Entry(self)
-        self.new_category_entry.pack()
-        self.add_category_button = tk.Button(self, text="Add Category", command=self.create_category)
-        self.add_category_button.pack()
+        # Middle Frame Widgets (Category Results)
+        self.display_category_results_button = tk.Button(middle_frame, text="Display Category Results", command=self.display_category_results)
+        self.category_results_tree = ttk.Treeview(middle_frame, columns=('Response', 'Count'), show='headings')
+        self.category_results_tree.heading('Response', text='Response')
+        self.category_results_tree.heading('Count', text='Count')
+        category_results_scrollbar = tk.Scrollbar(middle_frame, orient="vertical", command=self.category_results_tree.yview)
+        
+        self.display_category_results_button.grid(row=0, column=0, sticky="ew")
+        self.category_results_tree.grid(row=1, column=0, sticky="nsew")
+        category_results_scrollbar.grid(row=1, column=1, sticky="ns")
+        self.category_results_tree.configure(yscrollcommand=category_results_scrollbar.set)
 
-        # Display categories
-        self.categories_tree = ttk.Treeview(self, columns=('Category', 'Count'), show='headings')
+        # Right Frame Widgets (Categories)
+        self.new_category_entry = tk.Entry(right_frame)
+        self.add_category_button = tk.Button(right_frame, text="Add Category", command=self.create_category)
+        self.categories_tree = ttk.Treeview(right_frame, columns=('Category', 'Count'), show='headings')
         self.categories_tree.heading('Category', text='Category')
         self.categories_tree.heading('Count', text='Count')
-        self.categories_tree.pack(expand=True, fill='both')
+        categories_scrollbar = tk.Scrollbar(right_frame, orient="vertical", command=self.categories_tree.yview)
+
+        self.new_category_entry.grid(row=0, column=0, sticky="ew")
+        self.add_category_button.grid(row=1, column=0, sticky="ew")
+        self.categories_tree.grid(row=2, column=0, sticky="nsew")
+        categories_scrollbar.grid(row=2, column=1, sticky="ns")
+        self.categories_tree.configure(yscrollcommand=categories_scrollbar.set)
+
+        # Bottom Frame Widget (Export Button)
+        self.export_csv_button = tk.Button(bottom_frame, text="Export to CSV", command=self.export_to_csv)
+        self.export_csv_button.grid(row=0, column=2, sticky="e")
+
+        # Display categories
         self.display_categories()
-
-        self.display_category_results_button = tk.Button(self, text="Display Category Results", command=self.display_category_results)
-        self.display_category_results_button.pack()
-
-        # Categorize selected results
-        self.categorize_button = tk.Button(self, text="Categorize Selected", command=self.categorize_response)
-        self.categorize_button.pack()
-
-        # Export to CSV button
-        self.export_csv_button = tk.Button(self, text="Export to CSV", command=self.export_to_csv)
-        self.export_csv_button.pack()
 
     def initialize_data_structures(self):
         # Preprocess text
@@ -198,14 +226,14 @@ class FuzzyMatcherApp(tk.Tk):
             category = self.categories_tree.item(selected_categories[0])['values'][0]
             
             # Clear existing items in the results display area
-            for item in self.results_tree.get_children():
-                self.results_tree.delete(item)
+            for item in self.category_results_tree.get_children():
+                self.category_results_tree.delete(item)
 
             # Display responses and counts for the selected category
             if category in self.categories_for_display:
                 for response in self.categories_for_display[category]:
                     count = self.response_counts[response]
-                    self.results_tree.insert('', 'end', values=(response, count))
+                    self.category_results_tree.insert('', 'end', values=(response, count))
 
             # Update the results display to reflect the selected category
             self.match_string_label.config(text=f"Results for Category: {category}")
@@ -320,6 +348,9 @@ class FuzzyMatcherApp(tk.Tk):
     def export_to_csv(self):
         # Create export dataframe with all preprocessed response columns removed
         export_df = self.categorized_data.drop(columns=self.response_columns)
+
+        if self.categorization_var.get() == "Multi":
+            export_df.drop('Uncategorized', axis=1, inplace=True)
 
         # Export to CSV
         file_path = filedialog.asksaveasfilename(
