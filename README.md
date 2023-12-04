@@ -21,16 +21,16 @@ The context for this is specifically for speeding up the categorization of open-
 - align tops and bottoms of displays
 - sort category results display by count and then alphabetically
 
-### FUNCTIONALITY:
+### Functionality:
 - redisplay category results upon category updates (consider single vs multi)
 - Recategorize results
 - save current state (json?)
 - load previously saved state
 - pass in a list of categoires
 
-### COMMENTS AND DOCUMENTATION
+### Comments and documentation
 
-### FUTURE:
+### Future:
 - more modularization
 - unit tests
 - maybe auto mode? (i.e. take a list of categories, auto-match and categorize for each category in the list, for a pre-defined threshold).
