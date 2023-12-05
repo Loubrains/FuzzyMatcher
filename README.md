@@ -1,4 +1,5 @@
 # Intro
+
 This is a desktop app that allows the user to import a dataset, fuzzy match strings against that dataset, categorizing the results, and export the categorized data.
 
 The context for this is specifically for speeding up the categorization of open-ended text responses to questionnaires. This effectively replaces the broken/slow fuzzy matching functionality in Q Research Software.
@@ -6,6 +7,7 @@ The context for this is specifically for speeding up the categorization of open-
 **NOTE: THIS PROGRAM ASSUMES THAT THE FIRST COLUMN OF THE DATASET CONTAINS UUIDS AND THE SUBSEQUENT COLUMNS CONTAIN RESPONSES.**
 
 # Requirements
+
 - tkinter
 - ctypes
 - pandas
@@ -14,24 +16,33 @@ The context for this is specifically for speeding up the categorization of open-
 - thefuzz
 
 # To do
+
+### Functionality:
+
+- Pass in a list of categories.
+- Ability to recategorize results.
+- Save current state (json?)
+- Load previously saved state.
+- Delete categories.
+- Ability to switch back to multi from single (spit warning "can't go back").
+- Redisplay category results upon category updates (only relevant in single categorization mode).
+- Make an executable that includes the python script (for future editing).
+
 ### UI:
+
 - All display boxes should go to the bottom of the window.
 - Widen display boxes.
 - Set column sizes to minimum required to display results.
 - Align tops and bottoms of display boxes.
 - Sort category results display first by count and second alphabetically.
-
-### Functionality:
-- Redisplay category results upon category updates (only relevant in single categorization mode).
-- Ability to recategorize results.
-- Save current state (json?)
-- Load previously saved state.
-- Pass in a list of categories.
-- Make an executable that includes the python script (for future editing).
+- Maybe a box that always shows uncategorized (or remove current match and put them in there?)
+- Ability to sort match results by other dimensions.
+- Text wrapping (it's cuttong off 'y' to look like 'v').
 
 ### Comments and documentation
 
 ### Future:
+
 - More modularization.
-- Unit testst.
-- Maybe an auto mode? i.e. take a list of categories, auto-match and categorize for each category in the list, for a pre-defined threshold.
+- Unit tests.
+- Maybe an auto mode? i.e. auto-match and categorize for each category in the list, for a pre-defined threshold.
