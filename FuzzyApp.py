@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import ctypes
+from typing import Any
 import pandas as pd
 import re
 import chardet
@@ -15,11 +16,11 @@ def file_import(file_path):
     df = pd.read_csv(file_path, encoding=encoding)
     return df
 
-def preprocess_text(text):
-    # Lowercase, remove leading and trailing white space
-    text = str(text).lower().strip()
-    # Remove special characters
-    text = re.sub(r'[^a-z0-9\s]', '', text)
+def preprocess_text(text: Any) -> str:
+    text = str(text).lower() # Convert to string and lowercase
+    text = re.sub(r'\s+', ' ', text) # Convert one or more of any kind of space (including tab) to single space
+    text = re.sub(r'[^a-z0-9\s]', '', text) # Remove special characters
+    text = text.strip() # Remove leading and trailing spaces
     return text
 
 def fuzzy_matching(df_preprocessed, match_string_entry):
@@ -51,15 +52,16 @@ class FuzzyMatcherApp(tk.Tk):
         # Initialize variable for categorization type
         self.categorization_var = tk.StringVar(value="Single")
 
-        # File upload process
-        self.df = None
-        while self.df is None:
+        # File import process
+        is_file_selected = False
+        while not is_file_selected:
             file_path = filedialog.askopenfilename(title= "Please select a file containing your dataset")
             if file_path:
                 self.df = file_import(file_path)
                 if self.df.empty or self.df.shape[1] < 2:  # Check if the DataFrame is empty or has less than 2 columns
                     messagebox.showerror("Error", "Dataset is empty or does not contain enough columns.")
                     return
+                is_file_selected = True
             else:
                 # Provide an option to exit the application
                 if messagebox.askyesno("Exit", "No file selected. Do you want to exit the application?"):
@@ -155,7 +157,7 @@ class FuzzyMatcherApp(tk.Tk):
 
     def initialize_data_structures(self):
         # Preprocess text
-        self.df_preprocessed = pd.DataFrame(self.df.iloc[:, 1:].map(preprocess_text))
+        self.df_preprocessed = pd.DataFrame(self.df.iloc[:, 1:].map(preprocess_text)) # type: ignore
         self.response_columns= [col for col in self.df_preprocessed.columns]
 
         # Initialize categorized data (uuids and preprocessed responses)
