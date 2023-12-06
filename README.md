@@ -25,6 +25,7 @@ The context for this is specifically for speeding up the categorization of open-
 - Load previously saved state.
 - Delete categories.
 - Ability to switch back to multi from single (spit warning "can't go back").
+- When typing string, press enter to press associated button/do associated action.
 - Redisplay category results upon category updates (only relevant in single categorization mode).
 - Make an executable that includes the python script (for future editing).
 

@@ -155,7 +155,7 @@ class FuzzyMatcherApp(tk.Tk):
 
     def initialize_data_structures(self):
         # Preprocess text
-        self.df_preprocessed = self.df.iloc[:, 1:].map(preprocess_text)
+        self.df_preprocessed = pd.DataFrame(self.df.iloc[:, 1:].map(preprocess_text))
         self.response_columns= [col for col in self.df_preprocessed.columns]
 
         # Initialize categorized data (uuids and preprocessed responses)
