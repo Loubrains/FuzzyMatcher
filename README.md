@@ -19,8 +19,7 @@ The context for this is specifically for speeding up the categorization of open-
 
 ### Functionality:
 
-- Pass in a list of categories.
-- Ability to recategorize results.
+- ~~Ability to recategorize results.~~
 - Save current state (json?)
 - Load previously saved state.
 - Delete categories.
@@ -28,6 +27,7 @@ The context for this is specifically for speeding up the categorization of open-
 - When typing string, press enter to press associated button/do associated action.
 - Redisplay category results upon category updates (only relevant in single categorization mode).
 - Make an executable that includes the python script (for future editing).
+- Pass in a list of category names?
 
 ### UI:
 
