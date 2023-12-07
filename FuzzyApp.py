@@ -170,8 +170,17 @@ class FuzzyMatcherApp(tk.Tk):
         self.categories_tree.configure(yscrollcommand=categories_scrollbar.set)
 
         # Bottom Frame Widget (Export Button)
+        self.save_button = tk.Button(bottom_frame, text="Save Project", command=self.save_project)
+        self.load_button = tk.Button(bottom_frame, text="Load Project", command=self.load_project)
         self.export_csv_button = tk.Button(bottom_frame, text="Export to CSV", command=self.export_to_csv)
-        self.export_csv_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
+
+        self.save_button.grid(row=0, column=0, sticky="w", padx=10, pady=10)
+        self.load_button.grid(row=1, column=0, sticky="w", padx=10, pady=10)
+        self.export_csv_button.grid(row=0, column=2, sticky="e", padx=10, pady=10)
+
+        bottom_frame.columnconfigure(0, weight=1)
+        bottom_frame.columnconfigure(1, weight=1)
+        bottom_frame.columnconfigure(2, weight=1)
 
     def start_new_project(self):
         # File import process
@@ -465,33 +474,35 @@ class FuzzyMatcherApp(tk.Tk):
 
     def save_project(self):
         # Logic to save current state in json (or other data type), to be reloaded later
+        # Convert data to json_serializable format
+        categories_display_lists = {k: list(v) for k, v in self.categories_display.items()}
+
         data_to_save = {
             'df': self.df.to_json(),
             'df_preprocessed': self.df_preprocessed.to_json(),
             'categorized_data': self.categorized_data.to_json(),
-            'categories_display': self.categories_display,
+            'categories_display': categories_display_lists,
             'currently_displayed_category': self.currently_displayed_category
-            # Add other necessary fields here
         }
 
         # Save to a file
         file_path = filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            title="Save Session As"
+            title="Save Project As"
         )
         
         if file_path:
             with open(file_path, 'w') as f:
                 json.dump(data_to_save, f)
-            messagebox.showinfo("Save Session", "Session saved successfully to " + file_path)
+            messagebox.showinfo("Save Project", "Project saved successfully to " + file_path)
 
     def load_project(self):
         # Logic to load previously saved state from json (or other data type)
-                # Open a file dialog to select the file
+        # Open a file dialog to select the file
         file_path = filedialog.askopenfilename(
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            title="Load Session"
+            title="Load Project"
         )
 
         if file_path:
@@ -502,11 +513,10 @@ class FuzzyMatcherApp(tk.Tk):
             self.df = pd.read_json(data_loaded['df'])
             self.df_preprocessed = pd.read_json(data_loaded['df_preprocessed'])
             self.categorized_data = pd.read_json(data_loaded['categorized_data'])
-            self.categories_display = data_loaded['categories_display']
+            self.categories_display = {k: set(v) for k, v in data_loaded['categories_display'].items()}
             self.currently_displayed_category = data_loaded['currently_displayed_category']
-            # Restore other necessary fields here
 
-            messagebox.showinfo("Load Session", "Session loaded successfully from " + file_path)
+            messagebox.showinfo("Load Project", "Project loaded successfully from " + file_path)
 
     def export_to_csv(self):
         # Create export dataframe with all preprocessed response columns removed
