@@ -20,9 +20,9 @@ The context for this is specifically for speeding up the categorization of open-
 ### Functionality:
 
 - ~~Ability to recategorize results.~~
-- Ability to start the program with no import.
-- Save current state (json?)
-- Load previously saved state.
+- ~~Start program with New Project / Load Project dialogue box, and setup program accordingly~~
+- Ability to save current state. (The framework is there, just need to select the appropriate variables to save)
+- Ability to load previously saved state. (Same note as above)
 - Delete categories.
 - Ability to switch back to multi from single (spit warning "can't go back").
 - When typing string, press enter to press associated button/do associated action.
