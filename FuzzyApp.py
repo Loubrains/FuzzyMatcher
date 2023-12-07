@@ -474,15 +474,15 @@ class FuzzyMatcherApp(tk.Tk):
 
     def save_project(self):
         # Logic to save current state in json (or other data type), to be reloaded later
-        # Convert data to json_serializable format
-        categories_display_lists = {k: list(v) for k, v in self.categories_display.items()}
 
         data_to_save = {
-            'df': self.df.to_json(),
+            'categoization_var': self.categorization_var,
             'df_preprocessed': self.df_preprocessed.to_json(),
+            'response_columns': self.response_columns,
             'categorized_data': self.categorized_data.to_json(),
-            'categories_display': categories_display_lists,
-            'currently_displayed_category': self.currently_displayed_category
+            'response_counts': self.response_counts,
+            'categories_display': {k: list(v) for k, v in self.categories_display.items()},
+            'categorization_label': self.categorization_label
         }
 
         # Save to a file
@@ -509,14 +509,22 @@ class FuzzyMatcherApp(tk.Tk):
             with open(file_path, 'r') as f:
                 data_loaded = json.load(f)
 
-            # Convert JSON back to data
-            self.df = pd.read_json(data_loaded['df'])
+            # Convert JSON back to data / set default variable values
+            self.categorization_var = data_loaded['categorization_var']
             self.df_preprocessed = pd.read_json(data_loaded['df_preprocessed'])
+            self.response_columns = data_loaded['response_columns']
             self.categorized_data = pd.read_json(data_loaded['categorized_data'])
+            self.response_counts = data_loaded['response_counts']
             self.categories_display = {k: set(v) for k, v in data_loaded['categories_display'].items()}
-            self.currently_displayed_category = data_loaded['currently_displayed_category']
+            self.match_results = pd.DataFrame(columns=['response', 'score'])
+            self.currently_displayed_category = 'Uncategorized'
+            self.categorization_label = data_loaded['categorization_label']
 
             messagebox.showinfo("Load Project", "Project loaded successfully from " + file_path)
+            # Display categories
+            self.after(100, self.display_categories)
+            # Display Uncategorized results
+            self.after(100, self.refresh_category_results_for_currently_displayed_category)
 
     def export_to_csv(self):
         # Create export dataframe with all preprocessed response columns removed
