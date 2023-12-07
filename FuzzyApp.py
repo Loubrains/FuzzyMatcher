@@ -6,6 +6,7 @@ import pandas as pd
 import re
 import chardet
 from thefuzz import fuzz
+import json
 
 # Set DPI Awareness
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -42,12 +43,41 @@ def fuzzy_matching(df_preprocessed, match_string_entry):
 
     return df_result
 
+# Startup dialog class
+class StartupDialog(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+
+        self.title("Welcome to Fuzzy Matcher")
+
+        # Make this a modal window
+        self.transient(parent)  # Set to be on top of the main window
+        self.grab_set()         # Redirect all events to this window
+
+        # Position the window in the center of the parent
+        self.geometry("+{}+{}".format(parent.winfo_x(), parent.winfo_y()))
+
+        tk.Label(self, text="Choose an option to begin:").pack(pady=10)
+
+        tk.Button(self, text="Start New Project", command=self.on_new_project).pack(pady=5)
+        tk.Button(self, text="Load Existing Project", command=self.on_load_project).pack(pady=5)
+
+    def on_new_project(self):
+        self.parent.start_new_project()
+        self.destroy()
+
+    def on_load_project(self):
+        self.parent.load_project()
+        self.destroy()
+
 # Main application class
 class FuzzyMatcherApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Fuzzy Matcher")
-
+        
+        # Set window geometry
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         window_size_multiplier = 0.95
@@ -58,34 +88,9 @@ class FuzzyMatcherApp(tk.Tk):
         self.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
         #self.state('zoomed')
 
-        # File import process
-        is_file_selected = False
-        while not is_file_selected:
-            file_path = filedialog.askopenfilename(title= "Please select a file containing your dataset")
-            if file_path:
-                self.df = file_import(file_path)
-                if self.df.empty or self.df.shape[1] < 2:  # Check if the DataFrame is empty or has less than 2 columns
-                    messagebox.showerror("Error", "Dataset is empty or does not contain enough columns.")
-                    return
-                is_file_selected = True
-            else:
-                # Provide an option to exit the application
-                if messagebox.askyesno("Exit", "No file selected. Do you want to exit the application?"):
-                    self.destroy()  # Close the application
-                    return
-
-        # Preprocess text, initialize categories and label all responses as 'Uncategorized'
-        self.initialize_data_structures()
-
-        # Initialize variable for categorization type
-        self.categorization_var = tk.StringVar(value="Single")
-        # Ask for categorization type after file is selected
-        self.after(100, self.set_categorization_type)
-
-        # Display categories
-        self.after(100, self.display_categories)
-        # Display Uncategorized results
-        self.after(100, self.refresh_category_results_for_currently_displayed_category)
+        # Open the startup dialog
+        startup_dialog = StartupDialog(self)
+        self.wait_window(startup_dialog)  # Wait here until the startup dialog is closed
 
         ###------------------------- UI -------------------------###
         # Configure the grid
@@ -167,6 +172,36 @@ class FuzzyMatcherApp(tk.Tk):
         # Bottom Frame Widget (Export Button)
         self.export_csv_button = tk.Button(bottom_frame, text="Export to CSV", command=self.export_to_csv)
         self.export_csv_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
+
+    def start_new_project(self):
+        # File import process
+        is_file_selected = False
+        while not is_file_selected:
+            file_path = filedialog.askopenfilename(title= "Please select a file containing your dataset")
+            if file_path:
+                self.df = file_import(file_path)
+                if self.df.empty or self.df.shape[1] < 2:  # Check if the DataFrame is empty or has less than 2 columns
+                    messagebox.showerror("Error", "Dataset is empty or does not contain enough columns.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses")
+                    return
+                is_file_selected = True
+            else:
+                # Provide an option to exit the application
+                if messagebox.askyesno("Exit", "No file selected. Do you want to exit the application?"):
+                    self.destroy()  # Close the application
+                    return
+
+        # Preprocess text and initialize all data structures and variables needed for UI and functionality
+        self.initialize_data_structures()
+
+        # Initialize variable for categorization type
+        self.categorization_var = tk.StringVar(value="Single")
+        # Ask for categorization type after file is selected
+        self.after(100, self.set_categorization_type)
+
+        # Display categories
+        self.after(100, self.display_categories)
+        # Display Uncategorized results
+        self.after(100, self.refresh_category_results_for_currently_displayed_category)
 
     def initialize_data_structures(self):
         # Preprocess text
@@ -428,13 +463,50 @@ class FuzzyMatcherApp(tk.Tk):
         if self.categorization_var.get() == "Multi" and selected_responses is not None:
             reselect_treeview_items(self.results_tree, selected_responses)
 
-    def save_session(self):
+    def save_project(self):
         # Logic to save current state in json (or other data type), to be reloaded later
-        pass
+        data_to_save = {
+            'df': self.df.to_json(),
+            'df_preprocessed': self.df_preprocessed.to_json(),
+            'categorized_data': self.categorized_data.to_json(),
+            'categories_display': self.categories_display,
+            'currently_displayed_category': self.currently_displayed_category
+            # Add other necessary fields here
+        }
 
-    def load_session(self):
+        # Save to a file
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            title="Save Session As"
+        )
+        
+        if file_path:
+            with open(file_path, 'w') as f:
+                json.dump(data_to_save, f)
+            messagebox.showinfo("Save Session", "Session saved successfully to " + file_path)
+
+    def load_project(self):
         # Logic to load previously saved state from json (or other data type)
-        pass
+                # Open a file dialog to select the file
+        file_path = filedialog.askopenfilename(
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            title="Load Session"
+        )
+
+        if file_path:
+            with open(file_path, 'r') as f:
+                data_loaded = json.load(f)
+
+            # Convert JSON back to data
+            self.df = pd.read_json(data_loaded['df'])
+            self.df_preprocessed = pd.read_json(data_loaded['df_preprocessed'])
+            self.categorized_data = pd.read_json(data_loaded['categorized_data'])
+            self.categories_display = data_loaded['categories_display']
+            self.currently_displayed_category = data_loaded['currently_displayed_category']
+            # Restore other necessary fields here
+
+            messagebox.showinfo("Load Session", "Session loaded successfully from " + file_path)
 
     def export_to_csv(self):
         # Create export dataframe with all preprocessed response columns removed

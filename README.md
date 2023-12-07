@@ -20,6 +20,7 @@ The context for this is specifically for speeding up the categorization of open-
 ### Functionality:
 
 - ~~Ability to recategorize results.~~
+- Ability to start the program with no import.
 - Save current state (json?)
 - Load previously saved state.
 - Delete categories.
