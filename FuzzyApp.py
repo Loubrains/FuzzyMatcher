@@ -47,10 +47,16 @@ class FuzzyMatcherApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Fuzzy Matcher")
-        self.geometry("1600x900")
 
-        # Initialize variable for categorization type
-        self.categorization_var = tk.StringVar(value="Single")
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        window_size_multiplier = 0.95
+        window_width = int(screen_width * window_size_multiplier)
+        window_height = int(screen_height * window_size_multiplier)
+        x_position = int((screen_width - window_width) / 2)
+        y_position = int((screen_height - window_height) / 2)
+        self.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
+        #self.state('zoomed')
 
         # File import process
         is_file_selected = False
@@ -71,13 +77,17 @@ class FuzzyMatcherApp(tk.Tk):
         # Preprocess text, initialize categories and label all responses as 'Uncategorized'
         self.initialize_data_structures()
 
+        # Initialize variable for categorization type
+        self.categorization_var = tk.StringVar(value="Single")
         # Ask for categorization type after file is selected
         self.after(100, self.set_categorization_type)
+
         # Display categories
         self.after(100, self.display_categories)
         # Display Uncategorized results
         self.after(100, self.refresh_category_results_for_currently_displayed_category)
 
+        ###------------------------- UI -------------------------###
         # Configure the grid
         self.grid_columnconfigure(0, weight=1)  # Column for match results display
         self.grid_columnconfigure(1, weight=1)  # Column for category results display
@@ -212,13 +222,6 @@ class FuzzyMatcherApp(tk.Tk):
         multi_categorization_rb.pack()
         confirm_button.pack()
 
-    def create_category(self):
-        new_category = self.new_category_entry.get()
-        if new_category and new_category not in self.categorized_data.columns:
-            self.categorized_data[new_category] = 0
-            self.categories_display[new_category] = set()
-            self.display_categories()
-
     def display_categories(self):
         selected_categories = self.selected_categories()
 
@@ -280,6 +283,13 @@ class FuzzyMatcherApp(tk.Tk):
 
         # Assign variable for currently displayed category
         self.currently_displayed_category = category
+
+    def create_category(self):
+        new_category = self.new_category_entry.get()
+        if new_category and new_category not in self.categorized_data.columns:
+            self.categorized_data[new_category] = 0
+            self.categories_display[new_category] = set()
+            self.display_categories()
 
     def categorize_response(self):
         selected_responses = self.selected_responses()
