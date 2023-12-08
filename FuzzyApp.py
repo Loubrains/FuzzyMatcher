@@ -199,7 +199,7 @@ class FuzzyMatcherApp(tk.Tk):
                 if messagebox.askyesno("Exit", "No file selected. Do you want to exit the application?"):
                     self.destroy()  # Close the application
                     return
-                
+
     def populate_data_structures(self):
         # Preprocess text
         self.df_preprocessed = pd.DataFrame(self.df.iloc[:, 1:].map(preprocess_text)) # type: ignore
@@ -243,6 +243,81 @@ class FuzzyMatcherApp(tk.Tk):
         multi_categorization_rb.pack()
         confirm_button.pack()
 
+    def load_project(self):
+        # Logic to load previously saved state from json (or other data type)
+        # Open a file dialog to select the file
+        file_path = filedialog.askopenfilename(
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            title="Load Project"
+        )
+
+        if file_path:
+            with open(file_path, 'r') as f:
+                data_loaded = json.load(f)
+
+            # Convert JSON back to data / set default variable values
+            print(data_loaded.keys())
+            self.categorization_var.set(data_loaded['categorization_var'])
+            self.df_preprocessed = pd.read_json(data_loaded['df_preprocessed'])
+            self.response_columns = data_loaded['response_columns']
+            self.categorized_data = pd.read_json(data_loaded['categorized_data'])
+            self.response_counts = data_loaded['response_counts']
+            self.categories_display = {k: set(v) for k, v in data_loaded['categories_display'].items()}
+            self.currently_displayed_category = 'Uncategorized' # Default
+            
+            # Set categorization label
+            self.set_categorization_label()
+            # Display categories
+            self.display_categories()
+            # Display Uncategorized results
+            self.refresh_category_results_for_currently_displayed_category()
+
+            messagebox.showinfo("Load Project", "Project loaded successfully from " + file_path)
+
+    def save_project(self):
+        # Logic to save current state in json (or other data type), to be reloaded later
+
+        data_to_save = {
+            'categorization_var': self.categorization_var.get(),
+            'df_preprocessed': self.df_preprocessed.to_json(),
+            'response_columns': self.response_columns,
+            'categorized_data': self.categorized_data.to_json(),
+            'response_counts': self.response_counts,
+            'categories_display': {k: list(v) for k, v in self.categories_display.items()}
+        }
+
+        # Save to a file
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            title="Save Project As"
+        )
+        
+        if file_path:
+            with open(file_path, 'w') as f:
+                json.dump(data_to_save, f)
+            messagebox.showinfo("Save Project", "Project saved successfully to " + file_path)
+
+    def export_to_csv(self):
+        # Create export dataframe with all preprocessed response columns removed
+        export_df = self.categorized_data.drop(columns=self.response_columns)
+
+        if self.categorization_var.get() == "Multi":
+            export_df.drop('Uncategorized', axis=1, inplace=True)
+
+        # Export to CSV
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+            title="Save As"
+        )
+
+        if file_path:
+            export_df.to_csv(file_path, index=False)
+            messagebox.showinfo("Export", "Data exported successfully to " + file_path)
+        else:
+            messagebox.showinfo("Export", "Export cancelled")
+                
     def set_categorization_label(self):
         chosen_type = self.categorization_var.get()
         self.categorization_label.config(text="Categorization Type: " + chosen_type)
@@ -446,81 +521,6 @@ class FuzzyMatcherApp(tk.Tk):
             reselect_treeview_items(self.categories_tree, selected_categories)
         if self.categorization_var.get() == "Multi" and selected_responses is not None:
             reselect_treeview_items(self.results_tree, selected_responses)
-
-    def save_project(self):
-        # Logic to save current state in json (or other data type), to be reloaded later
-
-        data_to_save = {
-            'categorization_var': self.categorization_var.get(),
-            'df_preprocessed': self.df_preprocessed.to_json(),
-            'response_columns': self.response_columns,
-            'categorized_data': self.categorized_data.to_json(),
-            'response_counts': self.response_counts,
-            'categories_display': {k: list(v) for k, v in self.categories_display.items()}
-        }
-
-        # Save to a file
-        file_path = filedialog.asksaveasfilename(
-            defaultextension=".json",
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            title="Save Project As"
-        )
-        
-        if file_path:
-            with open(file_path, 'w') as f:
-                json.dump(data_to_save, f)
-            messagebox.showinfo("Save Project", "Project saved successfully to " + file_path)
-
-    def load_project(self):
-        # Logic to load previously saved state from json (or other data type)
-        # Open a file dialog to select the file
-        file_path = filedialog.askopenfilename(
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            title="Load Project"
-        )
-
-        if file_path:
-            with open(file_path, 'r') as f:
-                data_loaded = json.load(f)
-
-            # Convert JSON back to data / set default variable values
-            print(data_loaded.keys())
-            self.categorization_var.set(data_loaded['categorization_var'])
-            self.df_preprocessed = pd.read_json(data_loaded['df_preprocessed'])
-            self.response_columns = data_loaded['response_columns']
-            self.categorized_data = pd.read_json(data_loaded['categorized_data'])
-            self.response_counts = data_loaded['response_counts']
-            self.categories_display = {k: set(v) for k, v in data_loaded['categories_display'].items()}
-            self.currently_displayed_category = 'Uncategorized' # Default
-            
-            # Set categorization label
-            self.set_categorization_label()
-            # Display categories
-            self.display_categories()
-            # Display Uncategorized results
-            self.refresh_category_results_for_currently_displayed_category()
-
-            messagebox.showinfo("Load Project", "Project loaded successfully from " + file_path)
-
-    def export_to_csv(self):
-        # Create export dataframe with all preprocessed response columns removed
-        export_df = self.categorized_data.drop(columns=self.response_columns)
-
-        if self.categorization_var.get() == "Multi":
-            export_df.drop('Uncategorized', axis=1, inplace=True)
-
-        # Export to CSV
-        file_path = filedialog.asksaveasfilename(
-            defaultextension=".csv",
-            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
-            title="Save As"
-        )
-
-        if file_path:
-            export_df.to_csv(file_path, index=False)
-            messagebox.showinfo("Export", "Data exported successfully to " + file_path)
-        else:
-            messagebox.showinfo("Export", "Export cancelled")
 
 # Running the application
 if __name__ == "__main__":

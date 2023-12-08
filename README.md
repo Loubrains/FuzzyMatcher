@@ -24,11 +24,11 @@ The context for this is specifically for speeding up the categorization of open-
 - ~~Start program with New Project / Load Project dialogue box, and setup program accordingly~~
 - ~~Ability to save current state. (The framework is there, just need to select the appropriate variables to save)~~
 - ~~Ability to load previously saved state. (Same note as above)~~
-- Delete categories.
-- Rename categories.
+- Ability to delete categories.
+- Ability to rename categories.
 - Ability to switch back to multi from single (spit warning "can't go back").
 - When typing string, press enter to press associated button/do associated action.
-- Redisplay category results upon category updates (only relevant in single categorization mode).
+- ~~Redisplay category results upon category updates. (for currently displayed category, which may not be the one we're categorizing responses into)~~
 - Make an executable that includes the python script (for future editing).
 - Pass in a list of category names?
 - Ability to append more data? (i.e. new cases)
