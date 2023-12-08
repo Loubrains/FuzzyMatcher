@@ -19,10 +19,11 @@ The context for this is specifically for speeding up the categorization of open-
 
 ### Functionality:
 
+- ~~Remove startup dialog, have it start up with empty data structures, new project/load project will populate the data~~
 - ~~Ability to recategorize results.~~
 - ~~Start program with New Project / Load Project dialogue box, and setup program accordingly~~
-- Ability to save current state. (The framework is there, just need to select the appropriate variables to save)
-- Ability to load previously saved state. (Same note as above)
+- ~~Ability to save current state. (The framework is there, just need to select the appropriate variables to save)~~
+- ~~Ability to load previously saved state. (Same note as above)~~
 - Delete categories.
 - Rename categories.
 - Ability to switch back to multi from single (spit warning "can't go back").

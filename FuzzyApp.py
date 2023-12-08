@@ -43,56 +43,26 @@ def fuzzy_matching(df_preprocessed, match_string_entry):
 
     return df_result
 
-# Startup dialog class
-class StartupDialog(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-
-        self.title("Welcome to Fuzzy Matcher")
-
-        # Make this a modal window
-        self.transient(parent)  # Set to be on top of the main window
-        self.grab_set()         # Redirect all events to this window
-
-        # Position the window in the center of the parent
-        self.geometry("+{}+{}".format(parent.winfo_x(), parent.winfo_y()))
-
-        tk.Label(self, text="Choose an option to begin:").pack(pady=10)
-
-        tk.Button(self, text="Start New Project", command=self.on_new_project).pack(pady=5)
-        tk.Button(self, text="Load Existing Project", command=self.on_load_project).pack(pady=5)
-
-    def on_new_project(self):
-        self.parent.start_new_project()
-        self.destroy()
-
-    def on_load_project(self):
-        self.parent.load_project()
-        self.destroy()
-
 # Main application class
 class FuzzyMatcherApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Fuzzy Matcher")
+
+        # Initialize empty variables, which will populated during new project/load project
+        self.initialize_data_structures()
         
         # Set window geometry
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
-        window_size_multiplier = 0.95
+        window_size_multiplier = 0.8
         window_width = int(screen_width * window_size_multiplier)
         window_height = int(screen_height * window_size_multiplier)
         x_position = int((screen_width - window_width) / 2)
         y_position = int((screen_height - window_height) / 2)
         self.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
-        #self.state('zoomed')
+        self.state('zoomed')
 
-        # Open the startup dialog
-        startup_dialog = StartupDialog(self)
-        self.wait_window(startup_dialog)  # Wait here until the startup dialog is closed
-
-        ###------------------------- UI -------------------------###
         # Configure the grid
         self.grid_columnconfigure(0, weight=1)  # Column for match results display
         self.grid_columnconfigure(1, weight=1)  # Column for category results display
@@ -123,7 +93,7 @@ class FuzzyMatcherApp(tk.Tk):
         self.threshold_slider.set(60)  # Setting default value to 60
         self.match_button = tk.Button(left_frame, text="Match", command=self.process_match)
         self.categorize_button = tk.Button(left_frame, text="Categorize Selected Results", command=self.categorize_response)
-        self.categorization_label = tk.Label(left_frame, text="Categorization Type: Single") # Default text, will be updated later
+        self.categorization_label = tk.Label(left_frame, text="Categorization Type: Single")
         self.results_tree = ttk.Treeview(left_frame, columns=('Response', 'Score', 'Count'), show='headings')
         self.results_tree.heading('Response', text='Response')
         self.results_tree.heading('Score', text='Score')
@@ -144,6 +114,7 @@ class FuzzyMatcherApp(tk.Tk):
         # Middle Frame Widgets (Category Results)
         self.display_category_results_for_selected_category_button = tk.Button(middle_frame, text="Display Category Results", command=self.display_category_results_for_selected_category)
         self.recategorize_selected_responses_button = tk.Button(middle_frame, text="Recategorize Selected Results", command=self.recategorize_response)
+        self.category_results_label = tk.Label(middle_frame, text="Results for Category: ")
         self.category_results_tree = ttk.Treeview(middle_frame, columns=('Response', 'Count'), show='headings')
         self.category_results_tree.heading('Response', text='Response')
         self.category_results_tree.heading('Count', text='Count')
@@ -151,8 +122,9 @@ class FuzzyMatcherApp(tk.Tk):
         
         self.display_category_results_for_selected_category_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         self.recategorize_selected_responses_button.grid(row=0, column=1, sticky="ew", padx=10, pady=10)
-        self.category_results_tree.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
-        category_results_scrollbar.grid(row=1, column=2, sticky="ns")
+        self.category_results_label.grid(row=1, column=1, sticky="ew", padx=10, pady=10)
+        self.category_results_tree.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+        category_results_scrollbar.grid(row=2, column=2, sticky="ns")
         self.category_results_tree.configure(yscrollcommand=category_results_scrollbar.set)
 
         # Right Frame Widgets (Categories)
@@ -170,19 +142,48 @@ class FuzzyMatcherApp(tk.Tk):
         self.categories_tree.configure(yscrollcommand=categories_scrollbar.set)
 
         # Bottom Frame Widget (Export Button)
-        self.save_button = tk.Button(bottom_frame, text="Save Project", command=self.save_project)
+        self.new_project_button = tk.Button(bottom_frame, text="New Project", command=self.start_new_project)
         self.load_button = tk.Button(bottom_frame, text="Load Project", command=self.load_project)
+        self.save_button = tk.Button(bottom_frame, text="Save Project", command=self.save_project)
         self.export_csv_button = tk.Button(bottom_frame, text="Export to CSV", command=self.export_to_csv)
-
-        self.save_button.grid(row=0, column=0, sticky="w", padx=10, pady=10)
+        
+        self.new_project_button.grid(row=0, column=0, sticky="w", padx=10, pady=10)
         self.load_button.grid(row=1, column=0, sticky="w", padx=10, pady=10)
-        self.export_csv_button.grid(row=0, column=2, sticky="e", padx=10, pady=10)
+        self.save_button.grid(row=0, column=2, sticky="e", padx=10, pady=10)
+        self.export_csv_button.grid(row=1, column=2, sticky="e", padx=10, pady=10)
 
         bottom_frame.columnconfigure(0, weight=1)
         bottom_frame.columnconfigure(1, weight=1)
         bottom_frame.columnconfigure(2, weight=1)
 
+        # Display categories
+        self.after(100, self.display_categories)
+        self.after(100, self.refresh_category_results_for_currently_displayed_category)
+
+    def initialize_data_structures(self):
+        # Initialize empty variables which will be populated during new project/load project
+        self.categorization_var = tk.StringVar(value="Single")
+        self.df_preprocessed = pd.DataFrame()
+        self.response_columns= []
+        self.categorized_data = pd.DataFrame()
+        self.response_counts = {}
+        self.categories_display = {'Uncategorized': set()}
+        self.match_results = pd.DataFrame(columns=['response', 'score'])
+        self.currently_displayed_category = 'Uncategorized'
+
     def start_new_project(self):
+        # import file
+        self.file_import_process()
+        # Populate the empty data structures using imported file
+        self.populate_data_structures()
+        # Display categories
+        self.display_categories()
+        # Display Uncategorized results
+        self.refresh_category_results_for_currently_displayed_category()
+        # Ask for categorization type after file is selected
+        self.ask_categorization_type()
+
+    def file_import_process(self):
         # File import process
         is_file_selected = False
         while not is_file_selected:
@@ -198,21 +199,8 @@ class FuzzyMatcherApp(tk.Tk):
                 if messagebox.askyesno("Exit", "No file selected. Do you want to exit the application?"):
                     self.destroy()  # Close the application
                     return
-
-        # Preprocess text and initialize all data structures and variables needed for UI and functionality
-        self.initialize_data_structures()
-
-        # Initialize variable for categorization type
-        self.categorization_var = tk.StringVar(value="Single")
-        # Ask for categorization type after file is selected
-        self.after(100, self.set_categorization_type)
-
-        # Display categories
-        self.after(100, self.display_categories)
-        # Display Uncategorized results
-        self.after(100, self.refresh_category_results_for_currently_displayed_category)
-
-    def initialize_data_structures(self):
+                
+    def populate_data_structures(self):
         # Preprocess text
         self.df_preprocessed = pd.DataFrame(self.df.iloc[:, 1:].map(preprocess_text)) # type: ignore
         self.response_columns= [col for col in self.df_preprocessed.columns]
@@ -225,20 +213,13 @@ class FuzzyMatcherApp(tk.Tk):
 
         # Create a flattened DataFrame of the preprocessed responses
         df_series = self.df_preprocessed.stack().reset_index(drop=True)
-
         # Count each response including duplicates
         self.response_counts = df_series.value_counts().to_dict()
 
         # Initialize categories for display and set all unique responses to 'Uncategorized'
         self.categories_display = {'Uncategorized': set(df_series)}
 
-        # Initialize match results dataframe
-        self.match_results = pd.DataFrame(columns=['response', 'score'])
-
-        # Initialize variable for currently displayed category
-        self.currently_displayed_category = 'Uncategorized'
-
-    def set_categorization_type(self):
+    def ask_categorization_type(self):
         popup = tk.Toplevel(self)
         popup.title("Select Categorization Type")
         popup.geometry("400x200")
@@ -254,17 +235,17 @@ class FuzzyMatcherApp(tk.Tk):
         popup.transient(self)  # Keep it on top of the main window
         popup.grab_set()       # Ensure all events are directed to this window until closed
 
-        def confirm_categorization_type():
-            chosen_type = self.categorization_var.get()
-            self.categorization_label.config(text="Categorization Type: " + chosen_type)
-
         single_categorization_rb = tk.Radiobutton(popup, text="Single Categorization", variable=self.categorization_var, value="Single")
         multi_categorization_rb = tk.Radiobutton(popup, text="Multi Categorization", variable=self.categorization_var, value="Multi")
-        confirm_button = tk.Button(popup, text="Confirm", command=lambda: [confirm_categorization_type(), popup.destroy()])
+        confirm_button = tk.Button(popup, text="Confirm", command=lambda: [self.set_categorization_label(), popup.destroy()])
 
         single_categorization_rb.pack()
         multi_categorization_rb.pack()
         confirm_button.pack()
+
+    def set_categorization_label(self):
+        chosen_type = self.categorization_var.get()
+        self.categorization_label.config(text="Categorization Type: " + chosen_type)
 
     def display_categories(self):
         selected_categories = self.selected_categories()
@@ -294,7 +275,7 @@ class FuzzyMatcherApp(tk.Tk):
                     self.category_results_tree.insert('', 'end', values=(response, count))
 
             # Update the results display to reflect the selected category
-            self.match_string_label.config(text=f"Results for Category: {category}")
+            self.category_results_label.config(text=f"Results for Category: {category}")
 
             # Assign variable for currently displayed category
             self.currently_displayed_category = category
@@ -323,10 +304,7 @@ class FuzzyMatcherApp(tk.Tk):
                 self.category_results_tree.insert('', 'end', values=(response, count))
 
         # Update the results display to reflect the selected category
-        self.match_string_label.config(text=f"Results for Category: {category}")
-
-        # Assign variable for currently displayed category
-        self.currently_displayed_category = category
+        self.category_results_label.config(text=f"Results for Category: {category}")
 
     def create_category(self):
         new_category = self.new_category_entry.get()
@@ -426,11 +404,8 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showerror("Error", "No dataset loaded")
         
     def display_match_results(self):
-        # Retrieve the current threshold value from the slider
-        threshold = self.threshold_slider.get()
-
         # Filter the results based on the threshold
-        filtered_results = self.match_results[self.match_results['score'] >= threshold]
+        filtered_results = self.match_results[self.match_results['score'] >= self.threshold_slider.get()]
 
         # Aggregate and count unique instances
         aggregated_results = filtered_results.groupby('response').agg(
@@ -476,13 +451,12 @@ class FuzzyMatcherApp(tk.Tk):
         # Logic to save current state in json (or other data type), to be reloaded later
 
         data_to_save = {
-            'categoization_var': self.categorization_var,
+            'categorization_var': self.categorization_var.get(),
             'df_preprocessed': self.df_preprocessed.to_json(),
             'response_columns': self.response_columns,
             'categorized_data': self.categorized_data.to_json(),
             'response_counts': self.response_counts,
-            'categories_display': {k: list(v) for k, v in self.categories_display.items()},
-            'categorization_label': self.categorization_label
+            'categories_display': {k: list(v) for k, v in self.categories_display.items()}
         }
 
         # Save to a file
@@ -510,21 +484,23 @@ class FuzzyMatcherApp(tk.Tk):
                 data_loaded = json.load(f)
 
             # Convert JSON back to data / set default variable values
-            self.categorization_var = data_loaded['categorization_var']
+            print(data_loaded.keys())
+            self.categorization_var.set(data_loaded['categorization_var'])
             self.df_preprocessed = pd.read_json(data_loaded['df_preprocessed'])
             self.response_columns = data_loaded['response_columns']
             self.categorized_data = pd.read_json(data_loaded['categorized_data'])
             self.response_counts = data_loaded['response_counts']
             self.categories_display = {k: set(v) for k, v in data_loaded['categories_display'].items()}
-            self.match_results = pd.DataFrame(columns=['response', 'score'])
-            self.currently_displayed_category = 'Uncategorized'
-            self.categorization_label = data_loaded['categorization_label']
+            self.currently_displayed_category = 'Uncategorized' # Default
+            
+            # Set categorization label
+            self.set_categorization_label()
+            # Display categories
+            self.display_categories()
+            # Display Uncategorized results
+            self.refresh_category_results_for_currently_displayed_category()
 
             messagebox.showinfo("Load Project", "Project loaded successfully from " + file_path)
-            # Display categories
-            self.after(100, self.display_categories)
-            # Display Uncategorized results
-            self.after(100, self.refresh_category_results_for_currently_displayed_category)
 
     def export_to_csv(self):
         # Create export dataframe with all preprocessed response columns removed
