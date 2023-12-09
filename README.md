@@ -19,8 +19,6 @@ The context for this is specifically for speeding up the categorization of open-
 
 ### Functionality:
 
-- Ability to delete categories. (right click or button?)
-- Ability to rename categories. (right click or button?)
 - Ability to switch back to multi from single (spit warning "can't go back").
 - When typing string, press enter to press associated button/do associated action.
 - Ability to sort match results by other dimensions
@@ -28,6 +26,8 @@ The context for this is specifically for speeding up the categorization of open-
 - Make an executable that includes the python script (for future editing).
 - Pass in a list of category names?
 - Ability to append more data? (i.e. new cases)
+- ~~Ability to delete categories. (right click or button?)~~
+- ~~Ability to rename categories. (right click or button?)~~
 - ~~Remove startup dialog, have it start up with empty data structures, new project/load project will populate the data~~
 - ~~Ability to recategorize results.~~
 - ~~Start program with New Project / Load Project dialogue box, and setup program accordingly~~

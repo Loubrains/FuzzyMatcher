@@ -130,6 +130,8 @@ class FuzzyMatcherApp(tk.Tk):
         # Right Frame Widgets (Categories)
         self.new_category_entry = tk.Entry(right_frame)
         self.add_category_button = tk.Button(right_frame, text="Add Category", command=self.create_category)
+        self.rename_category_button = tk.Button(right_frame, text="Rename Category", command=self.ask_rename_category)
+        self.delete_categories_button = tk.Button(right_frame, text="Delete Category", command=self.ask_delete_categories)
         self.categories_tree = ttk.Treeview(right_frame, columns=('Category', 'Count'), show='headings')
         self.categories_tree.heading('Category', text='Category')
         self.categories_tree.heading('Count', text='Count')
@@ -137,8 +139,10 @@ class FuzzyMatcherApp(tk.Tk):
 
         self.new_category_entry.grid(row=0, column=0, sticky="ew", padx=5)
         self.add_category_button.grid(row=0, column=1, sticky="ew", padx=5)
-        self.categories_tree.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
-        categories_scrollbar.grid(row=1, column=2, sticky="ns")
+        self.rename_category_button.grid(row=0, column=2, sticky="ew", padx=5)
+        self.delete_categories_button.grid(row=0, column=3, sticky="ew", padx=5)
+        self.categories_tree.grid(row=1, column=0, columnspan=4, sticky="nsew", padx=10, pady=10)
+        categories_scrollbar.grid(row=1, column=4, sticky="ns")
         self.categories_tree.configure(yscrollcommand=categories_scrollbar.set)
 
         # Bottom Frame Widget (Export Button)
@@ -221,30 +225,34 @@ class FuzzyMatcherApp(tk.Tk):
 
     def ask_categorization_type(self):
         # Create popup window
-        popup = tk.Toplevel(self)
-        popup.title("Select Categorization Type")
-        popup.geometry("400x200")
+        categorization_type_popup = tk.Toplevel(self)
+        categorization_type_popup.title("Select Categorization Type")
+        categorization_type_popup.geometry("400x200")
 
         # Center the popup on the main window
         window_width = self.winfo_reqwidth()
         window_height = self.winfo_reqheight()
         position_right = int(self.winfo_screenwidth()/2 - window_width/2)
         position_down = int(self.winfo_screenheight()/2 - window_height/2)
-        popup.geometry("+{}+{}".format(position_right, position_down))
+        categorization_type_popup.geometry("+{}+{}".format(position_right, position_down))
 
         # Keep the popup window on top
-        popup.transient(self)  # Keep it on top of the main window
-        popup.grab_set()       # Ensure all events are directed to this window until closed
+        categorization_type_popup.transient(self)  # Keep it on top of the main window
+        categorization_type_popup.grab_set()       # Ensure all events are directed to this window until closed
 
         # Create buttons that assign a value to the categorization type variable
-        single_categorization_rb = tk.Radiobutton(popup, text="Single Categorization", variable=self.categorization_var, value="Single")
-        multi_categorization_rb = tk.Radiobutton(popup, text="Multi Categorization", variable=self.categorization_var, value="Multi")
-        confirm_button = tk.Button(popup, text="Confirm", command=lambda: [self.set_categorization_label(), popup.destroy()])
+        single_categorization_rb = tk.Radiobutton(categorization_type_popup, text="Single Categorization", variable=self.categorization_var, value="Single")
+        multi_categorization_rb = tk.Radiobutton(categorization_type_popup, text="Multi Categorization", variable=self.categorization_var, value="Multi")
+        confirm_button = tk.Button(categorization_type_popup, text="Confirm", command=lambda: [self.set_categorization_type_label(), categorization_type_popup.destroy()])
         
         # Add the buttons to the window
         single_categorization_rb.pack()
         multi_categorization_rb.pack()
         confirm_button.pack()
+
+    def set_categorization_type_label(self):
+        chosen_type = self.categorization_var.get()
+        self.categorization_label.config(text="Categorization Type: " + chosen_type)
 
     def load_project(self):
         # Logic to load previously saved state from json (or other data type)
@@ -261,7 +269,7 @@ class FuzzyMatcherApp(tk.Tk):
             # Convert JSON data back to variables / set default variable values
             self.populate_data_structures_load_project(data_loaded)
             # Set categorization label
-            self.set_categorization_label()
+            self.set_categorization_type_label()
             # Display categories
             self.display_categories()
             # Display Uncategorized results
@@ -322,10 +330,6 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showinfo("Export", "Data exported successfully to " + file_path)
         else:
             messagebox.showinfo("Export", "Export cancelled")
-                
-    def set_categorization_label(self):
-        chosen_type = self.categorization_var.get()
-        self.categorization_label.config(text="Categorization Type: " + chosen_type)
 
     def display_categories(self):
         selected_categories = self.selected_categories()
@@ -393,11 +397,82 @@ class FuzzyMatcherApp(tk.Tk):
             self.categories_display[new_category] = set()
             self.display_categories()
 
-    def rename_category(self):
-        pass
+    def ask_rename_category(self):
+        selected_categories = self.selected_categories()
+        
+        if len(selected_categories) != 1:
+            messagebox.showinfo("Info", "Please select one category to rename.")
+            return
+        
+        if "Uncategorized" in selected_categories:
+            messagebox.showinfo("Info", "You may not rename the 'Uncategorized' category.")
+            return
+                
+        old_category = selected_categories.pop()
+        rename_dialog_popup = tk.Toplevel(self)
+        rename_dialog_popup.title("Rename Category")
+        rename_dialog_popup.geometry("300x100")
 
-    def delete_categoriy(self):
-        pass
+        # Center the popup on the main window
+        window_width = self.winfo_reqwidth()
+        window_height = self.winfo_reqheight()
+        position_right = int(self.winfo_screenwidth()/2 - window_width/2)
+        position_down = int(self.winfo_screenheight()/2 - window_height/2)
+        rename_dialog_popup.geometry("+{}+{}".format(position_right, position_down))
+        
+        # Keep the popup window on top
+        rename_dialog_popup.transient(self)  # Keep it on top of the main window
+        rename_dialog_popup.grab_set()       # Ensure all events are directed to this window until closed
+
+        label = tk.Label(rename_dialog_popup, text=f"Enter a new name for '{old_category}':")
+        new_category_entry = tk.Entry(rename_dialog_popup)
+        ok_button = tk.Button(rename_dialog_popup, text="OK", command=lambda: [
+            self.rename_category_in_data(old_category, new_category_entry.get()),
+            rename_dialog_popup.destroy(),
+            self.display_categories(),
+            self.refresh_category_results_for_currently_displayed_category()
+        ])
+        cancel_button = tk.Button(rename_dialog_popup, text="Cancel", command=rename_dialog_popup.destroy)
+
+        label.pack(pady=10)
+        new_category_entry.pack()
+        ok_button.pack(side="left", padx=20)
+        cancel_button.pack(side="right", padx=20)
+
+    def rename_category_in_data(self, old_category, new_category):
+        if not new_category:
+            messagebox.showinfo("Info", "Please enter a non-empty category name.")
+            return
+
+        if new_category in self.categories_display:
+            messagebox.showinfo("Info", "A category with this name already exists.")
+            return
+    
+        # Rename the category in data structures
+        self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
+        self.categories_display[new_category] = self.categories_display.pop(old_category)
+
+    def ask_delete_categories(self):
+        selected_categories = self.selected_categories()
+
+        if not selected_categories:
+            messagebox.showinfo("Info", "Please select categories to delete.")
+            return
+        
+        if "Uncategorized" in selected_categories:
+            messagebox.showinfo("Info", "You may not delete the category 'Uncategorized'.")
+            return
+        
+        confirmation = messagebox.askyesno("Confirmation", "Are you sure you want to delete the selected categories?")
+        if confirmation:
+            self.delete_categories_in_data(selected_categories)
+            self.display_categories()
+            self.refresh_category_results_for_currently_displayed_category()
+
+    def delete_categories_in_data(self, categories_to_delete):
+        for category in categories_to_delete:
+            del self.categories_display[category]
+            self.categorized_data.drop(columns=category, inplace=True)
 
     def categorize_response(self):
         selected_responses = self.selected_match_responses()
