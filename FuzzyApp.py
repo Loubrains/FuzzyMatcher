@@ -175,7 +175,7 @@ class FuzzyMatcherApp(tk.Tk):
         # import file
         self.file_import_process()
         # Populate the empty data structures using imported file
-        self.populate_data_structures()
+        self.populate_data_structures_new_project()
         # Display categories
         self.display_categories()
         # Display Uncategorized results
@@ -200,7 +200,7 @@ class FuzzyMatcherApp(tk.Tk):
                     self.destroy()  # Close the application
                     return
 
-    def populate_data_structures(self):
+    def populate_data_structures_new_project(self):
         # Preprocess text
         self.df_preprocessed = pd.DataFrame(self.df.iloc[:, 1:].map(preprocess_text)) # type: ignore
         self.response_columns= [col for col in self.df_preprocessed.columns]
@@ -220,6 +220,7 @@ class FuzzyMatcherApp(tk.Tk):
         self.categories_display = {'Uncategorized': set(df_series)}
 
     def ask_categorization_type(self):
+        # Create popup window
         popup = tk.Toplevel(self)
         popup.title("Select Categorization Type")
         popup.geometry("400x200")
@@ -235,10 +236,12 @@ class FuzzyMatcherApp(tk.Tk):
         popup.transient(self)  # Keep it on top of the main window
         popup.grab_set()       # Ensure all events are directed to this window until closed
 
+        # Create buttons that assign a value to the categorization type variable
         single_categorization_rb = tk.Radiobutton(popup, text="Single Categorization", variable=self.categorization_var, value="Single")
         multi_categorization_rb = tk.Radiobutton(popup, text="Multi Categorization", variable=self.categorization_var, value="Multi")
         confirm_button = tk.Button(popup, text="Confirm", command=lambda: [self.set_categorization_label(), popup.destroy()])
-
+        
+        # Add the buttons to the window
         single_categorization_rb.pack()
         multi_categorization_rb.pack()
         confirm_button.pack()
@@ -255,16 +258,8 @@ class FuzzyMatcherApp(tk.Tk):
             with open(file_path, 'r') as f:
                 data_loaded = json.load(f)
 
-            # Convert JSON back to data / set default variable values
-            print(data_loaded.keys())
-            self.categorization_var.set(data_loaded['categorization_var'])
-            self.df_preprocessed = pd.read_json(data_loaded['df_preprocessed'])
-            self.response_columns = data_loaded['response_columns']
-            self.categorized_data = pd.read_json(data_loaded['categorized_data'])
-            self.response_counts = data_loaded['response_counts']
-            self.categories_display = {k: set(v) for k, v in data_loaded['categories_display'].items()}
-            self.currently_displayed_category = 'Uncategorized' # Default
-            
+            # Convert JSON data back to variables / set default variable values
+            self.populate_data_structures_load_project(data_loaded)
             # Set categorization label
             self.set_categorization_label()
             # Display categories
@@ -273,6 +268,16 @@ class FuzzyMatcherApp(tk.Tk):
             self.refresh_category_results_for_currently_displayed_category()
 
             messagebox.showinfo("Load Project", "Project loaded successfully from " + file_path)
+
+    def populate_data_structures_load_project(self, data_loaded):
+            # Convert JSON back to data / set default variable values
+            self.categorization_var.set(data_loaded['categorization_var'])
+            self.df_preprocessed = pd.read_json(data_loaded['df_preprocessed'])
+            self.response_columns = data_loaded['response_columns']
+            self.categorized_data = pd.read_json(data_loaded['categorized_data'])
+            self.response_counts = data_loaded['response_counts']
+            self.categories_display = {k: set(v) for k, v in data_loaded['categories_display'].items()}
+            self.currently_displayed_category = 'Uncategorized' # Default
 
     def save_project(self):
         # Logic to save current state in json (or other data type), to be reloaded later
@@ -387,6 +392,12 @@ class FuzzyMatcherApp(tk.Tk):
             self.categorized_data[new_category] = 0
             self.categories_display[new_category] = set()
             self.display_categories()
+
+    def rename_category(self):
+        pass
+
+    def delete_categoriy(self):
+        pass
 
     def categorize_response(self):
         selected_responses = self.selected_responses()
