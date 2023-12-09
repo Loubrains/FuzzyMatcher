@@ -400,7 +400,7 @@ class FuzzyMatcherApp(tk.Tk):
         pass
 
     def categorize_response(self):
-        selected_responses = self.selected_responses()
+        selected_responses = self.selected_match_responses()
         selected_categories = self.selected_categories()
 
         if not selected_categories or not selected_responses:
@@ -426,7 +426,7 @@ class FuzzyMatcherApp(tk.Tk):
             self.categorized_data.loc[mask, 'Uncategorized'] = 0
             # Remove responses from categories display and matched responses display
             self.categories_display['Uncategorized'] -= selected_responses
-            self.match_results = self.match_results[~self.match_results['response'].isin(self.selected_responses())]
+            self.match_results = self.match_results[~self.match_results['response'].isin(self.selected_match_responses())]
 
         for category in selected_categories:
             # Categorize data (set selected responses equal to 1 for selected categories)
@@ -515,7 +515,7 @@ class FuzzyMatcherApp(tk.Tk):
     def selected_categories(self):
         return {self.categories_tree.item(item_id)['values'][0] for item_id in self.categories_tree.selection()}
     
-    def selected_responses(self):
+    def selected_match_responses(self):
         return {self.results_tree.item(item_id)['values'][0] for item_id in self.results_tree.selection()}
 
     def selected_category_responses(self):
