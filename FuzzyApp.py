@@ -200,8 +200,7 @@ class FuzzyMatcherApp(tk.Tk):
             else:
                 is_file_selected = True
         return is_file_selected
-
-        
+   
     def populate_data_structures_new_project(self):
         # Preprocess text
         self.df_preprocessed = pd.DataFrame(self.df.iloc[:, 1:].map(preprocess_text)) # type: ignore
