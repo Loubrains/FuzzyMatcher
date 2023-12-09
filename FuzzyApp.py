@@ -177,33 +177,31 @@ class FuzzyMatcherApp(tk.Tk):
 
     def start_new_project(self):
         # import file
-        self.file_import_process()
-        # Populate the empty data structures using imported file
-        self.populate_data_structures_new_project()
-        # Display categories
-        self.display_categories()
-        # Display Uncategorized results
-        self.refresh_category_results_for_currently_displayed_category()
-        # Ask for categorization type after file is selected
-        self.ask_categorization_type()
+        if self.file_import_process():
+            # Populate the empty data structures using imported file
+            self.populate_data_structures_new_project()
+            # Display categories
+            self.display_categories()
+            # Display Uncategorized results
+            self.refresh_category_results_for_currently_displayed_category()
+            # Ask for categorization type after file is selected
+            self.ask_categorization_type()
 
     def file_import_process(self):
         # File import process
         is_file_selected = False
-        while not is_file_selected:
-            file_path = filedialog.askopenfilename(title= "Please select a file containing your dataset")
-            if file_path:
-                self.df = file_import(file_path)
-                if self.df.empty or self.df.shape[1] < 2:  # Check if the DataFrame is empty or has less than 2 columns
-                    messagebox.showerror("Error", "Dataset is empty or does not contain enough columns.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses")
-                    return
-                is_file_selected = True
+        file_path = filedialog.askopenfilename(title= "Please select a file containing your dataset")
+        if file_path:
+            # Import file and create dataframe
+            self.df = file_import(file_path)
+            # Check if the DataFrame is empty or has less than 2 columns
+            if self.df.empty or self.df.shape[1] < 2:
+                messagebox.showerror("Error", "Dataset is empty or does not contain enough columns.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses")
             else:
-                # Provide an option to exit the application
-                if messagebox.askyesno("Exit", "No file selected. Do you want to exit the application?"):
-                    self.destroy()  # Close the application
-                    return
+                is_file_selected = True
+        return is_file_selected
 
+        
     def populate_data_structures_new_project(self):
         # Preprocess text
         self.df_preprocessed = pd.DataFrame(self.df.iloc[:, 1:].map(preprocess_text)) # type: ignore

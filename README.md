@@ -26,6 +26,7 @@ The context for this is specifically for speeding up the categorization of open-
 - Make an executable that includes the python script (for future editing).
 - Pass in a list of category names?
 - Ability to append more data? (i.e. new cases)
+- ~~Exiting file import should keep you in the application~~
 - ~~Ability to delete categories. (right click or button?)~~
 - ~~Ability to rename categories. (right click or button?)~~
 - ~~Remove startup dialog, have it start up with empty data structures, new project/load project will populate the data~~
