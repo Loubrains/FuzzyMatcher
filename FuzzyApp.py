@@ -61,7 +61,7 @@ class FuzzyMatcherApp(tk.Tk):
         x_position = int((screen_width - window_width) / 2)
         y_position = int((screen_height - window_height) / 2)
         self.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
-        self.state('zoomed')
+        # self.state('zoomed')
 
         # Configure the grid
         self.grid_columnconfigure(0, weight=1)  # Column for match results display
@@ -100,6 +100,7 @@ class FuzzyMatcherApp(tk.Tk):
         self.results_tree.heading('Count', text='Count')
         results_scrollbar = tk.Scrollbar(left_frame, orient="vertical", command=self.results_tree.yview)
         
+        # Bind left frame widgets to grid
         self.match_string_label.grid(row=0, column=0, sticky="ew", padx=5)
         self.match_string_entry.grid(row=1, column=0, sticky="ew", padx=5)
         self.threshold_label.grid(row=0, column=1, sticky="ew", padx=5)
@@ -120,6 +121,7 @@ class FuzzyMatcherApp(tk.Tk):
         self.category_results_tree.heading('Count', text='Count')
         category_results_scrollbar = tk.Scrollbar(middle_frame, orient="vertical", command=self.category_results_tree.yview)
         
+        # Bind middle frame widgets to grid
         self.display_category_results_for_selected_category_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         self.recategorize_selected_responses_button.grid(row=0, column=1, sticky="ew", padx=10, pady=10)
         self.category_results_label.grid(row=1, column=1, sticky="ew", padx=10, pady=10)
@@ -137,6 +139,7 @@ class FuzzyMatcherApp(tk.Tk):
         self.categories_tree.heading('Count', text='Count')
         categories_scrollbar = tk.Scrollbar(right_frame, orient="vertical", command=self.categories_tree.yview)
 
+        # Bind right frame widgets to grid
         self.new_category_entry.grid(row=0, column=0, sticky="ew", padx=5)
         self.add_category_button.grid(row=0, column=1, sticky="ew", padx=5)
         self.rename_category_button.grid(row=0, column=2, sticky="ew", padx=5)
@@ -145,22 +148,44 @@ class FuzzyMatcherApp(tk.Tk):
         categories_scrollbar.grid(row=1, column=4, sticky="ns")
         self.categories_tree.configure(yscrollcommand=categories_scrollbar.set)
 
-        # Bottom Frame Widget (Export Button)
+        # Bottom frame widgets (new project, load project, save project, export to csv)
         self.new_project_button = tk.Button(bottom_frame, text="New Project", command=self.start_new_project)
         self.load_button = tk.Button(bottom_frame, text="Load Project", command=self.load_project)
         self.save_button = tk.Button(bottom_frame, text="Save Project", command=self.save_project)
         self.export_csv_button = tk.Button(bottom_frame, text="Export to CSV", command=self.export_to_csv)
         
+        # Bind bottom frame widgets to grid
         self.new_project_button.grid(row=0, column=0, sticky="w", padx=10, pady=10)
         self.load_button.grid(row=1, column=0, sticky="w", padx=10, pady=10)
         self.save_button.grid(row=0, column=2, sticky="e", padx=10, pady=10)
         self.export_csv_button.grid(row=1, column=2, sticky="e", padx=10, pady=10)
 
+        # Allow the treeviews to expand vertically
+        left_frame.grid_rowconfigure(4, weight=1)  
+        middle_frame.grid_rowconfigure(2, weight=1)
+        right_frame.grid_rowconfigure(1, weight=1)
+
+        # Don't allow the scrollbar to expand horizontally
+        left_frame.grid_columnconfigure(2, weight=0)
+        middle_frame.grid_columnconfigure(2, weight=0)
+        right_frame.grid_columnconfigure(4, weight=0)
+
+        # Allow all buttons and treviews to expand/contract horizontally together
+        left_frame.grid_columnconfigure(0, weight=1)
+        left_frame.grid_columnconfigure(1, weight=1)
+        middle_frame.grid_columnconfigure(0, weight=1)
+        middle_frame.grid_columnconfigure(1, weight=1)
+        right_frame.grid_columnconfigure(0, weight=1)
+        right_frame.grid_columnconfigure(1, weight=1)
+        right_frame.grid_columnconfigure(2, weight=1)
+        right_frame.grid_columnconfigure(3, weight=1)
+
+        # Allow the bottom frame to expand horizontally
         bottom_frame.columnconfigure(0, weight=1)
         bottom_frame.columnconfigure(1, weight=1)
         bottom_frame.columnconfigure(2, weight=1)
 
-        # Display categories
+        # Display categories data
         self.after(100, self.display_categories)
         self.after(100, self.refresh_category_results_for_currently_displayed_category)
 

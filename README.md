@@ -40,12 +40,11 @@ The context for this is specifically for speeding up the categorization of open-
 
 - Sort category results display first by count and second alphabetically.
 - Show percentages next to category counts
-- All display boxes should stretch to the bottom of the window.
-- Widen display boxes.
 - Set column sizes to minimum required to display results.
 - Align tops and bottoms of display boxes.
 - Maybe a box that always shows uncategorized (or remove current match and put them in there?)
 - Text wrapping (it's cuttong off 'y' to look like 'v').
+- ~~All display boxes should stretch to the bottom of the window.~~
 
 ### Comments and documentation
 
