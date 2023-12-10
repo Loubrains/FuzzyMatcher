@@ -20,12 +20,12 @@ The context for this is specifically for speeding up the categorization of open-
 ### Functionality:
 
 - Ability to switch back to multi from single (spit warning "can't go back").
-- When typing string, press enter to press associated button/do associated action.
 - Ability to sort match results by other dimensions
 - Handle NaNs/Missing data
 - Make an executable that includes the python script (for future editing).
 - Pass in a list of category names?
 - Ability to append more data? (i.e. new cases)
+- ~~When typing string, press enter to press associated button/do associated action.~~
 - ~~Exiting file import should keep you in the application~~
 - ~~Ability to delete categories. (right click or button?)~~
 - ~~Ability to rename categories. (right click or button?)~~
@@ -43,7 +43,8 @@ The context for this is specifically for speeding up the categorization of open-
 - Set column sizes to minimum required to display results.
 - Align tops and bottoms of display boxes.
 - Maybe a box that always shows uncategorized (or remove current match and put them in there?)
-- Text wrapping (it's cuttong off 'y' to look like 'v').
+- Tooltips ti display treeview entries that run off the frame.
+- ~~Text wrapping (it's cuttong off 'y' to look like 'v').~~
 - ~~All display boxes should stretch to the bottom of the window.~~
 
 ### Comments and documentation
@@ -53,3 +54,9 @@ The context for this is specifically for speeding up the categorization of open-
 - Separate logic from UI.
 - Unit tests.
 - Maybe an auto mode? i.e. auto-match and categorize for each category in the list, for a pre-defined threshold.
+
+### For the lols:
+
+- Play CODEX installer 8-bit music
+- Closing the program reopens it again
+- Donation popup box

@@ -77,16 +77,22 @@ class FuzzyMatcherApp(tk.Tk):
         middle_frame = tk.Frame(self)
         right_frame = tk.Frame(self)
         bottom_frame = tk.Frame(self)
-
+ 
         top_frame.grid(row=0, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
         left_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
         middle_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
         right_frame.grid(row=1, column=2, sticky="nsew", padx=10, pady=10)
         bottom_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
 
+        # Configure Treeview style for larger row height and centered column text
+        style = ttk.Style(self)
+        style.configure("Treeview", rowheight=25)
+        style.configure("Treeview.Item", anchor='center')
+
         # Left Frame Widgets (Match Results)
         self.match_string_label = tk.Label(left_frame, text="Enter String to Match:")
         self.match_string_entry = tk.Entry(left_frame)
+        self.match_string_entry.bind('<Return>', lambda event: self.process_match()) # Pressing 'Enter' processes the match, same as the button
         self.threshold_label = tk.Label(left_frame, text="Set Fuzz Threshold (100 is precise, 0 is imprecise):")
         self.threshold_slider = tk.Scale(left_frame, from_=0, to=100, orient="horizontal", resolution=1,
                                         command=lambda val: self.display_match_results())
@@ -94,11 +100,14 @@ class FuzzyMatcherApp(tk.Tk):
         self.match_button = tk.Button(left_frame, text="Match", command=self.process_match)
         self.categorize_button = tk.Button(left_frame, text="Categorize Selected Results", command=self.categorize_response)
         self.categorization_label = tk.Label(left_frame, text="Categorization Type: Single")
-        self.results_tree = ttk.Treeview(left_frame, columns=('Response', 'Score', 'Count'), show='headings')
-        self.results_tree.heading('Response', text='Response')
-        self.results_tree.heading('Score', text='Score')
-        self.results_tree.heading('Count', text='Count')
-        results_scrollbar = tk.Scrollbar(left_frame, orient="vertical", command=self.results_tree.yview)
+        self.match_results_tree = ttk.Treeview(left_frame, columns=('Response', 'Score', 'Count'), show='headings')
+        self.match_results_tree.heading('Response', text='Response')
+        self.match_results_tree.heading('Score', text='Score')
+        self.match_results_tree.heading('Count', text='Count')
+        self.match_results_tree.column('Response', width=400)
+        self.match_results_tree.column('Score', anchor='center', width=100)
+        self.match_results_tree.column('Count', anchor='center', width=100)
+        self.results_scrollbar = tk.Scrollbar(left_frame, orient="vertical", command=self.match_results_tree.yview)
         
         # Bind left frame widgets to grid
         self.match_string_label.grid(row=0, column=0, sticky="ew", padx=5)
@@ -108,9 +117,9 @@ class FuzzyMatcherApp(tk.Tk):
         self.categorization_label.grid(row=2, column=1, sticky="ew")
         self.match_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
         self.categorize_button.grid(row=3, column=1, sticky="ew", padx=10, pady=10)
-        self.results_tree.grid(row=4, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
-        results_scrollbar.grid(row=4, column=2, sticky="ns")
-        self.results_tree.configure(yscrollcommand=results_scrollbar.set)
+        self.match_results_tree.grid(row=4, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+        self.results_scrollbar.grid(row=4, column=2, sticky="ns")
+        self.match_results_tree.configure(yscrollcommand=self.results_scrollbar.set)
 
         # Middle Frame Widgets (Category Results)
         self.display_category_results_for_selected_category_button = tk.Button(middle_frame, text="Display Category Results", command=self.display_category_results_for_selected_category)
@@ -119,25 +128,30 @@ class FuzzyMatcherApp(tk.Tk):
         self.category_results_tree = ttk.Treeview(middle_frame, columns=('Response', 'Count'), show='headings')
         self.category_results_tree.heading('Response', text='Response')
         self.category_results_tree.heading('Count', text='Count')
-        category_results_scrollbar = tk.Scrollbar(middle_frame, orient="vertical", command=self.category_results_tree.yview)
+        self.category_results_tree.column('Response', width=333)
+        self.category_results_tree.column('Count', anchor='center', width=67)
+        self.category_results_scrollbar = tk.Scrollbar(middle_frame, orient="vertical", command=self.category_results_tree.yview)
         
         # Bind middle frame widgets to grid
         self.display_category_results_for_selected_category_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         self.recategorize_selected_responses_button.grid(row=0, column=1, sticky="ew", padx=10, pady=10)
         self.category_results_label.grid(row=1, column=1, sticky="ew", padx=10, pady=10)
         self.category_results_tree.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
-        category_results_scrollbar.grid(row=2, column=2, sticky="ns")
-        self.category_results_tree.configure(yscrollcommand=category_results_scrollbar.set)
+        self.category_results_scrollbar.grid(row=2, column=2, sticky="ns")
+        self.category_results_tree.configure(yscrollcommand=self.category_results_scrollbar.set)
 
         # Right Frame Widgets (Categories)
         self.new_category_entry = tk.Entry(right_frame)
+        self.new_category_entry.bind('<Return>', lambda event: self.create_category()) # Pressing 'Enter' processes the match, same as the button
         self.add_category_button = tk.Button(right_frame, text="Add Category", command=self.create_category)
         self.rename_category_button = tk.Button(right_frame, text="Rename Category", command=self.ask_rename_category)
         self.delete_categories_button = tk.Button(right_frame, text="Delete Category", command=self.ask_delete_categories)
         self.categories_tree = ttk.Treeview(right_frame, columns=('Category', 'Count'), show='headings')
         self.categories_tree.heading('Category', text='Category')
         self.categories_tree.heading('Count', text='Count')
-        categories_scrollbar = tk.Scrollbar(right_frame, orient="vertical", command=self.categories_tree.yview)
+        self.categories_tree.column('Category', width=333)
+        self.categories_tree.column('Count', anchor='center', width=67)
+        self.categories_scrollbar = tk.Scrollbar(right_frame, orient="vertical", command=self.categories_tree.yview)
 
         # Bind right frame widgets to grid
         self.new_category_entry.grid(row=0, column=0, sticky="ew", padx=5)
@@ -145,8 +159,8 @@ class FuzzyMatcherApp(tk.Tk):
         self.rename_category_button.grid(row=0, column=2, sticky="ew", padx=5)
         self.delete_categories_button.grid(row=0, column=3, sticky="ew", padx=5)
         self.categories_tree.grid(row=1, column=0, columnspan=4, sticky="nsew", padx=10, pady=10)
-        categories_scrollbar.grid(row=1, column=4, sticky="ns")
-        self.categories_tree.configure(yscrollcommand=categories_scrollbar.set)
+        self.categories_scrollbar.grid(row=1, column=4, sticky="ns")
+        self.categories_tree.configure(yscrollcommand=self.categories_scrollbar.set)
 
         # Bottom frame widgets (new project, load project, save project, export to csv)
         self.new_project_button = tk.Button(bottom_frame, text="New Project", command=self.start_new_project)
@@ -600,12 +614,12 @@ class FuzzyMatcherApp(tk.Tk):
         sorted_results = aggregated_results.sort_values(by=['max_score', 'count'], ascending=[False, False])
 
         # Clear existing items in the results display area
-        for item in self.results_tree.get_children():
-            self.results_tree.delete(item)
+        for item in self.match_results_tree.get_children():
+            self.match_results_tree.delete(item)
 
         # Populate the display area with aggregated unique filtered results
         for _, row in sorted_results.iterrows():
-            self.results_tree.insert('', 'end', values=(row['response'], row['max_score'], row['count']))
+            self.match_results_tree.insert('', 'end', values=(row['response'], row['max_score'], row['count']))
 
         ### Update this method to display ORIGINAL STRING ###
 
@@ -613,7 +627,7 @@ class FuzzyMatcherApp(tk.Tk):
         return {self.categories_tree.item(item_id)['values'][0] for item_id in self.categories_tree.selection()}
     
     def selected_match_responses(self):
-        return {self.results_tree.item(item_id)['values'][0] for item_id in self.results_tree.selection()}
+        return {self.match_results_tree.item(item_id)['values'][0] for item_id in self.match_results_tree.selection()}
 
     def selected_category_responses(self):
         return {self.category_results_tree.item(item_id)['values'][0] for item_id in self.category_results_tree.selection()}
@@ -628,7 +642,7 @@ class FuzzyMatcherApp(tk.Tk):
         if selected_categories is not None:
             reselect_treeview_items(self.categories_tree, selected_categories)
         if self.categorization_var.get() == "Multi" and selected_responses is not None:
-            reselect_treeview_items(self.results_tree, selected_responses)
+            reselect_treeview_items(self.match_results_tree, selected_responses)
 
 # Running the application
 if __name__ == "__main__":
