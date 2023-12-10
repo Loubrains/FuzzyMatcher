@@ -654,7 +654,7 @@ class FuzzyMatcherApp(tk.Tk):
     def calculate_percentage(self, responses):
         # Calculate total responses
         count = self.calculate_count(responses)
-        total_responses = sum(len(responses) for responses in self.categories_display.values())
+        total_responses = sum(self.response_counts.values())
         return (count / total_responses) * 100 if total_responses > 0 else 0
 
 # Running the application
