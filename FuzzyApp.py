@@ -146,11 +146,13 @@ class FuzzyMatcherApp(tk.Tk):
         self.add_category_button = tk.Button(right_frame, text="Add Category", command=self.create_category)
         self.rename_category_button = tk.Button(right_frame, text="Rename Category", command=self.ask_rename_category)
         self.delete_categories_button = tk.Button(right_frame, text="Delete Category", command=self.ask_delete_categories)
-        self.categories_tree = ttk.Treeview(right_frame, columns=('Category', 'Count'), show='headings')
+        self.categories_tree = ttk.Treeview(right_frame, columns=('Category', 'Count', 'Percentage'), show='headings')
         self.categories_tree.heading('Category', text='Category')
         self.categories_tree.heading('Count', text='Count')
-        self.categories_tree.column('Category', width=333)
-        self.categories_tree.column('Count', anchor='center', width=67)
+        self.categories_tree.heading('Percentage', text='%')
+        self.categories_tree.column('Category', width=400)
+        self.categories_tree.column('Count', anchor='center', width=100)
+        self.categories_tree.column('Percentage', anchor='center', width=100)
         self.categories_scrollbar = tk.Scrollbar(right_frame, orient="vertical", command=self.categories_tree.yview)
 
         # Bind right frame widgets to grid
@@ -367,65 +369,6 @@ class FuzzyMatcherApp(tk.Tk):
         else:
             messagebox.showinfo("Export", "Export cancelled")
 
-    def display_categories(self):
-        selected_categories = self.selected_categories()
-
-        for item in self.categories_tree.get_children():
-            self.categories_tree.delete(item)
-        
-        for category, responses in self.categories_display.items():
-            count = sum(self.response_counts.get(response, 0) for response in responses)
-            self.categories_tree.insert('', 'end', values=(category, count))
-            self.update_treeview_selections(selected_categories=selected_categories)
-
-    def display_category_results_for_selected_category(self):
-        selected_categories = self.categories_tree.selection()
-        
-        if len(selected_categories) == 1:
-            category = self.categories_tree.item(selected_categories[0])['values'][0]
-            
-            # Clear existing items in the results display area
-            for item in self.category_results_tree.get_children():
-                self.category_results_tree.delete(item)
-
-            # Display responses and counts for the selected category
-            if category in self.categories_display:
-                for response in self.categories_display[category]:
-                    count = self.response_counts[response]
-                    self.category_results_tree.insert('', 'end', values=(response, count))
-
-            # Update the results display to reflect the selected category
-            self.category_results_label.config(text=f"Results for Category: {category}")
-
-            # Assign variable for currently displayed category
-            self.currently_displayed_category = category
-
-        elif len(selected_categories) > 1:
-            messagebox.showerror("Error", "Please select only one category")
-        
-        else:
-            messagebox.showerror("Error", "No category selected")
-
-    def refresh_category_results_for_currently_displayed_category(self):
-        category = self.currently_displayed_category
-        
-        if not category:
-            messagebox.showerror("Error", "No category results currently displayed")
-            return
-
-        # Clear existing items in the results display area
-        for item in self.category_results_tree.get_children():
-            self.category_results_tree.delete(item)
-
-        # Display responses and counts for the selected category
-        if category in self.categories_display:
-            for response in self.categories_display[category]:
-                count = self.response_counts[response]
-                self.category_results_tree.insert('', 'end', values=(response, count))
-
-        # Update the results display to reflect the selected category
-        self.category_results_label.config(text=f"Results for Category: {category}")
-
     def create_category(self):
         new_category = self.new_category_entry.get()
         if new_category and new_category not in self.categorized_data.columns:
@@ -510,6 +453,119 @@ class FuzzyMatcherApp(tk.Tk):
             del self.categories_display[category]
             self.categorized_data.drop(columns=category, inplace=True)
 
+    def display_match_results(self):
+        # Filter the results based on the threshold
+        filtered_results = self.match_results[self.match_results['score'] >= self.threshold_slider.get()]
+
+        # Aggregate and count unique instances
+        aggregated_results = filtered_results.groupby('response').agg(
+            max_score=pd.NamedAgg(column='score', aggfunc='max'),
+            count=pd.NamedAgg(column='response', aggfunc='count')
+        ).reset_index()
+
+        # Sort the results first by max_score in descending order, then by count in descending order
+        sorted_results = aggregated_results.sort_values(by=['max_score', 'count'], ascending=[False, False])
+
+        # Clear existing items in the results display area
+        for item in self.match_results_tree.get_children():
+            self.match_results_tree.delete(item)
+
+        # Populate the display area with aggregated unique filtered results
+        for _, row in sorted_results.iterrows():
+            self.match_results_tree.insert('', 'end', values=(row['response'], row['max_score'], row['count']))
+
+        ### Update this method to display ORIGINAL STRING ###
+
+    def display_categories(self):
+        selected_categories = self.selected_categories()
+
+        for item in self.categories_tree.get_children():
+            self.categories_tree.delete(item)
+        
+        for category, responses in self.categories_display.items():
+            count = self.calculate_count(responses)
+            percentage = self.calculate_percentage(responses)
+            self.categories_tree.insert('', 'end', values=(category, count, f"{percentage:.2f}%"))
+            
+        self.update_treeview_selections(selected_categories=selected_categories)
+
+    def display_category_results_for_selected_category(self):
+        selected_categories = self.categories_tree.selection()
+        
+        if len(selected_categories) == 1:
+            category = self.categories_tree.item(selected_categories[0])['values'][0]
+            
+            # Clear existing items in the results display area
+            for item in self.category_results_tree.get_children():
+                self.category_results_tree.delete(item)
+
+            # Display responses and counts for the selected category
+            if category in self.categories_display:
+                for response in self.categories_display[category]:
+                    count = self.response_counts[response]
+                    self.category_results_tree.insert('', 'end', values=(response, count))
+
+            # Update the results display to reflect the selected category
+            self.category_results_label.config(text=f"Results for Category: {category}")
+
+            # Assign variable for currently displayed category
+            self.currently_displayed_category = category
+
+        elif len(selected_categories) > 1:
+            messagebox.showerror("Error", "Please select only one category")
+        
+        else:
+            messagebox.showerror("Error", "No category selected")
+
+    def refresh_category_results_for_currently_displayed_category(self):
+        category = self.currently_displayed_category
+        
+        if not category:
+            messagebox.showerror("Error", "No category results currently displayed")
+            return
+
+        # Clear existing items in the results display area
+        for item in self.category_results_tree.get_children():
+            self.category_results_tree.delete(item)
+
+        # Display responses and counts for the selected category
+        if category in self.categories_display:
+            for response in self.categories_display[category]:
+                count = self.response_counts[response]
+                self.category_results_tree.insert('', 'end', values=(response, count))
+
+        # Update the results display to reflect the selected category
+        self.category_results_label.config(text=f"Results for Category: {category}")
+
+    def selected_categories(self):
+        return {self.categories_tree.item(item_id)['values'][0] for item_id in self.categories_tree.selection()}
+    
+    def selected_match_responses(self):
+        return {self.match_results_tree.item(item_id)['values'][0] for item_id in self.match_results_tree.selection()}
+
+    def selected_category_responses(self):
+        return {self.category_results_tree.item(item_id)['values'][0] for item_id in self.category_results_tree.selection()}
+
+    def update_treeview_selections(self, selected_categories=None, selected_responses=None):
+        def reselect_treeview_items(treeview, values):
+            for item in treeview.get_children():
+                if treeview.item(item)['values'][0] in values:
+                    treeview.selection_add(item)
+
+        # Re-select categories and if multi-categorization re-select match results
+        if selected_categories is not None:
+            reselect_treeview_items(self.categories_tree, selected_categories)
+        if self.categorization_var.get() == "Multi" and selected_responses is not None:
+            reselect_treeview_items(self.match_results_tree, selected_responses)
+
+    def process_match(self):
+        if self.df_preprocessed is not None:
+            # Fuzzy match
+            self.match_results = fuzzy_matching(self.df_preprocessed, self.match_string_entry)
+            self.display_match_results()
+        else:
+            messagebox.showerror("Error", "No dataset loaded")
+        
     def categorize_response(self):
         selected_responses = self.selected_match_responses()
         selected_categories = self.selected_categories()
@@ -592,57 +648,14 @@ class FuzzyMatcherApp(tk.Tk):
         self.update_treeview_selections(selected_categories=selected_categories, selected_responses=selected_responses)
         self.refresh_category_results_for_currently_displayed_category()
 
-    def process_match(self):
-        if self.df_preprocessed is not None:
-            # Fuzzy match
-            self.match_results = fuzzy_matching(self.df_preprocessed, self.match_string_entry)
-            self.display_match_results()
-        else:
-            messagebox.showerror("Error", "No dataset loaded")
-        
-    def display_match_results(self):
-        # Filter the results based on the threshold
-        filtered_results = self.match_results[self.match_results['score'] >= self.threshold_slider.get()]
-
-        # Aggregate and count unique instances
-        aggregated_results = filtered_results.groupby('response').agg(
-            max_score=pd.NamedAgg(column='score', aggfunc='max'),
-            count=pd.NamedAgg(column='response', aggfunc='count')
-        ).reset_index()
-
-        # Sort the results first by max_score in descending order, then by count in descending order
-        sorted_results = aggregated_results.sort_values(by=['max_score', 'count'], ascending=[False, False])
-
-        # Clear existing items in the results display area
-        for item in self.match_results_tree.get_children():
-            self.match_results_tree.delete(item)
-
-        # Populate the display area with aggregated unique filtered results
-        for _, row in sorted_results.iterrows():
-            self.match_results_tree.insert('', 'end', values=(row['response'], row['max_score'], row['count']))
-
-        ### Update this method to display ORIGINAL STRING ###
-
-    def selected_categories(self):
-        return {self.categories_tree.item(item_id)['values'][0] for item_id in self.categories_tree.selection()}
+    def calculate_count(self, responses):
+        return sum(self.response_counts.get(response, 0) for response in responses)
     
-    def selected_match_responses(self):
-        return {self.match_results_tree.item(item_id)['values'][0] for item_id in self.match_results_tree.selection()}
-
-    def selected_category_responses(self):
-        return {self.category_results_tree.item(item_id)['values'][0] for item_id in self.category_results_tree.selection()}
-
-    def update_treeview_selections(self, selected_categories=None, selected_responses=None):
-        def reselect_treeview_items(treeview, values):
-            for item in treeview.get_children():
-                if treeview.item(item)['values'][0] in values:
-                    treeview.selection_add(item)
-
-        # Re-select categories and if multi-categorization re-select match results
-        if selected_categories is not None:
-            reselect_treeview_items(self.categories_tree, selected_categories)
-        if self.categorization_var.get() == "Multi" and selected_responses is not None:
-            reselect_treeview_items(self.match_results_tree, selected_responses)
+    def calculate_percentage(self, responses):
+        # Calculate total responses
+        count = self.calculate_count(responses)
+        total_responses = sum(len(responses) for responses in self.categories_display.values())
+        return (count / total_responses) * 100 if total_responses > 0 else 0
 
 # Running the application
 if __name__ == "__main__":

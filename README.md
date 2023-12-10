@@ -39,11 +39,11 @@ The context for this is specifically for speeding up the categorization of open-
 ### UI:
 
 - Sort category results display first by count and second alphabetically.
-- Show percentages next to category counts
 - Set column sizes to minimum required to display results.
 - Align tops and bottoms of display boxes.
 - Maybe a box that always shows uncategorized (or remove current match and put them in there?)
 - Tooltips ti display treeview entries that run off the frame.
+- ~~Show percentages next to category counts~~
 - ~~Text wrapping (it's cuttong off 'y' to look like 'v').~~
 - ~~All display boxes should stretch to the bottom of the window.~~
 
