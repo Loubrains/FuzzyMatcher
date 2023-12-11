@@ -8,7 +8,7 @@ import chardet
 from thefuzz import fuzz
 import json
 
-# Set DPI Awareness
+# Set DPI awareness
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 def file_import(file_path):
@@ -49,10 +49,27 @@ class FuzzyMatcherApp(tk.Tk):
         super().__init__()
         self.title("Fuzzy Matcher")
 
-        # Initialize empty variables, which will populated during new project/load project
+        # Initialize empty/default variables, which will populated during new project/load project
         self.initialize_data_structures()
-        
-        # Set window geometry
+
+        # Setup the UI
+        self.initialize_window()
+        self.configure_grid()
+        self.configure_frames()
+        self.create_widgets()
+        self.bind_widgets_to_frames()
+        self.configure_sub_grids()
+        self.configure_style()
+
+        # After setting up the UI, bind UI resizing events and refresh all displays
+        self.after(100, self.display_categories)
+        self.after(100, self.refresh_category_results_for_currently_displayed_category)
+        self.after(100, self.bind_resize_treeview_columns)
+        self.after(100, self.bind_resize_text_wraplength)
+
+    ### ----------------------- UI ----------------------- ###
+    def initialize_window(self):
+        # Set window size, position        
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         window_size_multiplier = 0.8
@@ -60,55 +77,88 @@ class FuzzyMatcherApp(tk.Tk):
         window_height = int(screen_height * window_size_multiplier)
         x_position = int((screen_width - window_width) / 2)
         y_position = int((screen_height - window_height) / 2)
+        
         self.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
         # self.state('zoomed')
 
-        # Configure the grid
+    def configure_grid(self):
+        # Create grid rows/columns and set weights for resizing
         self.grid_columnconfigure(0, weight=1)  # Column for match results display
         self.grid_columnconfigure(1, weight=1)  # Column for category results display
         self.grid_columnconfigure(2, weight=1)  # Column for categories display
         self.grid_rowconfigure(0, weight=0)     # Row for buttons and labels
         self.grid_rowconfigure(1, weight=1)     # Main area for Treeviews
         self.grid_rowconfigure(2, weight=0)     # Bottom area for export button
+        
+    def configure_frames(self):
+        # Create frames
+        self.top_frame = tk.Frame(self)
+        self.left_frame = tk.Frame(self)
+        self.middle_frame = tk.Frame(self)
+        self.right_frame = tk.Frame(self)
+        self.bottom_frame = tk.Frame(self)
 
-        # Initialize frames
-        top_frame = tk.Frame(self)
-        left_frame = tk.Frame(self)
-        middle_frame = tk.Frame(self)
-        right_frame = tk.Frame(self)
-        bottom_frame = tk.Frame(self)
- 
-        top_frame.grid(row=0, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
-        left_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
-        middle_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
-        right_frame.grid(row=1, column=2, sticky="nsew", padx=10, pady=10)
-        bottom_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
+        # Bind frames to grid
+        self.top_frame.grid(row=0, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
+        self.left_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+        self.middle_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
+        self.right_frame.grid(row=1, column=2, sticky="nsew", padx=10, pady=10)
+        self.bottom_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
 
-        # Configure Treeview style for larger row height and centered column text
-        style = ttk.Style(self)
-        style.configure("Treeview", rowheight=25)
-        style.configure("Treeview.Item", anchor='center')
+    def create_widgets(self):
+        # Top frame widgets
 
-        # Left Frame Widgets (Match Results)
-        self.match_string_label = tk.Label(left_frame, text="Enter String to Match:")
-        self.match_string_entry = tk.Entry(left_frame)
+        # Left frame widgets (Fuzzy matching)
+        self.match_string_label = tk.Label(self.left_frame, text="Enter String to Match:")
+        self.match_string_entry = tk.Entry(self.left_frame)
         self.match_string_entry.bind('<Return>', lambda event: self.process_match()) # Pressing 'Enter' processes the match, same as the button
-        self.threshold_label = tk.Label(left_frame, text="Set Fuzz Threshold (100 is precise, 0 is imprecise):")
-        self.threshold_slider = tk.Scale(left_frame, from_=0, to=100, orient="horizontal", resolution=1,
+        self.threshold_label = tk.Label(self.left_frame, text="Set Fuzz Threshold (100 is precise, 0 is imprecise):")
+        self.threshold_slider = tk.Scale(self.left_frame, from_=0, to=100, orient="horizontal", resolution=1,
                                         command=lambda val: self.display_match_results())
         self.threshold_slider.set(60)  # Setting default value to 60
-        self.match_button = tk.Button(left_frame, text="Match", command=self.process_match)
-        self.categorize_button = tk.Button(left_frame, text="Categorize Selected Results", command=self.categorize_response)
-        self.categorization_label = tk.Label(left_frame, text="Categorization Type: Single")
-        self.match_results_tree = ttk.Treeview(left_frame, columns=('Response', 'Score', 'Count'), show='headings')
+        self.match_button = tk.Button(self.left_frame, text="Match", command=self.process_match)
+        self.categorize_button = tk.Button(self.left_frame, text="Categorize Selected Results", command=self.categorize_response)
+        self.categorization_label = tk.Label(self.left_frame, text="Categorization Type: Single")
+        self.match_results_tree = ttk.Treeview(self.left_frame, columns=('Response', 'Score', 'Count'), show='headings')
         self.match_results_tree.heading('Response', text='Response')
         self.match_results_tree.heading('Score', text='Score')
         self.match_results_tree.heading('Count', text='Count')
         self.match_results_tree.column('Score', anchor='center')
         self.match_results_tree.column('Count', anchor='center')
-        self.results_scrollbar = tk.Scrollbar(left_frame, orient="vertical", command=self.match_results_tree.yview)
-        
-        # Bind left frame widgets to grid
+        self.results_scrollbar = tk.Scrollbar(self.left_frame, orient="vertical", command=self.match_results_tree.yview)
+
+        # Middle Frame Widgets (Category Results)
+        self.display_category_results_for_selected_category_button = tk.Button(self.middle_frame, text="Display Category Results", command=self.display_category_results_for_selected_category)
+        self.recategorize_selected_responses_button = tk.Button(self.middle_frame, text="Recategorize Selected Results", command=self.recategorize_response)
+        self.category_results_label = tk.Label(self.middle_frame, text="Results for Category: ")
+        self.category_results_tree = ttk.Treeview(self.middle_frame, columns=('Response', 'Count'), show='headings')
+        self.category_results_tree.heading('Response', text='Response')
+        self.category_results_tree.heading('Count', text='Count')
+        self.category_results_tree.column('Count', anchor='center')
+        self.category_results_scrollbar = tk.Scrollbar(self.middle_frame, orient="vertical", command=self.category_results_tree.yview)
+
+        # Right frame widgets (Categories)
+        self.new_category_entry = tk.Entry(self.right_frame)
+        self.new_category_entry.bind('<Return>', lambda event: self.create_category()) # Pressing 'Enter' processes the match, same as the button
+        self.add_category_button = tk.Button(self.right_frame, text="Add Category", command=self.create_category)
+        self.rename_category_button = tk.Button(self.right_frame, text="Rename Category", command=self.ask_rename_category)
+        self.delete_categories_button = tk.Button(self.right_frame, text="Delete Category", command=self.ask_delete_categories)
+        self.categories_tree = ttk.Treeview(self.right_frame, columns=('Category', 'Count', 'Percentage'), show='headings')
+        self.categories_tree.heading('Category', text='Category')
+        self.categories_tree.heading('Count', text='Count')
+        self.categories_tree.heading('Percentage', text='%')
+        self.categories_tree.column('Count', anchor='center')
+        self.categories_tree.column('Percentage', anchor='center')
+        self.categories_scrollbar = tk.Scrollbar(self.right_frame, orient="vertical", command=self.categories_tree.yview)
+
+        # Bottom frame widgets (new project, load project, save project, export to csv)
+        self.new_project_button = tk.Button(self.bottom_frame, text="New Project", command=self.start_new_project)
+        self.load_button = tk.Button(self.bottom_frame, text="Load Project", command=self.load_project)
+        self.save_button = tk.Button(self.bottom_frame, text="Save Project", command=self.save_project)
+        self.export_csv_button = tk.Button(self.bottom_frame, text="Export to CSV", command=self.export_to_csv)
+
+    def bind_widgets_to_frames(self):
+        # Left frame widgets
         self.match_string_label.grid(row=0, column=0, sticky="ew", padx=5)
         self.match_string_entry.grid(row=1, column=0, sticky="ew", padx=5)
         self.threshold_label.grid(row=0, column=1, sticky="ew", padx=5)
@@ -119,18 +169,8 @@ class FuzzyMatcherApp(tk.Tk):
         self.match_results_tree.grid(row=4, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
         self.results_scrollbar.grid(row=4, column=2, sticky="ns")
         self.match_results_tree.configure(yscrollcommand=self.results_scrollbar.set)
-
-        # Middle Frame Widgets (Category Results)
-        self.display_category_results_for_selected_category_button = tk.Button(middle_frame, text="Display Category Results", command=self.display_category_results_for_selected_category)
-        self.recategorize_selected_responses_button = tk.Button(middle_frame, text="Recategorize Selected Results", command=self.recategorize_response)
-        self.category_results_label = tk.Label(middle_frame, text="Results for Category: ")
-        self.category_results_tree = ttk.Treeview(middle_frame, columns=('Response', 'Count'), show='headings')
-        self.category_results_tree.heading('Response', text='Response')
-        self.category_results_tree.heading('Count', text='Count')
-        self.category_results_tree.column('Count', anchor='center')
-        self.category_results_scrollbar = tk.Scrollbar(middle_frame, orient="vertical", command=self.category_results_tree.yview)
         
-        # Bind middle frame widgets to grid
+        # Middle frame widgets
         self.display_category_results_for_selected_category_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         self.recategorize_selected_responses_button.grid(row=0, column=1, sticky="ew", padx=10, pady=10)
         self.category_results_label.grid(row=1, column=0, columnspan=2, sticky="w", padx=10, pady=10)
@@ -138,21 +178,7 @@ class FuzzyMatcherApp(tk.Tk):
         self.category_results_scrollbar.grid(row=2, column=2, sticky="ns")
         self.category_results_tree.configure(yscrollcommand=self.category_results_scrollbar.set)
 
-        # Right Frame Widgets (Categories)
-        self.new_category_entry = tk.Entry(right_frame)
-        self.new_category_entry.bind('<Return>', lambda event: self.create_category()) # Pressing 'Enter' processes the match, same as the button
-        self.add_category_button = tk.Button(right_frame, text="Add Category", command=self.create_category)
-        self.rename_category_button = tk.Button(right_frame, text="Rename Category", command=self.ask_rename_category)
-        self.delete_categories_button = tk.Button(right_frame, text="Delete Category", command=self.ask_delete_categories)
-        self.categories_tree = ttk.Treeview(right_frame, columns=('Category', 'Count', 'Percentage'), show='headings')
-        self.categories_tree.heading('Category', text='Category')
-        self.categories_tree.heading('Count', text='Count')
-        self.categories_tree.heading('Percentage', text='%')
-        self.categories_tree.column('Count', anchor='center')
-        self.categories_tree.column('Percentage', anchor='center')
-        self.categories_scrollbar = tk.Scrollbar(right_frame, orient="vertical", command=self.categories_tree.yview)
-
-        # Bind right frame widgets to grid
+        # Right frame widgets
         self.new_category_entry.grid(row=0, column=0, sticky="ew", padx=5)
         self.add_category_button.grid(row=0, column=1, sticky="ew", padx=5)
         self.rename_category_button.grid(row=0, column=2, sticky="ew", padx=5)
@@ -160,51 +186,46 @@ class FuzzyMatcherApp(tk.Tk):
         self.categories_tree.grid(row=1, column=0, columnspan=4, sticky="nsew", padx=10, pady=10)
         self.categories_scrollbar.grid(row=1, column=4, sticky="ns")
         self.categories_tree.configure(yscrollcommand=self.categories_scrollbar.set)
-
-        # Bottom frame widgets (new project, load project, save project, export to csv)
-        self.new_project_button = tk.Button(bottom_frame, text="New Project", command=self.start_new_project)
-        self.load_button = tk.Button(bottom_frame, text="Load Project", command=self.load_project)
-        self.save_button = tk.Button(bottom_frame, text="Save Project", command=self.save_project)
-        self.export_csv_button = tk.Button(bottom_frame, text="Export to CSV", command=self.export_to_csv)
         
-        # Bind bottom frame widgets to grid
+        # Bottom frame widgets
         self.new_project_button.grid(row=0, column=0, sticky="w", padx=10, pady=10)
         self.load_button.grid(row=1, column=0, sticky="w", padx=10, pady=10)
         self.save_button.grid(row=0, column=2, sticky="e", padx=10, pady=10)
         self.export_csv_button.grid(row=1, column=2, sticky="e", padx=10, pady=10)
 
+    def configure_sub_grids(self):
         # Allow the treeviews to expand vertically
-        left_frame.grid_rowconfigure(4, weight=1)  
-        middle_frame.grid_rowconfigure(2, weight=1)
-        right_frame.grid_rowconfigure(1, weight=1)
+        self.left_frame.grid_rowconfigure(4, weight=1)  
+        self.middle_frame.grid_rowconfigure(2, weight=1)
+        self.right_frame.grid_rowconfigure(1, weight=1)
 
         # Don't allow the scrollbar to expand horizontally
-        left_frame.grid_columnconfigure(2, weight=0)
-        middle_frame.grid_columnconfigure(2, weight=0)
-        right_frame.grid_columnconfigure(4, weight=0)
+        self.left_frame.grid_columnconfigure(2, weight=0)
+        self.middle_frame.grid_columnconfigure(2, weight=0)
+        self.right_frame.grid_columnconfigure(4, weight=0)
 
         # Allow all buttons and treviews to expand/contract horizontally together
-        left_frame.grid_columnconfigure(0, weight=1)
-        left_frame.grid_columnconfigure(1, weight=1)
-        middle_frame.grid_columnconfigure(0, weight=1)
-        middle_frame.grid_columnconfigure(1, weight=1)
-        right_frame.grid_columnconfigure(0, weight=1)
-        right_frame.grid_columnconfigure(1, weight=1)
-        right_frame.grid_columnconfigure(2, weight=1)
-        right_frame.grid_columnconfigure(3, weight=1)
+        self.left_frame.grid_columnconfigure(0, weight=1)
+        self.left_frame.grid_columnconfigure(1, weight=1)
+        self.middle_frame.grid_columnconfigure(0, weight=1)
+        self.middle_frame.grid_columnconfigure(1, weight=1)
+        self.right_frame.grid_columnconfigure(0, weight=1)
+        self.right_frame.grid_columnconfigure(1, weight=1)
+        self.right_frame.grid_columnconfigure(2, weight=1)
+        self.right_frame.grid_columnconfigure(3, weight=1)
 
         # Allow the bottom frame to expand horizontally
-        bottom_frame.columnconfigure(0, weight=1)
-        bottom_frame.columnconfigure(1, weight=1)
-        bottom_frame.columnconfigure(2, weight=1)
+        self.bottom_frame.columnconfigure(0, weight=1)
+        self.bottom_frame.columnconfigure(1, weight=1)
+        self.bottom_frame.columnconfigure(2, weight=1)
 
-        # After setting up the UI, bind UI sizing events and refresh all displays
-        self.after(100, self.display_categories)
-        self.after(100, self.refresh_category_results_for_currently_displayed_category)
-        self.after(100, self.bind_resize_treeview_columns)
-        self.after(100, self.bind_text_widgets_for_resize)
+    def configure_style(self):
+        # Configure Treeview style for larger row height and centered column text
+        style = ttk.Style(self)
+        style.configure("Treeview", rowheight=25)
+        style.configure("Treeview.Item", anchor='center')
 
-    def bind_text_widgets_for_resize(self):
+    def bind_resize_text_wraplength(self):
         # Loop through all widgets that are children of the main application window
         for frame in self.winfo_children():
             for widget in frame.winfo_children():
@@ -212,16 +233,16 @@ class FuzzyMatcherApp(tk.Tk):
                     widget.bind("<Configure>", self.resize_text_wraplength)
 
     def resize_text_wraplength(self, event):
-        width = event.width + 10 # Adjust the wraplength based on the widget's width plus a little extra
+        width = event.width + 10 # Widget width plus a little extra
         event.widget.configure(wraplength=width)
 
     def bind_resize_treeview_columns(self):
         for frame in self.winfo_children():
             for widget in frame.winfo_children():
                 if isinstance(widget, ttk.Treeview):
-                    widget.bind("<Configure>", self.resize_columns_to_fit_treeview)
+                    widget.bind("<Configure>", self.resize_treeview_columns)
 
-    def resize_columns_to_fit_treeview(self, event):
+    def resize_treeview_columns(self, event):
         # Get the treeview associated with the event that called this function
         treeview = event.widget
         # Get the width of the treeview widget
@@ -243,6 +264,7 @@ class FuzzyMatcherApp(tk.Tk):
             # If there is only one column, it takes up all the space
             treeview.column(treeview["columns"][0], width=treeview_width)
 
+    ### ----------------------- Project Management ----------------------- ###
     def initialize_data_structures(self):
         # Initialize empty variables which will be populated during new project/load project
         self.categorization_var = tk.StringVar(value="Single")
@@ -407,6 +429,7 @@ class FuzzyMatcherApp(tk.Tk):
         else:
             messagebox.showinfo("Export", "Export cancelled")
 
+    ### ----------------------- Main Functionality ----------------------- ###
     def create_category(self):
         new_category = self.new_category_entry.get()
         if new_category and new_category not in self.categorized_data.columns:
