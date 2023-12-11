@@ -104,9 +104,8 @@ class FuzzyMatcherApp(tk.Tk):
         self.match_results_tree.heading('Response', text='Response')
         self.match_results_tree.heading('Score', text='Score')
         self.match_results_tree.heading('Count', text='Count')
-        self.match_results_tree.column('Response', width=400)
-        self.match_results_tree.column('Score', anchor='center', width=100)
-        self.match_results_tree.column('Count', anchor='center', width=100)
+        self.match_results_tree.column('Score', anchor='center')
+        self.match_results_tree.column('Count', anchor='center')
         self.results_scrollbar = tk.Scrollbar(left_frame, orient="vertical", command=self.match_results_tree.yview)
         
         # Bind left frame widgets to grid
@@ -128,14 +127,13 @@ class FuzzyMatcherApp(tk.Tk):
         self.category_results_tree = ttk.Treeview(middle_frame, columns=('Response', 'Count'), show='headings')
         self.category_results_tree.heading('Response', text='Response')
         self.category_results_tree.heading('Count', text='Count')
-        self.category_results_tree.column('Response', width=333)
-        self.category_results_tree.column('Count', anchor='center', width=67)
+        self.category_results_tree.column('Count', anchor='center')
         self.category_results_scrollbar = tk.Scrollbar(middle_frame, orient="vertical", command=self.category_results_tree.yview)
         
         # Bind middle frame widgets to grid
         self.display_category_results_for_selected_category_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         self.recategorize_selected_responses_button.grid(row=0, column=1, sticky="ew", padx=10, pady=10)
-        self.category_results_label.grid(row=1, column=1, sticky="ew", padx=10, pady=10)
+        self.category_results_label.grid(row=1, column=0, columnspan=2, sticky="w", padx=10, pady=10)
         self.category_results_tree.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
         self.category_results_scrollbar.grid(row=2, column=2, sticky="ns")
         self.category_results_tree.configure(yscrollcommand=self.category_results_scrollbar.set)
@@ -150,9 +148,8 @@ class FuzzyMatcherApp(tk.Tk):
         self.categories_tree.heading('Category', text='Category')
         self.categories_tree.heading('Count', text='Count')
         self.categories_tree.heading('Percentage', text='%')
-        self.categories_tree.column('Category', width=400)
-        self.categories_tree.column('Count', anchor='center', width=100)
-        self.categories_tree.column('Percentage', anchor='center', width=100)
+        self.categories_tree.column('Count', anchor='center')
+        self.categories_tree.column('Percentage', anchor='center')
         self.categories_scrollbar = tk.Scrollbar(right_frame, orient="vertical", command=self.categories_tree.yview)
 
         # Bind right frame widgets to grid
@@ -201,9 +198,50 @@ class FuzzyMatcherApp(tk.Tk):
         bottom_frame.columnconfigure(1, weight=1)
         bottom_frame.columnconfigure(2, weight=1)
 
-        # Display categories data
+        # After setting up the UI, bind UI sizing events and refresh all displays
         self.after(100, self.display_categories)
         self.after(100, self.refresh_category_results_for_currently_displayed_category)
+        self.after(100, self.bind_resize_treeview_columns)
+        self.after(100, self.bind_text_widgets_for_resize)
+
+    def bind_text_widgets_for_resize(self):
+        # Loop through all widgets that are children of the main application window
+        for frame in self.winfo_children():
+            for widget in frame.winfo_children():
+                if isinstance(widget, (tk.Label, tk.Button, tk.Radiobutton)):
+                    widget.bind("<Configure>", self.resize_text_wraplength)
+
+    def resize_text_wraplength(self, event):
+        width = event.width + 10 # Adjust the wraplength based on the widget's width plus a little extra
+        event.widget.configure(wraplength=width)
+
+    def bind_resize_treeview_columns(self):
+        for frame in self.winfo_children():
+            for widget in frame.winfo_children():
+                if isinstance(widget, ttk.Treeview):
+                    widget.bind("<Configure>", self.resize_columns_to_fit_treeview)
+
+    def resize_columns_to_fit_treeview(self, event):
+        # Get the treeview associated with the event that called this function
+        treeview = event.widget
+        # Get the width of the treeview widget
+        treeview_width = treeview.winfo_width()
+
+        # Calculate the width for all columns after the first one
+        num_columns = len(treeview["columns"])
+        if num_columns > 1:  # Ensure there is more than one column
+            secondary_column_width = treeview_width // 6
+            first_column_width = treeview_width - (secondary_column_width * (num_columns - 1))
+
+            # Set the first column's width
+            treeview.column(treeview["columns"][0], width=first_column_width)
+
+            # Set the other columns' widths
+            for col in treeview["columns"][1:]:
+                treeview.column(col, minwidth=50, width=secondary_column_width)
+        else:
+            # If there is only one column, it takes up all the space
+            treeview.column(treeview["columns"][0], width=treeview_width)
 
     def initialize_data_structures(self):
         # Initialize empty variables which will be populated during new project/load project
