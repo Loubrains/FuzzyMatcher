@@ -38,10 +38,10 @@ The context for this is specifically for speeding up the categorization of open-
 
 ### UI:
 
-- Sort category results display first by count and second alphabetically.
 - Align tops and bottoms of display boxes.
 - Maybe a box that always shows uncategorized (or remove current match and put them in there?)
 - Tooltips (for what exactly?)
+- ~~Sort category results display first by count and second alphabetically.~~
 - ~~Set initial column sizes and text wrapping and have them scale with the window size.~~
 - ~~Show percentages next to category counts~~
 - ~~Text wrapping (it's cuttong off 'y' to look like 'v').~~

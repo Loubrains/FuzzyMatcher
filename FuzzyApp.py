@@ -380,8 +380,12 @@ class FuzzyMatcherApp(tk.Tk):
 
             # Display responses and counts for the selected category
             if category in self.categories_display:
-                for response in self.categories_display[category]:
-                    count = self.response_counts[response]
+                responses_and_counts = [(response, self.response_counts[response]) for response in self.categories_display[category]]
+                # Sort by count (descending) and then alphabetically (ascending)
+                sorted_responses = sorted(responses_and_counts, key=lambda x: (-x[1], x[0]))
+
+                # Add the sorted responses to the category results treeview
+                for response, count in sorted_responses:
                     self.category_results_tree.insert('', 'end', values=(response, count))
 
             # Update the results display to reflect the selected category
@@ -409,8 +413,12 @@ class FuzzyMatcherApp(tk.Tk):
 
         # Display responses and counts for the selected category
         if category in self.categories_display:
-            for response in self.categories_display[category]:
-                count = self.response_counts[response]
+            responses_and_counts = [(response, self.response_counts[response]) for response in self.categories_display[category]]
+            # Sort by count (descending) and then alphabetically (ascending)
+            sorted_responses = sorted(responses_and_counts, key=lambda x: (-x[1], x[0]))
+
+            # Add the sorted responses to the category results treeview
+            for response, count in sorted_responses:
                 self.category_results_tree.insert('', 'end', values=(response, count))
 
         # Update the results display to reflect the selected category
