@@ -61,11 +61,16 @@ class FuzzyMatcherApp(tk.Tk):
         self.configure_sub_grids()
         self.configure_style()
 
+        # Call resize functions immediately after setup
+        self.resize_treeview_columns()
+        self.resize_text_wraplength()
+
+        # Bind resizing to window size change
+        self.bind("<Configure>", self.on_window_resize)
+
         # After setting up the UI, bind UI resizing events and refresh all displays
         self.after(100, self.display_categories)
         self.after(100, self.refresh_category_results_for_currently_displayed_category)
-        self.after(100, self.bind_resize_treeview_columns)
-        self.after(100, self.bind_resize_text_wraplength)
 
     ### ----------------------- UI ----------------------- ###
     def initialize_window(self):
@@ -173,7 +178,7 @@ class FuzzyMatcherApp(tk.Tk):
         # Middle frame widgets
         self.display_category_results_for_selected_category_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         self.recategorize_selected_responses_button.grid(row=0, column=1, sticky="ew", padx=10, pady=10)
-        self.category_results_label.grid(row=1, column=0, columnspan=2, sticky="w", padx=10, pady=10)
+        self.category_results_label.grid(row=1, column=0, columnspan=2, sticky="ew", padx=10, pady=10)
         self.category_results_tree.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
         self.category_results_scrollbar.grid(row=2, column=2, sticky="ns")
         self.category_results_tree.configure(yscrollcommand=self.category_results_scrollbar.set)
@@ -225,44 +230,42 @@ class FuzzyMatcherApp(tk.Tk):
         style.configure("Treeview", rowheight=25)
         style.configure("Treeview.Item", anchor='center')
 
-    def bind_resize_text_wraplength(self):
-        # Loop through all widgets that are children of the main application window
+    def on_window_resize(self, event):
+        # Call resize functions when the window is resized
+        self.resize_treeview_columns()
+        self.resize_text_wraplength()
+
+    def resize_text_wraplength(self):
+        # Initial resize of text wraplength
         for frame in self.winfo_children():
             for widget in frame.winfo_children():
                 if isinstance(widget, (tk.Label, tk.Button, tk.Radiobutton)):
-                    widget.bind("<Configure>", self.resize_text_wraplength)
+                    width = widget.winfo_width() + 10
+                    widget.configure(wraplength=width)
 
-    def resize_text_wraplength(self, event):
-        width = event.width + 10 # Widget width plus a little extra
-        event.widget.configure(wraplength=width)
-
-    def bind_resize_treeview_columns(self):
+    def resize_treeview_columns(self):
         for frame in self.winfo_children():
             for widget in frame.winfo_children():
                 if isinstance(widget, ttk.Treeview):
-                    widget.bind("<Configure>", self.resize_treeview_columns)
+                    treeview = widget
+                    # Get the width of the treeview widget
+                    treeview_width = treeview.winfo_width()
 
-    def resize_treeview_columns(self, event):
-        # Get the treeview associated with the event that called this function
-        treeview = event.widget
-        # Get the width of the treeview widget
-        treeview_width = treeview.winfo_width()
+                    # Calculate the width for all columns after the first one
+                    num_columns = len(treeview["columns"])
+                    if num_columns > 1:  # Ensure there is more than one column
+                        secondary_column_width = treeview_width // 6
+                        first_column_width = treeview_width - (secondary_column_width * (num_columns - 1))
 
-        # Calculate the width for all columns after the first one
-        num_columns = len(treeview["columns"])
-        if num_columns > 1:  # Ensure there is more than one column
-            secondary_column_width = treeview_width // 6
-            first_column_width = treeview_width - (secondary_column_width * (num_columns - 1))
+                        # Set the first column's width
+                        treeview.column(treeview["columns"][0], width=first_column_width)
 
-            # Set the first column's width
-            treeview.column(treeview["columns"][0], width=first_column_width)
-
-            # Set the other columns' widths
-            for col in treeview["columns"][1:]:
-                treeview.column(col, minwidth=50, width=secondary_column_width)
-        else:
-            # If there is only one column, it takes up all the space
-            treeview.column(treeview["columns"][0], width=treeview_width)
+                        # Set the other columns' widths
+                        for col in treeview["columns"][1:]:
+                            treeview.column(col, minwidth=50, width=secondary_column_width)
+                    else:
+                        # If there is only one column, it takes up all the space
+                        treeview.column(treeview["columns"][0], width=treeview_width)
 
     ### ----------------------- Project Management ----------------------- ###
     def initialize_data_structures(self):

@@ -22,7 +22,6 @@ The context for this is specifically for speeding up the categorization of open-
 - Ability to switch back to multi from single (spit warning "can't go back").
 - Ability to sort match results by other dimensions
 - Handle NaNs/Missing data
-- Make an executable that includes the python script (for future editing).
 - Pass in a list of category names?
 - Ability to append more data? (i.e. new cases)
 - ~~When typing string, press enter to press associated button/do associated action.~~
@@ -39,10 +38,10 @@ The context for this is specifically for speeding up the categorization of open-
 ### UI:
 
 - Sort category results display first by count and second alphabetically.
-- Set column sizes to minimum required to display results.
 - Align tops and bottoms of display boxes.
 - Maybe a box that always shows uncategorized (or remove current match and put them in there?)
-- Tooltips ti display treeview entries that run off the frame.
+- Tooltips (for what exactly?)
+- ~~Set initial column sizes and text wrapping and have them scale with the window size.~~
 - ~~Show percentages next to category counts~~
 - ~~Text wrapping (it's cuttong off 'y' to look like 'v').~~
 - ~~All display boxes should stretch to the bottom of the window.~~
