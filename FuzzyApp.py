@@ -602,31 +602,6 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showinfo("Export", "Export cancelled")
 
     ### ----------------------- Main Functionality ----------------------- ###
-    def create_category(self):
-        new_category = self.new_category_entry.get()
-        if new_category and new_category not in self.categorized_data.columns:
-            self.categorized_data[new_category] = 0
-            self.categories_display[new_category] = set()
-            self.display_categories()
-
-    def rename_category_in_data(self, old_category, new_category):
-        if not new_category:
-            messagebox.showinfo("Info", "Please enter a non-empty category name.")
-            return
-
-        if new_category in self.categories_display:
-            messagebox.showinfo("Info", "A category with this name already exists.")
-            return
-    
-        # Rename the category in data structures
-        self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
-        self.categories_display[new_category] = self.categories_display.pop(old_category)
-
-    def delete_categories_in_data(self, categories_to_delete):
-        for category in categories_to_delete:
-            del self.categories_display[category]
-            self.categorized_data.drop(columns=category, inplace=True)
-
     def process_match(self):
         if self.df_preprocessed is not None:
             # Fuzzy match
@@ -700,10 +675,10 @@ class FuzzyMatcherApp(tk.Tk):
                 messagebox.showwarning("Warning", "Only one category can be selected in Single Categorization mode.")
                 return
             
-            # Remove responses from categorized_data
-            self.categorized_data.loc[mask, self.currently_displayed_category] = 0
-            # Remove responses from categories display
-            self.categories_display[self.currently_displayed_category] -= selected_responses
+        # Remove responses from categorized_data
+        self.categorized_data.loc[mask, self.currently_displayed_category] = 0
+        # Remove responses from categories display
+        self.categories_display[self.currently_displayed_category] -= selected_responses
 
         for category in selected_categories:
             # Categorize data (set selected responses equal to 1 for selected categories)
@@ -716,6 +691,31 @@ class FuzzyMatcherApp(tk.Tk):
         self.display_categories()
         self.update_treeview_selections(selected_categories=selected_categories, selected_responses=selected_responses)
         self.refresh_category_results_for_currently_displayed_category()
+
+    def create_category(self):
+        new_category = self.new_category_entry.get()
+        if new_category and new_category not in self.categorized_data.columns:
+            self.categorized_data[new_category] = 0
+            self.categories_display[new_category] = set()
+            self.display_categories()
+
+    def rename_category_in_data(self, old_category, new_category):
+        if not new_category:
+            messagebox.showinfo("Info", "Please enter a non-empty category name.")
+            return
+
+        if new_category in self.categories_display:
+            messagebox.showinfo("Info", "A category with this name already exists.")
+            return
+    
+        # Rename the category in data structures
+        self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
+        self.categories_display[new_category] = self.categories_display.pop(old_category)
+
+    def delete_categories_in_data(self, categories_to_delete):
+        for category in categories_to_delete:
+            del self.categories_display[category]
+            self.categorized_data.drop(columns=category, inplace=True)
 
     def calculate_count(self, responses):
         return sum(self.response_counts.get(response, 0) for response in responses)

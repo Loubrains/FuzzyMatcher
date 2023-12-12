@@ -22,6 +22,7 @@ The context for this is specifically for speeding up the categorization of open-
 - Ability to switch back to multi from single (spit warning "can't go back").
 - Ability to sort match results by other dimensions
 - Handle NaNs/Missing data
+- Need to fix 'New Project' behaviour when a project is already loaded (redisplay 'Uncategorized', remove match results)
 - Pass in a list of category names?
 - Ability to append more data? (i.e. new cases)
 - ~~When typing string, press enter to press associated button/do associated action.~~
