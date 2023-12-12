@@ -7,6 +7,7 @@ import re
 import chardet
 from thefuzz import fuzz
 import json
+from io import StringIO
 
 # Set DPI awareness
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -457,6 +458,8 @@ class FuzzyMatcherApp(tk.Tk):
             self.display_categories()
             # Display Uncategorized results
             self.refresh_category_results_for_currently_displayed_category()
+            # Refresh match results
+            self.display_match_results()
             # Ask for categorization type after file is selected
             self.ask_categorization_type()
 
@@ -492,6 +495,10 @@ class FuzzyMatcherApp(tk.Tk):
 
         # Initialize categories for display and set all unique responses to 'Uncategorized'
         self.categories_display = {'Uncategorized': set(df_series)}
+
+        # Reset match results and currently displayed category
+        self.match_results = pd.DataFrame(columns=['response', 'score']) # Default
+        self.currently_displayed_category = 'Uncategorized' # Default
 
     def ask_categorization_type(self):
         # Create popup window
@@ -540,22 +547,25 @@ class FuzzyMatcherApp(tk.Tk):
             self.populate_data_structures_load_project(data_loaded)
             # Set categorization label
             self.set_categorization_type_label()
-            # Display categories
-            self.display_categories()
+            # Refresh match results
+            self.display_match_results()
             # Display Uncategorized results
             self.refresh_category_results_for_currently_displayed_category()
+            # Display categories
+            self.display_categories()
 
             messagebox.showinfo("Load Project", "Project loaded successfully from " + file_path)
 
     def populate_data_structures_load_project(self, data_loaded):
             # Convert JSON back to data / set default variable values
             self.categorization_var.set(data_loaded['categorization_var'])
-            self.df_preprocessed = pd.read_json(data_loaded['df_preprocessed'])
+            self.df_preprocessed = pd.read_json(StringIO(data_loaded['df_preprocessed']))
             self.response_columns = data_loaded['response_columns']
-            self.categorized_data = pd.read_json(data_loaded['categorized_data'])
+            self.categorized_data = pd.read_json(StringIO(data_loaded['categorized_data']))
             self.response_counts = data_loaded['response_counts']
             self.categories_display = {k: set(v) for k, v in data_loaded['categories_display'].items()}
             self.currently_displayed_category = 'Uncategorized' # Default
+            self.match_results = pd.DataFrame(columns=['response', 'score']) # Default
 
     def save_project(self):
         # Logic to save current state in json (or other data type), to be reloaded later
