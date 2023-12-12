@@ -11,11 +11,13 @@ import json
 # Set DPI awareness
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
+
 def file_import(file_path):
     with open(file_path, 'rb') as file:
         encoding = chardet.detect(file.read())['encoding']
     df = pd.read_csv(file_path, encoding=encoding)
     return df
+
 
 def preprocess_text(text: Any) -> str:
     text = str(text).lower() # Convert to string and lowercase
@@ -23,6 +25,7 @@ def preprocess_text(text: Any) -> str:
     text = re.sub(r'[^a-z0-9\s]', '', text) # Remove special characters
     text = text.strip() # Remove leading and trailing spaces
     return text
+
 
 def fuzzy_matching(df_preprocessed, match_string_entry):
     match_string = match_string_entry.get()
@@ -43,6 +46,7 @@ def fuzzy_matching(df_preprocessed, match_string_entry):
 
     return df_result
 
+
 # Main application class
 class FuzzyMatcherApp(tk.Tk):
     def __init__(self):
@@ -61,18 +65,18 @@ class FuzzyMatcherApp(tk.Tk):
         self.configure_sub_grids()
         self.configure_style()
 
-        # Call resize functions immediately after setup
+        # Set treeview column sizes and text wrapping
         self.resize_treeview_columns()
         self.resize_text_wraplength()
 
         # Bind resizing to window size change
         self.bind("<Configure>", self.on_window_resize)
 
-        # After setting up the UI, bind UI resizing events and refresh all displays
+        # After setting up the UI, refresh all displays
         self.after(100, self.display_categories)
         self.after(100, self.refresh_category_results_for_currently_displayed_category)
 
-    ### ----------------------- UI ----------------------- ###
+    ### ----------------------- UI Setup ----------------------- ###
     def initialize_window(self):
         # Set window size, position        
         screen_width = self.winfo_screenwidth()
@@ -267,6 +271,171 @@ class FuzzyMatcherApp(tk.Tk):
                         # If there is only one column, it takes up all the space
                         treeview.column(treeview["columns"][0], width=treeview_width)
 
+    ### ----------------------- UI Management ----------------------- ###
+    def ask_rename_category(self):
+        selected_categories = self.selected_categories()
+        
+        if len(selected_categories) != 1:
+            messagebox.showinfo("Info", "Please select one category to rename.")
+            return
+        
+        if "Uncategorized" in selected_categories:
+            messagebox.showinfo("Info", "You may not rename the 'Uncategorized' category.")
+            return
+                
+        old_category = selected_categories.pop()
+        rename_dialog_popup = tk.Toplevel(self)
+        rename_dialog_popup.title("Rename Category")
+        rename_dialog_popup.geometry("300x100")
+
+        # Center the popup on the main window
+        window_width = self.winfo_reqwidth()
+        window_height = self.winfo_reqheight()
+        position_right = int(self.winfo_screenwidth()/2 - window_width/2)
+        position_down = int(self.winfo_screenheight()/2 - window_height/2)
+        rename_dialog_popup.geometry("+{}+{}".format(position_right, position_down))
+        
+        # Keep the popup window on top
+        rename_dialog_popup.transient(self)  # Keep it on top of the main window
+        rename_dialog_popup.grab_set()       # Ensure all events are directed to this window until closed
+
+        label = tk.Label(rename_dialog_popup, text=f"Enter a new name for '{old_category}':")
+        new_category_entry = tk.Entry(rename_dialog_popup)
+        ok_button = tk.Button(rename_dialog_popup, text="OK", command=lambda: [
+            self.rename_category_in_data(old_category, new_category_entry.get()),
+            rename_dialog_popup.destroy(),
+            self.display_categories(),
+            self.refresh_category_results_for_currently_displayed_category()
+        ])
+        cancel_button = tk.Button(rename_dialog_popup, text="Cancel", command=rename_dialog_popup.destroy)
+
+        label.pack(pady=10)
+        new_category_entry.pack()
+        ok_button.pack(side="left", padx=20)
+        cancel_button.pack(side="right", padx=20)
+
+    def ask_delete_categories(self):
+        selected_categories = self.selected_categories()
+
+        if not selected_categories:
+            messagebox.showinfo("Info", "Please select categories to delete.")
+            return
+        
+        if "Uncategorized" in selected_categories:
+            messagebox.showinfo("Info", "You may not delete the category 'Uncategorized'.")
+            return
+        
+        confirmation = messagebox.askyesno("Confirmation", "Are you sure you want to delete the selected categories?")
+        if confirmation:
+            self.delete_categories_in_data(selected_categories)
+            self.display_categories()
+            self.refresh_category_results_for_currently_displayed_category()
+
+    def display_match_results(self):
+        # Filter the results based on the threshold
+        filtered_results = self.match_results[self.match_results['score'] >= self.threshold_slider.get()]
+
+        # Aggregate and count unique instances
+        aggregated_results = filtered_results.groupby('response').agg(
+            max_score=pd.NamedAgg(column='score', aggfunc='max'),
+            count=pd.NamedAgg(column='response', aggfunc='count')
+        ).reset_index()
+
+        # Sort the results first by max_score in descending order, then by count in descending order
+        sorted_results = aggregated_results.sort_values(by=['max_score', 'count'], ascending=[False, False])
+
+        # Clear existing items in the results display area
+        for item in self.match_results_tree.get_children():
+            self.match_results_tree.delete(item)
+
+        # Populate the display area with aggregated unique filtered results
+        for _, row in sorted_results.iterrows():
+            self.match_results_tree.insert('', 'end', values=(row['response'], row['max_score'], row['count']))
+
+        ### Update this method to display ORIGINAL STRING ###
+
+    def display_categories(self):
+        selected_categories = self.selected_categories()
+
+        for item in self.categories_tree.get_children():
+            self.categories_tree.delete(item)
+        
+        for category, responses in self.categories_display.items():
+            count = self.calculate_count(responses)
+            percentage = self.calculate_percentage(responses)
+            self.categories_tree.insert('', 'end', values=(category, count, f"{percentage:.2f}%"))
+            
+        self.update_treeview_selections(selected_categories=selected_categories)
+
+    def display_category_results_for_selected_category(self):
+        selected_categories = self.categories_tree.selection()
+        
+        if len(selected_categories) == 1:
+            category = self.categories_tree.item(selected_categories[0])['values'][0]
+            
+            # Clear existing items in the results display area
+            for item in self.category_results_tree.get_children():
+                self.category_results_tree.delete(item)
+
+            # Display responses and counts for the selected category
+            if category in self.categories_display:
+                for response in self.categories_display[category]:
+                    count = self.response_counts[response]
+                    self.category_results_tree.insert('', 'end', values=(response, count))
+
+            # Update the results display to reflect the selected category
+            self.category_results_label.config(text=f"Results for Category: {category}")
+
+            # Assign variable for currently displayed category
+            self.currently_displayed_category = category
+
+        elif len(selected_categories) > 1:
+            messagebox.showerror("Error", "Please select only one category")
+        
+        else:
+            messagebox.showerror("Error", "No category selected")
+
+    def refresh_category_results_for_currently_displayed_category(self):
+        category = self.currently_displayed_category
+        
+        if not category:
+            messagebox.showerror("Error", "No category results currently displayed")
+            return
+
+        # Clear existing items in the results display area
+        for item in self.category_results_tree.get_children():
+            self.category_results_tree.delete(item)
+
+        # Display responses and counts for the selected category
+        if category in self.categories_display:
+            for response in self.categories_display[category]:
+                count = self.response_counts[response]
+                self.category_results_tree.insert('', 'end', values=(response, count))
+
+        # Update the results display to reflect the selected category
+        self.category_results_label.config(text=f"Results for Category: {category}")
+
+    def selected_categories(self):
+        return {self.categories_tree.item(item_id)['values'][0] for item_id in self.categories_tree.selection()}
+    
+    def selected_match_responses(self):
+        return {self.match_results_tree.item(item_id)['values'][0] for item_id in self.match_results_tree.selection()}
+
+    def selected_category_responses(self):
+        return {self.category_results_tree.item(item_id)['values'][0] for item_id in self.category_results_tree.selection()}
+
+    def update_treeview_selections(self, selected_categories=None, selected_responses=None):
+        def reselect_treeview_items(treeview, values):
+            for item in treeview.get_children():
+                if treeview.item(item)['values'][0] in values:
+                    treeview.selection_add(item)
+
+        # Re-select categories and if multi-categorization re-select match results
+        if selected_categories is not None:
+            reselect_treeview_items(self.categories_tree, selected_categories)
+        if self.categorization_var.get() == "Multi" and selected_responses is not None:
+            reselect_treeview_items(self.match_results_tree, selected_responses)
+
     ### ----------------------- Project Management ----------------------- ###
     def initialize_data_structures(self):
         # Initialize empty variables which will be populated during new project/load project
@@ -440,48 +609,6 @@ class FuzzyMatcherApp(tk.Tk):
             self.categories_display[new_category] = set()
             self.display_categories()
 
-    def ask_rename_category(self):
-        selected_categories = self.selected_categories()
-        
-        if len(selected_categories) != 1:
-            messagebox.showinfo("Info", "Please select one category to rename.")
-            return
-        
-        if "Uncategorized" in selected_categories:
-            messagebox.showinfo("Info", "You may not rename the 'Uncategorized' category.")
-            return
-                
-        old_category = selected_categories.pop()
-        rename_dialog_popup = tk.Toplevel(self)
-        rename_dialog_popup.title("Rename Category")
-        rename_dialog_popup.geometry("300x100")
-
-        # Center the popup on the main window
-        window_width = self.winfo_reqwidth()
-        window_height = self.winfo_reqheight()
-        position_right = int(self.winfo_screenwidth()/2 - window_width/2)
-        position_down = int(self.winfo_screenheight()/2 - window_height/2)
-        rename_dialog_popup.geometry("+{}+{}".format(position_right, position_down))
-        
-        # Keep the popup window on top
-        rename_dialog_popup.transient(self)  # Keep it on top of the main window
-        rename_dialog_popup.grab_set()       # Ensure all events are directed to this window until closed
-
-        label = tk.Label(rename_dialog_popup, text=f"Enter a new name for '{old_category}':")
-        new_category_entry = tk.Entry(rename_dialog_popup)
-        ok_button = tk.Button(rename_dialog_popup, text="OK", command=lambda: [
-            self.rename_category_in_data(old_category, new_category_entry.get()),
-            rename_dialog_popup.destroy(),
-            self.display_categories(),
-            self.refresh_category_results_for_currently_displayed_category()
-        ])
-        cancel_button = tk.Button(rename_dialog_popup, text="Cancel", command=rename_dialog_popup.destroy)
-
-        label.pack(pady=10)
-        new_category_entry.pack()
-        ok_button.pack(side="left", padx=20)
-        cancel_button.pack(side="right", padx=20)
-
     def rename_category_in_data(self, old_category, new_category):
         if not new_category:
             messagebox.showinfo("Info", "Please enter a non-empty category name.")
@@ -495,132 +622,10 @@ class FuzzyMatcherApp(tk.Tk):
         self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
         self.categories_display[new_category] = self.categories_display.pop(old_category)
 
-    def ask_delete_categories(self):
-        selected_categories = self.selected_categories()
-
-        if not selected_categories:
-            messagebox.showinfo("Info", "Please select categories to delete.")
-            return
-        
-        if "Uncategorized" in selected_categories:
-            messagebox.showinfo("Info", "You may not delete the category 'Uncategorized'.")
-            return
-        
-        confirmation = messagebox.askyesno("Confirmation", "Are you sure you want to delete the selected categories?")
-        if confirmation:
-            self.delete_categories_in_data(selected_categories)
-            self.display_categories()
-            self.refresh_category_results_for_currently_displayed_category()
-
     def delete_categories_in_data(self, categories_to_delete):
         for category in categories_to_delete:
             del self.categories_display[category]
             self.categorized_data.drop(columns=category, inplace=True)
-
-    def display_match_results(self):
-        # Filter the results based on the threshold
-        filtered_results = self.match_results[self.match_results['score'] >= self.threshold_slider.get()]
-
-        # Aggregate and count unique instances
-        aggregated_results = filtered_results.groupby('response').agg(
-            max_score=pd.NamedAgg(column='score', aggfunc='max'),
-            count=pd.NamedAgg(column='response', aggfunc='count')
-        ).reset_index()
-
-        # Sort the results first by max_score in descending order, then by count in descending order
-        sorted_results = aggregated_results.sort_values(by=['max_score', 'count'], ascending=[False, False])
-
-        # Clear existing items in the results display area
-        for item in self.match_results_tree.get_children():
-            self.match_results_tree.delete(item)
-
-        # Populate the display area with aggregated unique filtered results
-        for _, row in sorted_results.iterrows():
-            self.match_results_tree.insert('', 'end', values=(row['response'], row['max_score'], row['count']))
-
-        ### Update this method to display ORIGINAL STRING ###
-
-    def display_categories(self):
-        selected_categories = self.selected_categories()
-
-        for item in self.categories_tree.get_children():
-            self.categories_tree.delete(item)
-        
-        for category, responses in self.categories_display.items():
-            count = self.calculate_count(responses)
-            percentage = self.calculate_percentage(responses)
-            self.categories_tree.insert('', 'end', values=(category, count, f"{percentage:.2f}%"))
-            
-        self.update_treeview_selections(selected_categories=selected_categories)
-
-    def display_category_results_for_selected_category(self):
-        selected_categories = self.categories_tree.selection()
-        
-        if len(selected_categories) == 1:
-            category = self.categories_tree.item(selected_categories[0])['values'][0]
-            
-            # Clear existing items in the results display area
-            for item in self.category_results_tree.get_children():
-                self.category_results_tree.delete(item)
-
-            # Display responses and counts for the selected category
-            if category in self.categories_display:
-                for response in self.categories_display[category]:
-                    count = self.response_counts[response]
-                    self.category_results_tree.insert('', 'end', values=(response, count))
-
-            # Update the results display to reflect the selected category
-            self.category_results_label.config(text=f"Results for Category: {category}")
-
-            # Assign variable for currently displayed category
-            self.currently_displayed_category = category
-
-        elif len(selected_categories) > 1:
-            messagebox.showerror("Error", "Please select only one category")
-        
-        else:
-            messagebox.showerror("Error", "No category selected")
-
-    def refresh_category_results_for_currently_displayed_category(self):
-        category = self.currently_displayed_category
-        
-        if not category:
-            messagebox.showerror("Error", "No category results currently displayed")
-            return
-
-        # Clear existing items in the results display area
-        for item in self.category_results_tree.get_children():
-            self.category_results_tree.delete(item)
-
-        # Display responses and counts for the selected category
-        if category in self.categories_display:
-            for response in self.categories_display[category]:
-                count = self.response_counts[response]
-                self.category_results_tree.insert('', 'end', values=(response, count))
-
-        # Update the results display to reflect the selected category
-        self.category_results_label.config(text=f"Results for Category: {category}")
-
-    def selected_categories(self):
-        return {self.categories_tree.item(item_id)['values'][0] for item_id in self.categories_tree.selection()}
-    
-    def selected_match_responses(self):
-        return {self.match_results_tree.item(item_id)['values'][0] for item_id in self.match_results_tree.selection()}
-
-    def selected_category_responses(self):
-        return {self.category_results_tree.item(item_id)['values'][0] for item_id in self.category_results_tree.selection()}
-
-    def update_treeview_selections(self, selected_categories=None, selected_responses=None):
-        def reselect_treeview_items(treeview, values):
-            for item in treeview.get_children():
-                if treeview.item(item)['values'][0] in values:
-                    treeview.selection_add(item)
-
-        # Re-select categories and if multi-categorization re-select match results
-        if selected_categories is not None:
-            reselect_treeview_items(self.categories_tree, selected_categories)
-        if self.categorization_var.get() == "Multi" and selected_responses is not None:
-            reselect_treeview_items(self.match_results_tree, selected_responses)
 
     def process_match(self):
         if self.df_preprocessed is not None:
@@ -720,6 +725,7 @@ class FuzzyMatcherApp(tk.Tk):
         count = self.calculate_count(responses)
         total_responses = sum(self.response_counts.values())
         return (count / total_responses) * 100 if total_responses > 0 else 0
+
 
 # Running the application
 if __name__ == "__main__":
