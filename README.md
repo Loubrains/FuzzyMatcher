@@ -19,9 +19,9 @@ The context for this is specifically for speeding up the categorization of open-
 
 ### Functionality:
 
+- Handle NaNs/Missing data
 - Ability to switch back to multi from single (spit warning "can't go back").
 - Ability to sort match results by other dimensions
-- Handle NaNs/Missing data
 - Need to fix 'New Project' behaviour when a project is already loaded (redisplay 'Uncategorized', remove match results)
 - Pass in a list of category names?
 - Ability to append more data? (i.e. new cases)
@@ -38,9 +38,10 @@ The context for this is specifically for speeding up the categorization of open-
 
 ### UI:
 
-- Align tops and bottoms of display boxes.
 - Maybe a box that always shows uncategorized (or remove current match and put them in there?)
 - Tooltips (for what exactly?)
+- Make buttons size properly (all the same rectangles)
+- ~~Align tops and bottoms of display boxes.~~
 - ~~Sort category results display first by count and second alphabetically.~~
 - ~~Set initial column sizes and text wrapping and have them scale with the window size.~~
 - ~~Show percentages next to category counts~~
