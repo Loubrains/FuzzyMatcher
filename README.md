@@ -4,7 +4,7 @@ This is a desktop app that allows the user to import a dataset, fuzzy match stri
 
 The context for this is specifically for speeding up the categorization of open-ended text responses to questionnaires. This effectively replaces the broken/slow fuzzy matching functionality in Q Research Software.
 
-**NOTE: THIS PROGRAM ASSUMES THAT THE FIRST COLUMN OF THE DATASET CONTAINS UUIDS AND THE SUBSEQUENT COLUMNS CONTAIN RESPONSES.**
+**NOTE: THIS PROGRAM ASSUMES THAT THE FIRST COLUMN OF THE IMPORTED DATA CONTAINS UUIDS AND THE SUBSEQUENT COLUMNS CONTAIN RESPONSES.**
 
 # Requirements
 

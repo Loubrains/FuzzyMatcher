@@ -17,8 +17,7 @@ class FileManager:
     def file_import(self, file_path):
         with open(file_path, "rb") as file:
             encoding = chardet.detect(file.read())["encoding"]  # Detect encoding
-        df = pd.read_csv(file_path, encoding=encoding)
-        return df
+        return pd.read_csv(file_path, encoding=encoding)
 
 
 class DataProcessor:
@@ -408,7 +407,7 @@ class FuzzyMatcherApp(tk.Tk):
         window_height = self.winfo_reqheight()
         position_right = int(self.winfo_screenwidth() / 2 - window_width / 2)
         position_down = int(self.winfo_screenheight() / 2 - window_height / 2)
-        rename_dialog_popup.geometry("+{}+{}".format(position_right, position_down))
+        rename_dialog_popup.geometry(f"+{position_right}+{position_down}")
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
         rename_dialog_popup.transient(self)
@@ -452,10 +451,9 @@ class FuzzyMatcherApp(tk.Tk):
             )
             return
 
-        confirmation = messagebox.askyesno(
+        if messagebox.askyesno(
             "Confirmation", "Are you sure you want to delete the selected categories?"
-        )
-        if confirmation:
+        ):
             self.delete_categories_in_data(selected_categories)
             self.display_categories()
             self.refresh_category_results_for_currently_displayed_category()
@@ -615,10 +613,9 @@ class FuzzyMatcherApp(tk.Tk):
 
     def file_import_process(self):
         is_file_selected = False
-        file_path = filedialog.askopenfilename(
+        if file_path := filedialog.askopenfilename(
             title="Please select a file containing your dataset"
-        )
-        if file_path:
+        ):
             self.df = self.file_manager.file_import(file_path)
             if self.df.empty or self.df.shape[1] < 2:
                 messagebox.showerror(
@@ -634,7 +631,7 @@ class FuzzyMatcherApp(tk.Tk):
             self.df.iloc[:, 1:].map(self.data_processor.preprocess_text)
         )
 
-        self.response_columns = [col for col in self.df_preprocessed.columns]
+        self.response_columns = list(self.df_preprocessed.columns)
 
         # categorized_data carries all response columns and all categories until export where response columns are dropped
         # In categorized_data, each category is a column, with a 1 or 0 for each response
@@ -662,9 +659,7 @@ class FuzzyMatcherApp(tk.Tk):
         window_height = self.winfo_reqheight()
         position_right = int(self.winfo_screenwidth() / 2 - window_width / 2)
         position_down = int(self.winfo_screenheight() / 2 - window_height / 2)
-        categorization_type_popup.geometry(
-            "+{}+{}".format(position_right, position_down)
-        )
+        categorization_type_popup.geometry(f"+{position_right}+{position_down}")
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
         categorization_type_popup.transient(self)
@@ -702,12 +697,10 @@ class FuzzyMatcherApp(tk.Tk):
         self.categorization_label.config(text="Categorization Type: " + chosen_type)
 
     def load_project(self):
-        file_path = filedialog.askopenfilename(
+        if file_path := filedialog.askopenfilename(
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
             title="Load Project",
-        )
-
-        if file_path:
+        ):
             with open(file_path, "r") as f:
                 data_loaded = json.load(f)
 
@@ -748,13 +741,11 @@ class FuzzyMatcherApp(tk.Tk):
             },
         }
 
-        file_path = filedialog.asksaveasfilename(
+        if file_path := filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
             title="Save Project As",
-        )
-
-        if file_path:
+        ):
             with open(file_path, "w") as f:
                 json.dump(data_to_save, f)
             messagebox.showinfo(
@@ -768,13 +759,11 @@ class FuzzyMatcherApp(tk.Tk):
         if self.categorization_var.get() == "Multi":
             export_df.drop("Uncategorized", axis=1, inplace=True)
 
-        file_path = filedialog.asksaveasfilename(
+        if file_path := filedialog.asksaveasfilename(
             defaultextension=".csv",
             filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
             title="Save As",
-        )
-
-        if file_path:
+        ):
             export_df.to_csv(file_path, index=False)
             messagebox.showinfo("Export", "Data exported successfully to " + file_path)
         else:
