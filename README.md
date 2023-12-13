@@ -55,9 +55,3 @@ The context for this is specifically for speeding up the categorization of open-
 - Separate logic from UI.
 - Unit tests.
 - Maybe an auto mode? i.e. auto-match and categorize for each category in the list, for a pre-defined threshold.
-
-### For the lols:
-
-- Play CODEX installer 8-bit music
-- Closing the program reopens it again
-- Donation popup box
