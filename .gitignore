@@ -1,0 +1,7 @@
+# Ignore everything
+*
+
+# Allow the main app file and README
+!FuzzyApp.py
+!README.md
+!/.gitignore
