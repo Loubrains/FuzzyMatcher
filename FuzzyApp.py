@@ -23,27 +23,23 @@ class FileManager:
 
 class DataProcessor:
     def preprocess_text(self, text: Any) -> str:
-        text = str(text).lower() # Convert to lowercase string
-        text = re.sub(r'\s+', ' ', text) # Convert one or more of any kind of space (including tab) to single space
+        text = str(text).lower()
+        text = re.sub(r'\s+', ' ', text) # Convert one or more of any kind of space to single space
         text = re.sub(r'[^a-z0-9\s]', '', text) # Remove special characters
-        text = text.strip() # Remove leading and trailing spaces
+        text = text.strip()
         return text
 
-    def fuzzy_matching(self, df_preprocessed, match_string_entry):
-        match_string = match_string_entry.get()
-        # Fuzzy match element with given string
+    def fuzzy_matching(self, df_preprocessed, match_string):
         def fuzzy_match(element):
-            return fuzz.WRatio(match_string, str(element))
+            return fuzz.WRatio(match_string, str(element)) # Weighted ratio of several fuzzy matching protocols
 
-        # Get fuzzy matching scores and format result: (response, score)
+        # Get fuzzy matching scores and format result: {response: score}
         results = []
         for row in df_preprocessed.itertuples(index=True, name=None):
             for response in row[1:]:
                 score = fuzzy_match(response)
-                # Append a dictionary for each matching record
                 results.append({'response': response, 'score': score})
 
-        # Convert list of dictionaries to DataFrame
         df_result = pd.DataFrame(results)
 
         return df_result
@@ -58,8 +54,7 @@ class FuzzyMatcherApp(tk.Tk):
 
         self.title("Fuzzy Matcher")
 
-        # Initialize empty/default variables, which will populated during new project/load project
-        self.initialize_data_structures()
+        self.initialize_data_structures() # Empty/default variables
 
         # Setup the UI
         self.initialize_window()
@@ -69,12 +64,10 @@ class FuzzyMatcherApp(tk.Tk):
         self.bind_widgets_to_frames()
         self.configure_sub_grids()
         self.configure_style()
-
-        # Set treeview column sizes and text wrapping
         self.resize_treeview_columns()
         self.resize_text_wraplength()
 
-        # Bind resizing to window size change
+        # Bind resizing functions to window size change
         self.bind("<Configure>", self.on_window_resize)
 
         # After setting up the UI, refresh all displays
@@ -82,8 +75,7 @@ class FuzzyMatcherApp(tk.Tk):
         self.after(100, self.refresh_category_results_for_currently_displayed_category)
 
     ### ----------------------- UI Setup ----------------------- ###
-    def initialize_window(self):
-        # Set window size, position        
+    def initialize_window(self):     
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         window_size_multiplier = 0.8
@@ -96,16 +88,15 @@ class FuzzyMatcherApp(tk.Tk):
         # self.state('zoomed')
 
     def configure_grid(self):
-        # Create grid rows/columns and set weights for resizing
-        self.grid_columnconfigure(0, weight=1)  # Column for match results display
-        self.grid_columnconfigure(1, weight=1)  # Column for category results display
-        self.grid_columnconfigure(2, weight=1)  # Column for categories display
-        self.grid_rowconfigure(0, weight=0)     # Row for buttons and labels
-        self.grid_rowconfigure(1, weight=1)     # Main area for Treeviews
-        self.grid_rowconfigure(2, weight=0)     # Bottom area for export button
+        self.grid_columnconfigure(0, weight=1)  # Fuzzy matching
+        self.grid_columnconfigure(1, weight=1)  # Category results
+        self.grid_columnconfigure(2, weight=1)  # Categories display
+        self.grid_rowconfigure(0, weight=0)     # Buttons, entries, labels, etc
+        self.grid_rowconfigure(1, weight=1)     # Treeviews
+        self.grid_rowconfigure(2, weight=0)     # Project management
+        # Weights set such that all columns and only middle row can expand/contract
         
     def configure_frames(self):
-        # Create frames
         self.top_left_frame = tk.Frame(self)
         self.middle_left_frame = tk.Frame(self)
         self.top_middle_frame = tk.Frame(self)        
@@ -114,7 +105,6 @@ class FuzzyMatcherApp(tk.Tk):
         self.middle_right_frame = tk.Frame(self)
         self.bottom_frame = tk.Frame(self)
 
-        # Bind frames to grid
         self.top_left_frame.grid(row=0, column=0, sticky="sew", padx=10, pady=10)
         self.middle_left_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
         self.top_middle_frame.grid(row=0, column=1, sticky="sew", padx=10, pady=10)
@@ -127,11 +117,11 @@ class FuzzyMatcherApp(tk.Tk):
         # Top left frame widgets (fuzzy matching entry, slider, buttons and lable)
         self.match_string_label = tk.Label(self.top_left_frame, text="Enter String to Match:")
         self.match_string_entry = tk.Entry(self.top_left_frame)
-        self.match_string_entry.bind('<Return>', lambda event: self.process_match()) # Pressing 'Enter' processes the match, same as the button
+        self.match_string_entry.bind('<Return>', lambda event: self.process_match())
         self.threshold_label = tk.Label(self.top_left_frame, text="Set Fuzz Threshold (100 is precise, 0 is imprecise):")
         self.threshold_slider = tk.Scale(self.top_left_frame, from_=0, to=100, orient="horizontal", resolution=1,
                                         command=lambda val: self.display_match_results())
-        self.threshold_slider.set(60)  # Setting default value to 60
+        self.threshold_slider.set(60)  # Setting default value to 60, gets decent results
         self.match_button = tk.Button(self.top_left_frame, text="Match", command=self.process_match)
         self.categorize_button = tk.Button(self.top_left_frame, text="Categorize Selected Results", command=self.categorize_response)
         self.categorization_label = tk.Label(self.top_left_frame, text="Categorization Type: Single")
@@ -159,7 +149,7 @@ class FuzzyMatcherApp(tk.Tk):
 
         # Top right frame widgets (category buttons and entry)
         self.new_category_entry = tk.Entry(self.top_right_frame)
-        self.new_category_entry.bind('<Return>', lambda event: self.create_category()) # Pressing 'Enter' processes the match, same as the button
+        self.new_category_entry.bind('<Return>', lambda event: self.create_category())
         self.add_category_button = tk.Button(self.top_right_frame, text="Add Category", command=self.create_category)
         self.rename_category_button = tk.Button(self.top_right_frame, text="Rename Category", command=self.ask_rename_category)
         self.delete_categories_button = tk.Button(self.top_right_frame, text="Delete Category", command=self.ask_delete_categories)
@@ -262,16 +252,14 @@ class FuzzyMatcherApp(tk.Tk):
         style.configure("Treeview.Item", anchor='center')
 
     def on_window_resize(self, event):
-        # Call resize functions when the window is resized
         self.resize_treeview_columns()
         self.resize_text_wraplength()
 
     def resize_text_wraplength(self):
-        # Initial resize of text wraplength
         for frame in self.winfo_children():
             for widget in frame.winfo_children():
                 if isinstance(widget, (tk.Label, tk.Button, tk.Radiobutton)):
-                    width = widget.winfo_width() + 10
+                    width = widget.winfo_width() + 10 # Extra added to make it slightly less eager to resize
                     widget.configure(wraplength=width)
 
     def resize_treeview_columns(self):
@@ -279,23 +267,20 @@ class FuzzyMatcherApp(tk.Tk):
             for widget in frame.winfo_children():
                 if isinstance(widget, ttk.Treeview):
                     treeview = widget
-                    # Get the width of the treeview widget
                     treeview_width = treeview.winfo_width()
 
-                    # Calculate the width for all columns after the first one
                     num_columns = len(treeview["columns"])
-                    if num_columns > 1:  # Ensure there is more than one column
+                    if num_columns > 1:
+                        # Each column after the first one should be 1/6th the total treeview width,
+                        # with the first one taking the remaining space.
                         secondary_column_width = treeview_width // 6
                         first_column_width = treeview_width - (secondary_column_width * (num_columns - 1))
 
-                        # Set the first column's width
                         treeview.column(treeview["columns"][0], width=first_column_width)
-
-                        # Set the other columns' widths
                         for col in treeview["columns"][1:]:
                             treeview.column(col, minwidth=50, width=secondary_column_width)
                     else:
-                        # If there is only one column, it takes up all the space
+                        # If there is only one column, it should take all the space
                         treeview.column(treeview["columns"][0], width=treeview_width)
 
     ### ----------------------- UI Management ----------------------- ###
@@ -309,8 +294,10 @@ class FuzzyMatcherApp(tk.Tk):
         if "Uncategorized" in selected_categories:
             messagebox.showinfo("Info", "You may not rename the 'Uncategorized' category.")
             return
-                
+        
         old_category = selected_categories.pop()
+
+        # Create a popup to get user entry for rename
         rename_dialog_popup = tk.Toplevel(self)
         rename_dialog_popup.title("Rename Category")
         rename_dialog_popup.geometry("300x100")
@@ -322,10 +309,11 @@ class FuzzyMatcherApp(tk.Tk):
         position_down = int(self.winfo_screenheight()/2 - window_height/2)
         rename_dialog_popup.geometry("+{}+{}".format(position_right, position_down))
         
-        # Keep the popup window on top
-        rename_dialog_popup.transient(self)  # Keep it on top of the main window
-        rename_dialog_popup.grab_set()       # Ensure all events are directed to this window until closed
+        # Keep the popup window on top and ensure all events are directed to this window until closed
+        rename_dialog_popup.transient(self)
+        rename_dialog_popup.grab_set()
 
+        # Create widgets
         label = tk.Label(rename_dialog_popup, text=f"Enter a new name for '{old_category}':")
         new_category_entry = tk.Entry(rename_dialog_popup)
         ok_button = tk.Button(rename_dialog_popup, text="OK", command=lambda: [
@@ -336,6 +324,7 @@ class FuzzyMatcherApp(tk.Tk):
         ])
         cancel_button = tk.Button(rename_dialog_popup, text="Cancel", command=rename_dialog_popup.destroy)
 
+        # Add widgets to popup
         label.pack(pady=10)
         new_category_entry.pack()
         ok_button.pack(side="left", padx=20)
@@ -359,27 +348,21 @@ class FuzzyMatcherApp(tk.Tk):
             self.refresh_category_results_for_currently_displayed_category()
 
     def display_match_results(self):
-        # Filter the results based on the threshold
+        # Filter the fuzzy match results based on the threshold
         filtered_results = self.match_results[self.match_results['score'] >= self.threshold_slider.get()]
 
-        # Aggregate and count unique instances
         aggregated_results = filtered_results.groupby('response').agg(
-            max_score=pd.NamedAgg(column='score', aggfunc='max'),
+            score=pd.NamedAgg(column='score', aggfunc='max'),
             count=pd.NamedAgg(column='response', aggfunc='count')
         ).reset_index()
 
-        # Sort the results first by max_score in descending order, then by count in descending order
-        sorted_results = aggregated_results.sort_values(by=['max_score', 'count'], ascending=[False, False])
+        sorted_results = aggregated_results.sort_values(by=['score', 'count'], ascending=[False, False])
 
-        # Clear existing items in the results display area
         for item in self.match_results_tree.get_children():
             self.match_results_tree.delete(item)
-
-        # Populate the display area with aggregated unique filtered results
+   
         for _, row in sorted_results.iterrows():
             self.match_results_tree.insert('', 'end', values=(row['response'], row['max_score'], row['count']))
-
-        ### Update this method to display ORIGINAL STRING ###
 
     def display_categories(self):
         selected_categories = self.selected_categories()
@@ -398,23 +381,19 @@ class FuzzyMatcherApp(tk.Tk):
         selected_categories = self.categories_tree.selection()
         
         if len(selected_categories) == 1:
+            # Get the selected category as a string
             category = self.categories_tree.item(selected_categories[0])['values'][0]
-            
-            # Clear existing items in the results display area
+
             for item in self.category_results_tree.get_children():
                 self.category_results_tree.delete(item)
 
-            # Display responses and counts for the selected category
             if category in self.categories_display:
                 responses_and_counts = [(response, self.response_counts[response]) for response in self.categories_display[category]]
-                # Sort by count (descending) and then alphabetically (ascending)
                 sorted_responses = sorted(responses_and_counts, key=lambda x: (-x[1], x[0]))
 
-                # Add the sorted responses to the category results treeview
                 for response, count in sorted_responses:
                     self.category_results_tree.insert('', 'end', values=(response, count))
 
-            # Update the results display to reflect the selected category
             self.category_results_label.config(text=f"Results for Category: {category}")
 
             # Assign variable for currently displayed category
@@ -433,21 +412,16 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showerror("Error", "No category results currently displayed")
             return
 
-        # Clear existing items in the results display area
         for item in self.category_results_tree.get_children():
             self.category_results_tree.delete(item)
 
-        # Display responses and counts for the selected category
         if category in self.categories_display:
             responses_and_counts = [(response, self.response_counts[response]) for response in self.categories_display[category]]
-            # Sort by count (descending) and then alphabetically (ascending)
             sorted_responses = sorted(responses_and_counts, key=lambda x: (-x[1], x[0]))
 
-            # Add the sorted responses to the category results treeview
             for response, count in sorted_responses:
                 self.category_results_tree.insert('', 'end', values=(response, count))
 
-        # Update the results display to reflect the selected category
         self.category_results_label.config(text=f"Results for Category: {category}")
 
     def selected_categories(self):
@@ -473,7 +447,7 @@ class FuzzyMatcherApp(tk.Tk):
 
     ### ----------------------- Project Management ----------------------- ###
     def initialize_data_structures(self):
-        # Initialize empty variables which will be populated during new project/load project
+        # Empty variables which will be populated during new project/load project
         self.categorization_var = tk.StringVar(value="Single")
         self.df_preprocessed = pd.DataFrame()
         self.response_columns= []
@@ -483,28 +457,21 @@ class FuzzyMatcherApp(tk.Tk):
         self.match_results = pd.DataFrame(columns=['response', 'score'])
         self.currently_displayed_category = 'Uncategorized'
 
+        # categorized_data will contain a column for each, with a 1 or 0 for each response
+
     def start_new_project(self):
-        # import file
         if self.file_import_process():
-            # Populate the empty data structures using imported file
             self.populate_data_structures_new_project()
-            # Display categories
             self.display_categories()
-            # Display Uncategorized results
             self.refresh_category_results_for_currently_displayed_category()
-            # Refresh match results
             self.display_match_results()
-            # Ask for categorization type after file is selected
             self.ask_categorization_type()
 
     def file_import_process(self):
-        # File import process
         is_file_selected = False
         file_path = filedialog.askopenfilename(title= "Please select a file containing your dataset")
         if file_path:
-            # Import file and create dataframe
             self.df = self.file_manager.file_import(file_path)
-            # Check if the DataFrame is empty or has less than 2 columns
             if self.df.empty or self.df.shape[1] < 2:
                 messagebox.showerror("Error", "Dataset is empty or does not contain enough columns.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses")
             else:
@@ -512,30 +479,27 @@ class FuzzyMatcherApp(tk.Tk):
         return is_file_selected
    
     def populate_data_structures_new_project(self):
-        # Preprocess text
-        self.df_preprocessed = pd.DataFrame(self.df.iloc[:, 1:].map(self.data_processor.preprocess_text)) # type: ignore
+        self.df_preprocessed = pd.DataFrame(self.df.iloc[:, 1:].map(self.data_processor.preprocess_text))
+
         self.response_columns= [col for col in self.df_preprocessed.columns]
 
-        # Initialize categorized data (uuids and preprocessed responses)
+        # categorized_data carries all response columns and all categories until export where response columns are dropped
+        # In categorized_data, each category is a column, with a 1 or 0 for each response
         uuids = categorized_data = self.df.iloc[:, 0]
         self.categorized_data = pd.concat([uuids, self.df_preprocessed], axis=1)
-        # Add 'Uncategorized category' and set all responses to 1
-        self.categorized_data['Uncategorized'] = 1
+        self.categorized_data['Uncategorized'] = 1 # Everything starts uncategorized
 
-        # Create a flattened DataFrame of the preprocessed responses
+        # categories_display is dict of categories to the deduplicated set of all responses
         df_series = self.df_preprocessed.stack().reset_index(drop=True)
-        # Count each response including duplicates
-        self.response_counts = df_series.value_counts().to_dict()
-
-        # Initialize categories for display and set all unique responses to 'Uncategorized'
         self.categories_display = {'Uncategorized': set(df_series)}
 
-        # Reset match results and currently displayed category
+        self.response_counts = df_series.value_counts().to_dict()
+
         self.match_results = pd.DataFrame(columns=['response', 'score']) # Default
         self.currently_displayed_category = 'Uncategorized' # Default
 
     def ask_categorization_type(self):
-        # Create popup window
+        # Create popup 
         categorization_type_popup = tk.Toplevel(self)
         categorization_type_popup.title("Select Categorization Type")
         categorization_type_popup.geometry("400x200")
@@ -547,11 +511,11 @@ class FuzzyMatcherApp(tk.Tk):
         position_down = int(self.winfo_screenheight()/2 - window_height/2)
         categorization_type_popup.geometry("+{}+{}".format(position_right, position_down))
 
-        # Keep the popup window on top
-        categorization_type_popup.transient(self)  # Keep it on top of the main window
-        categorization_type_popup.grab_set()       # Ensure all events are directed to this window until closed
+        # Keep the popup window on top and ensure all events are directed to this window until closed
+        categorization_type_popup.transient(self)
+        categorization_type_popup.grab_set()
 
-        # Create buttons that assign a value to the categorization type variable
+        # Create buttons that assign value to self.categoriztation_type
         single_categorization_rb = tk.Radiobutton(categorization_type_popup, text="Single Categorization", variable=self.categorization_var, value="Single")
         multi_categorization_rb = tk.Radiobutton(categorization_type_popup, text="Multi Categorization", variable=self.categorization_var, value="Multi")
         confirm_button = tk.Button(categorization_type_popup, text="Confirm", command=lambda: [self.set_categorization_type_label(), categorization_type_popup.destroy()])
@@ -566,8 +530,6 @@ class FuzzyMatcherApp(tk.Tk):
         self.categorization_label.config(text="Categorization Type: " + chosen_type)
 
     def load_project(self):
-        # Logic to load previously saved state from json (or other data type)
-        # Open a file dialog to select the file
         file_path = filedialog.askopenfilename(
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
             title="Load Project"
@@ -577,15 +539,10 @@ class FuzzyMatcherApp(tk.Tk):
             with open(file_path, 'r') as f:
                 data_loaded = json.load(f)
 
-            # Convert JSON data back to variables / set default variable values
             self.populate_data_structures_load_project(data_loaded)
-            # Set categorization label
             self.set_categorization_type_label()
-            # Refresh match results
             self.display_match_results()
-            # Display Uncategorized results
             self.refresh_category_results_for_currently_displayed_category()
-            # Display categories
             self.display_categories()
 
             messagebox.showinfo("Load Project", "Project loaded successfully from " + file_path)
@@ -601,9 +558,9 @@ class FuzzyMatcherApp(tk.Tk):
             self.currently_displayed_category = 'Uncategorized' # Default
             self.match_results = pd.DataFrame(columns=['response', 'score']) # Default
 
-    def save_project(self):
-        # Logic to save current state in json (or other data type), to be reloaded later
+            # In categorized_data, each category is a column, with a 1 or 0 for each response
 
+    def save_project(self):
         data_to_save = {
             'categorization_var': self.categorization_var.get(),
             'df_preprocessed': self.df_preprocessed.to_json(),
@@ -613,7 +570,6 @@ class FuzzyMatcherApp(tk.Tk):
             'categories_display': {k: list(v) for k, v in self.categories_display.items()}
         }
 
-        # Save to a file
         file_path = filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
@@ -626,13 +582,12 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showinfo("Save Project", "Project saved successfully to " + file_path)
 
     def export_to_csv(self):
-        # Create export dataframe with all preprocessed response columns removed
+        # Exported data needs only UUIDs and category binaries to be able to be imported into Q.
         export_df = self.categorized_data.drop(columns=self.response_columns)
 
         if self.categorization_var.get() == "Multi":
             export_df.drop('Uncategorized', axis=1, inplace=True)
 
-        # Export to CSV
         file_path = filedialog.asksaveasfilename(
             defaultextension=".csv",
             filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
@@ -648,13 +603,14 @@ class FuzzyMatcherApp(tk.Tk):
     ### ----------------------- Main Functionality ----------------------- ###
     def process_match(self):
         if self.df_preprocessed is not None:
-            # Fuzzy match
-            self.match_results = self.data_processor.fuzzy_matching(self.df_preprocessed, self.match_string_entry)
+            self.match_results = self.data_processor.fuzzy_matching(self.df_preprocessed, self.match_string_entry.get())
             self.display_match_results()
         else:
             messagebox.showerror("Error", "No dataset loaded")
         
     def categorize_response(self):
+        # In categorized_data, each category is a column, with a 1 or 0 for each response
+
         selected_responses = self.selected_match_responses()
         selected_categories = self.selected_categories()
 
@@ -662,41 +618,35 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showinfo("Info", "Please select both a category and responses to categorize.")
             return
         
-        # Initalize mask for getting rows in categorized_data corresponding to selected responses
+        # Boolean mask for rows in categorized_data corresponding to selected responses (initially all False)
         mask = pd.Series([False] * len(self.categorized_data))
 
-        # Iterate over each response column in categorized_data
         for column in self.categorized_data[self.response_columns]:
-            # Update mask where response matches any of the selected responses
             mask |= self.categorized_data[column].isin(selected_responses)
 
-        # Single categorization mode behaviour
         if self.categorization_var.get() == "Single":
-            # Show warning if multiple categories selected
             if len(selected_categories) > 1:
                 messagebox.showwarning("Warning", "Only one category can be selected in Single Categorization mode.")
                 return
             
-            # Remove responses from 'Uncategorized' in categorized_data
             self.categorized_data.loc[mask, 'Uncategorized'] = 0
-            # Remove responses from categories display and matched responses display
             self.categories_display['Uncategorized'] -= selected_responses
-            self.match_results = self.match_results[~self.match_results['response'].isin(self.selected_match_responses())]
-
+            # Remove responses from match results because they can't be categorized anymore in single mode
+            self.match_results = self.match_results[~self.match_results['response']
+                                                    .isin(self.selected_match_responses())]
+            
         for category in selected_categories:
-            # Categorize data (set selected responses equal to 1 for selected categories)
             self.categorized_data.loc[mask, category] = 1
-
-            # Add response to categories for display
             self.categories_display[category].update(selected_responses)
 
-        # Update categories and results displays
         self.display_categories()
         self.display_match_results()
         self.update_treeview_selections(selected_categories=selected_categories, selected_responses=selected_responses)
         self.refresh_category_results_for_currently_displayed_category()
 
     def recategorize_response(self):
+        # In categorized_data, each category is a column, with a 1 or 0 for each response
+
         selected_responses = self.selected_category_responses()
         selected_categories = self.selected_categories()
 
@@ -704,34 +654,23 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showinfo("Info", "Please select both a category and responses in the category results display to categorize.")
             return
         
-        # Initalize mask for getting rows in categorized_data corresponding to selected responses
+        # Boolean mask for rows in categorized_data corresponding to selected responses (initially all False)
         mask = pd.Series([False] * len(self.categorized_data))
 
-        # Iterate over each response column in categorized_data
         for column in self.categorized_data[self.response_columns]:
-            # Update mask where response matches any of the selected responses
             mask |= self.categorized_data[column].isin(selected_responses)
 
-        # Single categorization mode behaviour
-        if self.categorization_var.get() == "Single":
-            # Show warning if multiple categories selected
-            if len(selected_categories) > 1:
-                messagebox.showwarning("Warning", "Only one category can be selected in Single Categorization mode.")
-                return
+        if self.categorization_var.get() == "Single" and len(selected_categories) > 1:
+            messagebox.showwarning("Warning", "Only one category can be selected in Single Categorization mode.")
+            return
             
-        # Remove responses from categorized_data
         self.categorized_data.loc[mask, self.currently_displayed_category] = 0
-        # Remove responses from categories display
         self.categories_display[self.currently_displayed_category] -= selected_responses
 
         for category in selected_categories:
-            # Categorize data (set selected responses equal to 1 for selected categories)
             self.categorized_data.loc[mask, category] = 1
-
-            # Add response to categories for display
             self.categories_display[category].update(selected_responses)
 
-        # Update categories and results displays
         self.display_categories()
         self.update_treeview_selections(selected_categories=selected_categories, selected_responses=selected_responses)
         self.refresh_category_results_for_currently_displayed_category()
@@ -752,7 +691,6 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showinfo("Info", "A category with this name already exists.")
             return
     
-        # Rename the category in data structures
         self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
         self.categories_display[new_category] = self.categories_display.pop(old_category)
 
@@ -765,13 +703,12 @@ class FuzzyMatcherApp(tk.Tk):
         return sum(self.response_counts.get(response, 0) for response in responses)
     
     def calculate_percentage(self, responses):
-        # Calculate total responses
+        ### UPDATE THIS TO BE PERCENTAGE OF NON 'Missing data'/NaN VALUES ###
         count = self.calculate_count(responses)
         total_responses = sum(self.response_counts.values())
         return (count / total_responses) * 100 if total_responses > 0 else 0
 
 
-# Running the application
 if __name__ == "__main__":
     data_processor = DataProcessor()
     file_manager = FileManager()
