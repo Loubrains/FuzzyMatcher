@@ -28,7 +28,7 @@ The context for this is specifically for speeding up the categorization of open-
 - Need to fix 'New Project' behaviour when a project is already loaded (redisplay 'Uncategorized', remove match results)
 - Pass in a list of category names?
 - Ability to append more data? (i.e. new cases)
-- ~~Handle missing data~~
+- ~~Handle missing data (checkbox button to change how percentages are calculated)~~
 - ~~When typing string, press enter to press associated button/do associated action.~~
 - ~~Exiting file import should keep you in the application~~
 - ~~Ability to delete categories. (right click or button?)~~

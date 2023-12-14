@@ -498,7 +498,7 @@ class FuzzyMatcherApp(tk.Tk):
 
         for _, row in sorted_results.iterrows():
             self.match_results_tree.insert(
-                "", "end", values=(row["response"], row["max_score"], row["count"])
+                "", "end", values=(row["response"], row["score"], row["count"])
             )
 
     def display_categories(self):
@@ -686,6 +686,7 @@ class FuzzyMatcherApp(tk.Tk):
         )  # Handle missing data after setting everything to uncategorized so that it takes it out of uncategorized
 
         self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
+        self.include_missing_data_bool.set(True)
 
     def ask_categorization_type(self):
         # Create popup
@@ -765,6 +766,7 @@ class FuzzyMatcherApp(tk.Tk):
         }
         self.currently_displayed_category = "Uncategorized"  # Default
         self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
+        self.include_missing_data_bool.set(data_loaded["include_missing_data_bool"])
 
         # In categorized_data, each category is a column, with a 1 or 0 for each response
 
@@ -783,7 +785,7 @@ class FuzzyMatcherApp(tk.Tk):
             "categories_display": {
                 k: list(v) for k, v in self.categories_display.items()
             },
-            "include_missing_data_bool": self.include_missing_data_bool,
+            "include_missing_data_bool": self.include_missing_data_bool.get(),
         }
 
         if file_path := filedialog.asksaveasfilename(
