@@ -400,9 +400,10 @@ class FuzzyMatcherApp(tk.Tk):
             "Uncategorized" in selected_categories
             or "Missing data" in selected_categories
         ):
+            formatted_categories = ", ".join(selected_categories)
             messagebox.showinfo(
                 "Info",
-                f'You may not delete the category/categories "{selected_categories}".',
+                f"You may not delete the category/categories {formatted_categories}.",
             )
             return
 
@@ -463,7 +464,7 @@ class FuzzyMatcherApp(tk.Tk):
             formatted_categories = ", ".join(selected_categories)
             messagebox.showinfo(
                 "Info",
-                f'You may not delete the category/categories "{formatted_categories}".',
+                f"You may not delete the category/categories {formatted_categories}.",
             )
             return
 

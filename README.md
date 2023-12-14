@@ -21,7 +21,6 @@ The context for this is specifically for speeding up the categorization of open-
 
 ### Functionality:
 
-- Option to base percentages to total or to non-missing data sample.
 - Handle different formattings of missing data coming from different sources (Q, excel, SPSS, etc), ideally seperate from people responding with things like "N/A" etc.
 - Ability to switch back to multi from single (spit warning "can't go back").
 - Ability to sort match results by other dimensions
