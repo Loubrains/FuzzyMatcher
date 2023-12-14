@@ -213,6 +213,12 @@ class FuzzyMatcherApp(tk.Tk):
             text="Delete Category",
             command=self.ask_delete_categories,
         )
+        self.include_missing_data_checkbox = tk.Checkbutton(
+            self.top_right_frame,
+            text="Base to total",
+            variable=self.include_missing_data_bool,
+            command=self.display_categories,
+        )
 
         # Top middle frame widgets (categories treeview)
         self.categories_tree = ttk.Treeview(
@@ -287,6 +293,7 @@ class FuzzyMatcherApp(tk.Tk):
         self.add_category_button.grid(row=0, column=1, sticky="ew", padx=5)
         self.rename_category_button.grid(row=0, column=2, sticky="ew", padx=5)
         self.delete_categories_button.grid(row=0, column=3, sticky="ew", padx=5)
+        self.include_missing_data_checkbox.grid(row=1, column=3, sticky="e")
 
         # Middle right frame widgets
         self.categories_tree.grid(
@@ -496,15 +503,22 @@ class FuzzyMatcherApp(tk.Tk):
 
     def display_categories(self):
         selected_categories = self.selected_categories()
+        include_missing_data_bool = self.include_missing_data_bool.get()
 
         for item in self.categories_tree.get_children():
             self.categories_tree.delete(item)
 
         for category, responses in self.categories_display.items():
             count = self.calculate_count(responses)
-            percentage = self.calculate_percentage(responses)
+            if not include_missing_data_bool and category == "Missing data":
+                percentage_str = ""
+            else:
+                percentage = self.calculate_percentage(
+                    responses, include_missing_data_bool
+                )
+                percentage_str = f"{percentage:.2f}%"
             self.categories_tree.insert(
-                "", "end", values=(category, count, f"{percentage:.2f}%")
+                "", "end", values=(category, count, percentage_str)
             )
 
         self.update_treeview_selections(selected_categories=selected_categories)
@@ -616,6 +630,7 @@ class FuzzyMatcherApp(tk.Tk):
         }
         self.match_results = pd.DataFrame(columns=["response", "score"])
         self.currently_displayed_category = "Uncategorized"
+        self.include_missing_data_bool = tk.BooleanVar(value=True)
 
         # categorized_data will contain a column for each, with a 1 or 0 for each response
 
@@ -768,6 +783,7 @@ class FuzzyMatcherApp(tk.Tk):
             "categories_display": {
                 k: list(v) for k, v in self.categories_display.items()
             },
+            "include_missing_data_bool": self.include_missing_data_bool,
         }
 
         if file_path := filedialog.asksaveasfilename(
@@ -942,10 +958,17 @@ class FuzzyMatcherApp(tk.Tk):
     def calculate_count(self, responses):
         return sum(self.response_counts.get(response, 0) for response in responses)
 
-    def calculate_percentage(self, responses):
-        # Percentage should exclude missing data
+    def calculate_percentage(self, responses, include_missing_data_bool):
         count = self.calculate_count(responses)
+
         total_responses = sum(self.response_counts.values())
+
+        if not include_missing_data_bool:
+            missing_data_count = self.calculate_count(
+                self.categories_display["Missing data"]
+            )
+            total_responses = sum(self.response_counts.values()) - missing_data_count
+
         return (count / total_responses) * 100 if total_responses > 0 else 0
 
 
