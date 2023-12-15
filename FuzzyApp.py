@@ -423,11 +423,10 @@ class FuzzyMatcherApp(tk.Tk):
         # Create a popup to get user entry for rename
         rename_dialog_popup = tk.Toplevel(self)
         rename_dialog_popup.title("Rename Category")
-        rename_dialog_popup.geometry("300x100")
 
         # Center the popup on the main window
 
-        rename_dialog_popup.geometry(f"+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}")
+        rename_dialog_popup.geometry(f"300x100+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}")
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
         rename_dialog_popup.transient(self)
@@ -701,11 +700,10 @@ class FuzzyMatcherApp(tk.Tk):
         # Create popup
         categorization_type_popup = tk.Toplevel(self)
         categorization_type_popup.title("Select Categorization Type")
-        categorization_type_popup.geometry("400x200")
 
         # Center the popup on the main window
 
-        categorization_type_popup.geometry(f"+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}")
+        categorization_type_popup.geometry(f"400x200+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}")
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
         categorization_type_popup.transient(self)
