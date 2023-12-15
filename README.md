@@ -21,11 +21,12 @@ The context for this is specifically for speeding up the categorization of open-
 
 ### Functionality:
 
-- Handle different formattings of missing data coming from different sources (Q, excel, SPSS, etc), ideally seperate from people responding with things like "N/A" etc.
-- Ability to switch back to multi from single (spit warning "can't go back").
-- Ability to sort match results by other dimensions
-- Pass in a list of category names?
 - Ability to append more data? (i.e. new cases)
+- Remove ability to match again for responses already categorized in single mode
+- Ability to switch back to multi from single (spit warning "can't go back").
+- Ability to sort results by other dimensions
+- Pass in a list of category names?
+- Might need to handle different formattings of missing data coming from different sources (Q, excel, SPSS, etc), ideally seperate from people responding with things like "N/A" etc.
 - ~~Need to fix 'New Project' behaviour when a project is already loaded (redisplay 'Uncategorized', remove match results)~~
 - ~~Handle missing data (checkbox button to change how percentages are calculated)~~
 - ~~When typing string, press enter to press associated button/do associated action.~~

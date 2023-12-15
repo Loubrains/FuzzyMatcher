@@ -244,6 +244,9 @@ class FuzzyMatcherApp(tk.Tk):
         self.load_button = tk.Button(
             self.bottom_frame, text="Load Project", command=self.load_project
         )
+        self.append_data_button = tk.Button(
+            self.bottom_frame, text="Append Data", command=self.append_data_behaviour
+        )
         self.save_button = tk.Button(
             self.bottom_frame, text="Save Project", command=self.save_project
         )
@@ -304,6 +307,7 @@ class FuzzyMatcherApp(tk.Tk):
 
         # Bottom frame widgets
         self.new_project_button.grid(row=0, column=0, sticky="w", padx=10, pady=10)
+        self.append_data_button.grid(row=0, column=1, sticky="w", padx=10, pady=10)
         self.load_button.grid(row=1, column=0, sticky="w", padx=10, pady=10)
         self.save_button.grid(row=0, column=2, sticky="e", padx=10, pady=10)
         self.export_csv_button.grid(row=1, column=2, sticky="e", padx=10, pady=10)
@@ -674,7 +678,7 @@ class FuzzyMatcherApp(tk.Tk):
 
         self.response_counts = df_series.value_counts().to_dict()
 
-        uuids = categorized_data = self.df.iloc[:, 0]
+        uuids = self.df.iloc[:, 0]
         self.response_columns = list(self.df_preprocessed.columns)
 
         # categorized_data carries all response columns and all categories until export where response columns are dropped
@@ -770,6 +774,62 @@ class FuzzyMatcherApp(tk.Tk):
         self.include_missing_data_bool.set(data_loaded["include_missing_data_bool"])
 
         # In categorized_data, each category is a column, with a 1 or 0 for each response
+
+    def append_data_behaviour(self):
+        if self.file_import_append_data():
+            self.populate_data_structures_append_data()  # Reinitialize with new data
+            self.display_categories()
+            self.refresh_category_results_for_currently_displayed_category()
+            messagebox.showinfo("Success", "Data appended successfully")
+
+    def file_import_append_data(self):
+        if file_path := filedialog.askopenfilename(title="Select file to append"):
+            try:
+                new_df = self.file_manager.file_import(file_path)
+                if new_df.empty or new_df.shape[1] != self.df.shape[1]:
+                    messagebox.showerror(
+                        "Error",
+                        "Dataset is empty or does not have the same shape as the current dataset.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian response the same number of response columns.",
+                    )
+                    return False
+                self.df = pd.concat([self.df, new_df], ignore_index=True)
+                return True
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to append data: {e}")
+        return False
+
+    def populate_data_structures_append_data(self):
+        old_data_size = len(self.df_preprocessed)
+        new_df_preprocessed = pd.DataFrame(
+            self.df.iloc[old_data_size:, 1:].map(self.data_processor.preprocess_text)
+        )
+        self.df_preprocessed = pd.concat([self.df_preprocessed, new_df_preprocessed])
+
+        # categories_display is dict of categories to the deduplicated set of all responses
+        df_series = self.df_preprocessed.stack().reset_index(drop=True)
+
+        self.response_counts = df_series.value_counts().to_dict()
+
+        uuids = self.df.iloc[:, 0]
+        self.response_columns = list(self.df_preprocessed.columns)
+
+        new_categorized_data = pd.concat(
+            [self.df.iloc[old_data_size:, 0], new_df_preprocessed], axis=1
+        )
+
+        self.categorized_data = pd.concat(
+            [self.categorized_data, new_categorized_data], axis=0
+        )
+        self.categorized_data["Uncategorized"].iloc[
+            old_data_size:
+        ] = 1  # Everything starts uncategorized
+        self.categorized_data["Missing data"].iloc[old_data_size:] = 0
+        self.categorize_missing_data()
+
+        self.categorized_data = pd.concat([self.categorized_data, new_categorized_data])
+
+        self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
+        self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
     def save_project(self):
         # Pandas NAType is not JSON serializable
