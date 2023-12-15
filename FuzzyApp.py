@@ -531,6 +531,25 @@ class FuzzyMatcherApp(tk.Tk):
 
         self.update_treeview_selections(selected_categories=selected_categories)
 
+
+    def display_category_results(self, category):
+        for item in self.category_results_tree.get_children():
+            self.category_results_tree.delete(item)
+
+        if category in self.categories_display:
+            responses_and_counts = [
+                (response, self.response_counts[response])
+                for response in self.categories_display[category]
+            ]
+            sorted_responses = sorted(
+                responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0])
+            )  # Sort first by score and then alphabetically
+
+            for response, count in sorted_responses:
+                self.category_results_tree.insert("", "end", values=(response, count))
+
+        self.category_results_label.config(text=f"Results for Category: {category}")
+
     def display_category_results_for_selected_category(self):
         selected_categories = self.categories_tree.selection()
 
@@ -538,24 +557,7 @@ class FuzzyMatcherApp(tk.Tk):
             # Get the selected category as a string
             category = self.categories_tree.item(selected_categories[0])["values"][0]
 
-            for item in self.category_results_tree.get_children():
-                self.category_results_tree.delete(item)
-
-            if category in self.categories_display:
-                responses_and_counts = [
-                    (response, self.response_counts.get(response, 0))
-                    for response in self.categories_display[category]
-                ]
-                sorted_responses = sorted(
-                    responses_and_counts, key=lambda x: (-x[1], x[0])
-                )  # Sort first by score and then alphabetically
-
-                for response, count in sorted_responses:
-                    self.category_results_tree.insert(
-                        "", "end", values=(response, count)
-                    )
-
-            self.category_results_label.config(text=f"Results for Category: {category}")
+            self.display_category_results(category)
 
             # Assign variable for currently displayed category
             self.currently_displayed_category = (
@@ -575,22 +577,7 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showerror("Error", "No category results currently displayed")
             return
 
-        for item in self.category_results_tree.get_children():
-            self.category_results_tree.delete(item)
-
-        if category in self.categories_display:
-            responses_and_counts = [
-                (response, self.response_counts[response])
-                for response in self.categories_display[category]
-            ]
-            sorted_responses = sorted(
-                responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0])
-            )  # Sort first by score and then alphabetically
-
-            for response, count in sorted_responses:
-                self.category_results_tree.insert("", "end", values=(response, count))
-
-        self.category_results_label.config(text=f"Results for Category: {category}")
+        self.display_category_results(category)
 
     def selected_categories(self):
         return {
