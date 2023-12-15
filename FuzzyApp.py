@@ -540,7 +540,7 @@ class FuzzyMatcherApp(tk.Tk):
                     for response in self.categories_display[category]
                 ]
                 sorted_responses = sorted(
-                    responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0])
+                    responses_and_counts, key=lambda x: (-x[1], x[0])
                 )  # Sort first by score and then alphabetically
 
                 for response, count in sorted_responses:
@@ -627,7 +627,7 @@ class FuzzyMatcherApp(tk.Tk):
         self.response_counts = {}
         self.categories_display = {
             "Uncategorized": set(),
-            "Missing data": {None, pd.NA, "nan", "Missing data"},
+            "Missing data": {"nan", "missing data"},
         }
         self.match_results = pd.DataFrame(columns=["response", "score"])
         self.currently_displayed_category = "Uncategorized"
@@ -660,31 +660,31 @@ class FuzzyMatcherApp(tk.Tk):
 
     def populate_data_structures_new_project(self):
         self.df_preprocessed = pd.DataFrame(
-            self.df.iloc[:, 1:].map(self.data_processor.preprocess_text)
+            self.df.iloc[:, 1:].map(
+                self.data_processor.preprocess_text  # , na_action="ignore"
+            )
         )
-
-        self.response_columns = list(self.df_preprocessed.columns)
-
-        # categorized_data carries all response columns and all categories until export where response columns are dropped
-        # In categorized_data, each category is a column, with a 1 or 0 for each response
-        uuids = categorized_data = self.df.iloc[:, 0]
-        self.categorized_data = pd.concat([uuids, self.df_preprocessed], axis=1)
-        self.categorized_data["Uncategorized"] = 1  # Everything starts uncategorized
-
-        self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
 
         # categories_display is dict of categories to the deduplicated set of all responses
         df_series = self.df_preprocessed.stack().reset_index(drop=True)
         self.categories_display = {
-            "Uncategorized": set(df_series),
-            "Missing data": set(),
+            "Uncategorized": set(df_series) - {"nan", "missing data"},
+            "Missing data": {"nan", "missing data"},  # default
         }
 
         self.response_counts = df_series.value_counts().to_dict()
 
-        self.categorize_responses(
-            {pd.NA, "nan", "Missing data"}, {"Missing data"}
-        )  # Handle missing data after setting everything to uncategorized so that it takes it out of uncategorized
+        uuids = categorized_data = self.df.iloc[:, 0]
+        self.response_columns = list(self.df_preprocessed.columns)
+
+        # categorized_data carries all response columns and all categories until export where response columns are dropped
+        # In categorized_data, each category is a column, with a 1 or 0 for each response
+        self.categorized_data = pd.concat([uuids, self.df_preprocessed], axis=1)
+        self.categorized_data["Uncategorized"] = 1  # Everything starts uncategorized
+        self.categorized_data["Missing data"] = 0
+        self.categorize_missing_data()
+
+        self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
 
         self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
         self.include_missing_data_bool.set(True)
@@ -827,13 +827,26 @@ class FuzzyMatcherApp(tk.Tk):
         else:
             messagebox.showerror("Error", "No dataset loaded")
 
-    def categorize_selected_responses(self):
-        self.categorize_responses(
-            self.selected_match_responses(), self.selected_categories()
-        )
+    def categorize_missing_data(self):
+        def is_missing(value):
+            return (
+                pd.isna(value)
+                or value is None
+                or value == "missing data"
+                or value == "nan"
+            )
 
-    def categorize_responses(self, responses, categories):
-        # In categorized_data, each category is a column, with a 1 or 0 for each response
+        all_missing_mask = self.df_preprocessed.map(is_missing).all(
+            axis=1
+        )  # Boolean mask where each row is True if all elements are missing
+        self.categorized_data.loc[all_missing_mask, "Missing data"] = 1
+        self.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
+
+    def categorize_selected_responses(self):
+        responses, categories = (
+            self.selected_match_responses(),
+            self.selected_categories(),
+        )
 
         if not categories or not responses:
             messagebox.showinfo(
@@ -847,7 +860,12 @@ class FuzzyMatcherApp(tk.Tk):
             )
             return
 
-        # Boolean mask for rows in categorized_data corresponding to selected responses (initially all False)
+        self.categorize_responses(responses, categories)
+
+    def categorize_responses(self, responses, categories):
+        # In categorized_data, each category is a column, with a 1 or 0 for each response
+
+        # Boolean mask for rows in categorized_data containing selected responses
         mask = pd.Series([False] * len(self.categorized_data))
 
         for column in self.categorized_data[self.response_columns]:
@@ -881,12 +899,10 @@ class FuzzyMatcherApp(tk.Tk):
         self.refresh_category_results_for_currently_displayed_category()
 
     def recategorize_selected_responses(self):
-        self.recategorize_responses(
-            self.selected_category_responses(), self.selected_categories()
+        responses, categories = (
+            self.selected_category_responses(),
+            self.selected_categories(),
         )
-
-    def recategorize_responses(self, responses, categories):
-        # In categorized_data, each category is a column, with a 1 or 0 for each response
 
         if not categories or not responses:
             messagebox.showinfo(
@@ -901,7 +917,12 @@ class FuzzyMatcherApp(tk.Tk):
             )
             return
 
-        # Boolean mask for rows in categorized_data corresponding to selected responses (initially all False)
+        self.recategorize_responses(responses, categories)
+
+    def recategorize_responses(self, responses, categories):
+        # In categorized_data, each category is a column, with a 1 or 0 for each response
+
+        # Boolean mask for rows in categorized_data containing selected responses
         mask = pd.Series([False] * len(self.categorized_data))
 
         for column in self.categorized_data[self.response_columns]:
