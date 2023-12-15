@@ -538,7 +538,7 @@ class FuzzyMatcherApp(tk.Tk):
 
         if category in self.categories_display:
             responses_and_counts = [
-                (response, self.response_counts[response])
+                (response, self.response_counts.get(response, 0))
                 for response in self.categories_display[category]
             ]
             sorted_responses = sorted(
