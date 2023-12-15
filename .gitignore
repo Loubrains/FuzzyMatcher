@@ -4,3 +4,4 @@ virtualenv/
 !FuzzyApp.py
 !README.md
 !/.gitignore
+!requirements.txt
