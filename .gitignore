@@ -1,5 +1,6 @@
 # Ignore everything except the main app file, README and .gitignore
 *
+virtualenv/
 !FuzzyApp.py
 !README.md
 !/.gitignore
