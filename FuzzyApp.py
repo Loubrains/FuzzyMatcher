@@ -12,10 +12,11 @@ from io import StringIO
 # Set DPI awareness
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
+
 class ScreenCoords:
     def __init__(self):
         self.WINDOW_SIZE_MULTIPLIER = 0.8
-
+        self.POPUPS_SIZE = "400x200"
 
     def update_coords(self, screen_width, screen_height):
         self.screen_width = screen_width
@@ -68,7 +69,9 @@ class FuzzyMatcherApp(tk.Tk):
         self.data_processor = data_processor
         self.file_manager = file_manager
         self.screen_coords = ScreenCoords()
-        self.screen_coords.update_coords(self.winfo_screenwidth(), self.winfo_screenheight())
+        self.screen_coords.update_coords(
+            self.winfo_screenwidth(), self.winfo_screenheight()
+        )
 
         self.title("Fuzzy Matcher")
 
@@ -94,7 +97,9 @@ class FuzzyMatcherApp(tk.Tk):
 
     ### ----------------------- UI Setup ----------------------- ###
     def initialize_window(self):
-        self.geometry(f"{self.screen_coords.window_width}x{self.screen_coords.window_height}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}")
+        self.geometry(
+            f"{self.screen_coords.window_width}x{self.screen_coords.window_height}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
+        )
         # self.state('zoomed')
 
     def configure_grid(self):
@@ -426,7 +431,9 @@ class FuzzyMatcherApp(tk.Tk):
 
         # Center the popup on the main window
 
-        rename_dialog_popup.geometry(f"300x100+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}")
+        rename_dialog_popup.geometry(
+            f"{self.screen_coords.POPUPS_SIZE}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
+        )
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
         rename_dialog_popup.transient(self)
@@ -530,7 +537,6 @@ class FuzzyMatcherApp(tk.Tk):
             )
 
         self.update_treeview_selections(selected_categories=selected_categories)
-
 
     def display_category_results(self, category):
         for item in self.category_results_tree.get_children():
@@ -690,7 +696,9 @@ class FuzzyMatcherApp(tk.Tk):
 
         # Center the popup on the main window
 
-        categorization_type_popup.geometry(f"400x200+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}")
+        categorization_type_popup.geometry(
+            f"{self.screen_coords.POPUPS_SIZE}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
+        )
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
         categorization_type_popup.transient(self)
@@ -925,12 +933,14 @@ class FuzzyMatcherApp(tk.Tk):
                 )
                 return
 
-            self.categorized_data.loc[mask, "Uncategorized"] = 0
-            self.categories_display["Uncategorized"] -= responses
-            # Remove responses from match results because they can't be categorized anymore in single mode
-            self.match_results = self.match_results[
-                ~self.match_results["response"].isin(self.selected_match_responses())
-            ]
+            for category in self.categories_display:
+                self.categorized_data.loc[mask, category] = 0
+                self.categories_display[category] -= responses
+
+            # # Remove responses from match results because they can't be categorized anymore in single mode
+            # self.match_results = self.match_results[
+            #     ~self.match_results["response"].isin(self.selected_match_responses())
+            # ]
 
         for category in categories:
             self.categorized_data.loc[mask, category] = 1
