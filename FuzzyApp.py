@@ -8,6 +8,7 @@ import chardet
 from thefuzz import fuzz
 import json
 from io import StringIO
+from data_processor import DataProcessor, MultipleCategorySelectionError
 
 # Set DPI awareness
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -33,34 +34,6 @@ class FileManager:
         return pd.read_csv(file_path, encoding=encoding)
 
 
-class DataProcessor:
-    def preprocess_text(self, text: Any) -> str:
-        text = str(text).lower()
-        text = re.sub(
-            r"\s+", " ", text
-        )  # Convert one or more of any kind of space to single space
-        text = re.sub(r"[^a-z0-9\s]", "", text)  # Remove special characters
-        text = text.strip()
-        return text
-
-    def fuzzy_matching(self, df_preprocessed, match_string):
-        def fuzzy_match(element):
-            return fuzz.WRatio(
-                match_string, str(element)
-            )  # Weighted ratio of several fuzzy matching protocols
-
-        # Get fuzzy matching scores and format result: {response: score}
-        results = []
-        for row in df_preprocessed.itertuples(index=True, name=None):
-            for response in row[1:]:
-                score = fuzzy_match(response)
-                results.append({"response": response, "score": score})
-
-        df_result = pd.DataFrame(results)
-
-        return df_result
-
-
 # Main application class
 class FuzzyMatcherApp(tk.Tk):
     def __init__(self, data_processor, file_manager):
@@ -72,7 +45,6 @@ class FuzzyMatcherApp(tk.Tk):
 
         self.title("Fuzzy Matcher")
 
-        self.initialize_data_structures()  # Empty/default variables
 
         # Setup the UI
         self.initialize_window()
@@ -84,6 +56,7 @@ class FuzzyMatcherApp(tk.Tk):
         self.configure_style()
         self.resize_treeview_columns()
         self.resize_text_wraplength()
+
 
         # Bind resizing functions to window size change
         self.bind("<Configure>", self.on_window_resize)
@@ -482,10 +455,11 @@ class FuzzyMatcherApp(tk.Tk):
             self.display_categories()
             self.refresh_category_results_for_currently_displayed_category()
 
-    def display_match_results(self):
+    def display_match_results(self, match_results):
+        #doin work
         # Filter the fuzzy match results based on the threshold
-        filtered_results = self.match_results[
-            self.match_results["score"] >= self.threshold_slider.get()
+        filtered_results = match_results[
+            match_results["score"] >= self.threshold_slider.get()
         ]
 
         aggregated_results = (
@@ -500,7 +474,7 @@ class FuzzyMatcherApp(tk.Tk):
         sorted_results = aggregated_results.sort_values(
             by=["score", "count"], ascending=[False, False]
         )
-
+        #showin it
         for item in self.match_results_tree.get_children():
             self.match_results_tree.delete(item)
 
@@ -516,12 +490,12 @@ class FuzzyMatcherApp(tk.Tk):
         for item in self.categories_tree.get_children():
             self.categories_tree.delete(item)
 
-        for category, responses in self.categories_display.items():
-            count = self.calculate_count(responses)
+        for category, responses in self.data_processor.categories_display.items():
+            count = self.data_processor.calculate_count(responses)
             if not include_missing_data_bool and category == "Missing data":
                 percentage_str = ""
             else:
-                percentage = self.calculate_percentage(
+                percentage = self.data_processor.calculate_percentage(
                     responses, include_missing_data_bool
                 )
                 percentage_str = f"{percentage:.2f}%"
@@ -608,30 +582,13 @@ class FuzzyMatcherApp(tk.Tk):
         # Re-select categories and if multi-categorization re-select match results
         if selected_categories is not None:
             reselect_treeview_items(self.categories_tree, selected_categories)
-        if self.categorization_var.get() == "Multi" and selected_responses is not None:
+        if not self.data_processor.is_single_categorization and selected_responses is not None:
             reselect_treeview_items(self.match_results_tree, selected_responses)
 
     ### ----------------------- Project Management ----------------------- ###
-    def initialize_data_structures(self):
-        # Empty variables which will be populated during new project/load project
-        self.categorization_var = tk.StringVar(value="Single")
-        self.df_preprocessed = pd.DataFrame()
-        self.response_columns = []
-        self.categorized_data = pd.DataFrame()
-        self.response_counts = {}
-        self.categories_display = {
-            "Uncategorized": set(),
-            "Missing data": {"nan", "missing data"},
-        }
-        self.match_results = pd.DataFrame(columns=["response", "score"])
-        self.currently_displayed_category = "Uncategorized"
-        self.include_missing_data_bool = tk.BooleanVar(value=True)
-
-        # categorized_data will contain a column for each, with a 1 or 0 for each response
-
     def start_new_project(self):
         if self.file_import_process():
-            self.populate_data_structures_new_project()
+            self.data_processor.populate_data_structures_new_project()
             self.display_categories()
             self.refresh_category_results_for_currently_displayed_category()
             self.display_match_results()
@@ -652,37 +609,6 @@ class FuzzyMatcherApp(tk.Tk):
                 is_file_selected = True
         return is_file_selected
 
-    def populate_data_structures_new_project(self):
-        self.df_preprocessed = pd.DataFrame(
-            self.df.iloc[:, 1:].map(
-                self.data_processor.preprocess_text  # , na_action="ignore"
-            )
-        )
-
-        # categories_display is dict of categories to the deduplicated set of all responses
-        df_series = self.df_preprocessed.stack().reset_index(drop=True)
-        self.categories_display = {
-            "Uncategorized": set(df_series) - {"nan", "missing data"},
-            "Missing data": {"nan", "missing data"},  # default
-        }
-
-        self.response_counts = df_series.value_counts().to_dict()
-
-        uuids = self.df.iloc[:, 0]
-        self.response_columns = list(self.df_preprocessed.columns)
-
-        # categorized_data carries all response columns and all categories until export where response columns are dropped
-        # In categorized_data, each category is a column, with a 1 or 0 for each response
-        self.categorized_data = pd.concat([uuids, self.df_preprocessed], axis=1)
-        self.categorized_data["Uncategorized"] = 1  # Everything starts uncategorized
-        self.categorized_data["Missing data"] = 0
-        self.categorize_missing_data()
-
-        self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
-
-        self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
-        self.include_missing_data_bool.set(True)
-
     def ask_categorization_type(self):
         # Create popup
         categorization_type_popup = tk.Toplevel(self)
@@ -700,13 +626,13 @@ class FuzzyMatcherApp(tk.Tk):
         single_categorization_rb = tk.Radiobutton(
             categorization_type_popup,
             text="Single Categorization",
-            variable=self.categorization_var,
+            command = lambda x: self.data_processor.is_single_categorization = True
             value="Single",
         )
         multi_categorization_rb = tk.Radiobutton(
             categorization_type_popup,
             text="Multi Categorization",
-            variable=self.categorization_var,
+            command = lambda x: self.data_processor.is_single_categorization = False
             value="Multi",
         )
         confirm_button = tk.Button(
@@ -735,7 +661,7 @@ class FuzzyMatcherApp(tk.Tk):
             with open(file_path, "r") as f:
                 data_loaded = json.load(f)
 
-            self.populate_data_structures_load_project(data_loaded)
+            self.data_processor.populate_data_structures_load_project(data_loaded)
             self.set_categorization_type_label()
             self.display_match_results()
             self.refresh_category_results_for_currently_displayed_category()
@@ -745,25 +671,9 @@ class FuzzyMatcherApp(tk.Tk):
                 "Load Project", "Project loaded successfully from " + file_path
             )
 
-    def populate_data_structures_load_project(self, data_loaded):
-        # Convert JSON back to data / set default variable values
-        self.categorization_var.set(data_loaded["categorization_var"])
-        self.df_preprocessed = pd.read_json(StringIO(data_loaded["df_preprocessed"]))
-        self.response_columns = data_loaded["response_columns"]
-        self.categorized_data = pd.read_json(StringIO(data_loaded["categorized_data"]))
-        self.response_counts = data_loaded["response_counts"]
-        self.categories_display = {
-            k: set(v) for k, v in data_loaded["categories_display"].items()
-        }
-        self.currently_displayed_category = "Uncategorized"  # Default
-        self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
-        self.include_missing_data_bool.set(data_loaded["include_missing_data_bool"])
-
-        # In categorized_data, each category is a column, with a 1 or 0 for each response
-
     def append_data_behaviour(self):
         if self.file_import_append_data():
-            self.populate_data_structures_append_data()  # Reinitialize with new data
+            self.data_processor.populate_data_structures_append_data()  # Reinitialize with new data
             self.display_categories()
             self.refresh_category_results_for_currently_displayed_category()
             messagebox.showinfo("Success", "Data appended successfully")
@@ -784,57 +694,16 @@ class FuzzyMatcherApp(tk.Tk):
                 messagebox.showerror("Error", f"Failed to append data: {e}")
         return False
 
-    def populate_data_structures_append_data(self):
-        old_data_size = len(self.df_preprocessed)
-        new_df_preprocessed = pd.DataFrame(
-            self.df.iloc[old_data_size:, 1:].map(self.data_processor.preprocess_text)
-        )
-        self.df_preprocessed = pd.concat([self.df_preprocessed, new_df_preprocessed])
-
-        # categories_display is dict of categories to the deduplicated set of all responses
-        df_series = self.df_preprocessed.stack().reset_index(drop=True)
-
-        self.response_counts = df_series.value_counts().to_dict()
-
-        uuids = self.df.iloc[:, 0]
-        self.response_columns = list(self.df_preprocessed.columns)
-
-        new_categorized_data = pd.concat(
-            [self.df.iloc[old_data_size:, 0], new_df_preprocessed], axis=1
-        )
-
-        self.categorized_data = pd.concat(
-            [self.categorized_data, new_categorized_data], axis=0
-        )
-        self.categorized_data["Uncategorized"].iloc[
-            old_data_size:
-        ] = 1  # Everything starts uncategorized
-        self.categorized_data["Missing data"].iloc[old_data_size:] = 0
-        self.categorize_missing_data()
-
-        self.categorized_data = pd.concat([self.categorized_data, new_categorized_data])
-
-        self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
-        self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
-
     def save_project(self):
         # Pandas NAType is not JSON serializable
         def none_handler(o):
             if pd.isna(o):
                 return None
 
-        data_to_save = {
-            "categorization_var": self.categorization_var.get(),
-            "df_preprocessed": self.df_preprocessed.to_json(),
-            "response_columns": self.response_columns,
-            "categorized_data": self.categorized_data.to_json(),
-            "response_counts": self.response_counts,
-            "categories_display": {
-                k: list(v) for k, v in self.categories_display.items()
-            },
-            "include_missing_data_bool": self.include_missing_data_bool.get(),
-        }
+       
+        data_to_save = data_processor.make_dict_to_save()
 
+        #showin it
         if file_path := filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
@@ -842,17 +711,16 @@ class FuzzyMatcherApp(tk.Tk):
         ):
             with open(file_path, "w") as f:
                 json.dump(data_to_save, f, default=none_handler)
+            
             messagebox.showinfo(
                 "Save Project", "Project saved successfully to " + file_path
             )
 
     def export_to_csv(self):
         # Exported data needs only UUIDs and category binaries to be able to be imported into Q.
-        export_df = self.categorized_data.drop(columns=self.response_columns)
-
-        if self.categorization_var.get() == "Multi":
-            export_df.drop("Uncategorized", axis=1, inplace=True)
-
+        export_df = data_processor.preprocess_df_for_csv_export()
+        
+        #showin it
         if file_path := filedialog.asksaveasfilename(
             defaultextension=".csv",
             filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
@@ -865,28 +733,11 @@ class FuzzyMatcherApp(tk.Tk):
 
     ### ----------------------- Main Functionality ----------------------- ###
     def process_match(self):
-        if self.df_preprocessed is not None:
-            self.match_results = self.data_processor.fuzzy_matching(
-                self.df_preprocessed, self.match_string_entry.get()
-            )
+        try:
+            self.match_results = self.data_processor.get_match_results()
             self.display_match_results()
-        else:
+        except TypeError:
             messagebox.showerror("Error", "No dataset loaded")
-
-    def categorize_missing_data(self):
-        def is_missing(value):
-            return (
-                pd.isna(value)
-                or value is None
-                or value == "missing data"
-                or value == "nan"
-            )
-
-        all_missing_mask = self.df_preprocessed.map(is_missing).all(
-            axis=1
-        )  # Boolean mask where each row is True if all elements are missing
-        self.categorized_data.loc[all_missing_mask, "Missing data"] = 1
-        self.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
 
     def categorize_selected_responses(self):
         responses, categories = (
@@ -912,30 +763,15 @@ class FuzzyMatcherApp(tk.Tk):
         # In categorized_data, each category is a column, with a 1 or 0 for each response
 
         # Boolean mask for rows in categorized_data containing selected responses
-        mask = pd.Series([False] * len(self.categorized_data))
-
-        for column in self.categorized_data[self.response_columns]:
-            mask |= self.categorized_data[column].isin(responses)
-
-        if self.categorization_var.get() == "Single":
-            if len(categories) > 1:
-                messagebox.showwarning(
+        try:
+            self.data_processor.categorize_responses(responses, categories)
+        except MultipleCategorySelectionError:
+            messagebox.showwarning(
                     "Warning",
                     "Only one category can be selected in Single Categorization mode.",
-                )
-                return
-
-            self.categorized_data.loc[mask, "Uncategorized"] = 0
-            self.categories_display["Uncategorized"] -= responses
-            # Remove responses from match results because they can't be categorized anymore in single mode
-            self.match_results = self.match_results[
-                ~self.match_results["response"].isin(self.selected_match_responses())
-            ]
-
-        for category in categories:
-            self.categorized_data.loc[mask, category] = 1
-            self.categories_display[category].update(responses)
-
+            )
+            return
+        #showin it
         self.display_categories()
         self.display_match_results()
         self.update_treeview_selections(
@@ -969,24 +805,14 @@ class FuzzyMatcherApp(tk.Tk):
         # In categorized_data, each category is a column, with a 1 or 0 for each response
 
         # Boolean mask for rows in categorized_data containing selected responses
-        mask = pd.Series([False] * len(self.categorized_data))
-
-        for column in self.categorized_data[self.response_columns]:
-            mask |= self.categorized_data[column].isin(responses)
-
-        if self.categorization_var.get() == "Single" and len(categories) > 1:
+        try:
+            self.data_processor.recategorize_responses(responses, categories)
+        except MultipleCategorySelectionError:
             messagebox.showwarning(
                 "Warning",
                 "Only one category can be selected in Single Categorization mode.",
             )
             return
-
-        self.categorized_data.loc[mask, self.currently_displayed_category] = 0
-        self.categories_display[self.currently_displayed_category] -= responses
-
-        for category in categories:
-            self.categorized_data.loc[mask, category] = 1
-            self.categories_display[category].update(responses)
 
         self.display_categories()
         self.update_treeview_selections(
@@ -997,10 +823,8 @@ class FuzzyMatcherApp(tk.Tk):
 
     def create_category(self):
         new_category = self.new_category_entry.get()
-        if new_category and new_category not in self.categorized_data.columns:
-            self.categorized_data[new_category] = 0
-            self.categories_display[new_category] = set()
-            self.display_categories()
+        data_processor.create_category(new_category)
+        self.display_categories()
 
     def rename_category_in_data(self, old_category, new_category):
         if not new_category:
@@ -1015,31 +839,11 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showinfo("Info", 'You cannot rename "Missing data".')
             return
 
-        self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
-        self.categories_display[new_category] = self.categories_display.pop(
-            old_category
-        )
+        self.data_processor.rename(old_category, new_category)
+        
 
     def delete_categories_in_data(self, categories_to_delete):
-        for category in categories_to_delete:
-            del self.categories_display[category]
-            self.categorized_data.drop(columns=category, inplace=True)
-
-    def calculate_count(self, responses):
-        return sum(self.response_counts.get(response, 0) for response in responses)
-
-    def calculate_percentage(self, responses, include_missing_data_bool):
-        count = self.calculate_count(responses)
-
-        total_responses = sum(self.response_counts.values())
-
-        if not include_missing_data_bool:
-            missing_data_count = self.calculate_count(
-                self.categories_display["Missing data"]
-            )
-            total_responses = sum(self.response_counts.values()) - missing_data_count
-
-        return (count / total_responses) * 100 if total_responses > 0 else 0
+        data_processor.delete_categories(categories_to_delete)
 
 
 if __name__ == "__main__":
