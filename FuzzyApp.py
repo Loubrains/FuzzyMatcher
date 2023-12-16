@@ -40,7 +40,7 @@ class FuzzyMatcherApp(tk.Tk):
     def __init__(self, data_processor, file_manager):
         super().__init__()
         self.include_missing_data_bool = tk.BooleanVar(value=True)
-        self.type_of_categorization_var = tk.StringVar()
+        self.categorization_var = tk.StringVar(value="Single")
         self.data_processor = data_processor
         self.file_manager = file_manager
         self.screen_coords = ScreenCoords()
@@ -631,12 +631,14 @@ class FuzzyMatcherApp(tk.Tk):
         single_categorization_rb = tk.Radiobutton(
             categorization_type_popup,
             text="Single Categorization",
+            variable=self.categorization_var,
             command = self.data_processor.set_is_single_categorization(True),
             value="Single",
         )
         multi_categorization_rb = tk.Radiobutton(
             categorization_type_popup,
             text="Multi Categorization",
+            variable=self.categorization_var,
             command= self.data_processor.set_is_single_categorization(False),
             value="Multi",
         )
