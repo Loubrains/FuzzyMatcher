@@ -917,6 +917,13 @@ class FuzzyMatcherApp(tk.Tk):
         self.categorize_responses(responses, categories)
 
     def categorize_responses(self, responses, categories):
+        if "nan" in responses or "missing data" in responses:
+            messagebox.showwarning(
+                "Warning",
+                "You cannot recategorize 'NaN' or 'Missing data' values",
+            )
+            responses -= {"nan", "missing data"}
+
         # In categorized_data, each category is a column, with a 1 or 0 for each response
 
         # Boolean mask for rows in categorized_data containing selected responses
@@ -967,7 +974,7 @@ class FuzzyMatcherApp(tk.Tk):
             )
             return
 
-        if categories == "Missing data":
+        if self.currently_displayed_category == "Missing data":
             messagebox.showinfo(
                 "Info", 'You cannot recategorize "Missing data" values.'
             )
@@ -1032,6 +1039,18 @@ class FuzzyMatcherApp(tk.Tk):
 
     def delete_categories_in_data(self, categories_to_delete):
         for category in categories_to_delete:
+            if (
+                self.categorization_var.get() == "Single"
+            ):  # In single mode, return the responses from this category to 'Uncategorized'
+                responses_to_reclassify = self.categorized_data[
+                    self.categorized_data[category] == 1
+                ].index
+                for response_index in responses_to_reclassify:
+                    self.categorized_data.loc[response_index, "Uncategorized"] = 1
+                self.categories_display["Uncategorized"].update(
+                    self.categories_display[category]
+                )
+
             del self.categories_display[category]
             self.categorized_data.drop(columns=category, inplace=True)
 
