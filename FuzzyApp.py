@@ -12,6 +12,19 @@ from io import StringIO
 # Set DPI awareness
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
+class ScreenCoords:
+    def __init__(self):
+        self.WINDOW_SIZE_MULTIPLIER = 0.8
+
+
+    def update_coords(self, screen_width, screen_height):
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+        self.window_width = int(screen_width * self.WINDOW_SIZE_MULTIPLIER)
+        self.window_height = int(screen_height * self.WINDOW_SIZE_MULTIPLIER)
+        self.centre_x = int((screen_width - self.window_width) / 2)
+        self.centre_y = int((screen_height - self.window_height) / 2)
+
 
 class FileManager:
     def file_import(self, file_path):
@@ -54,6 +67,8 @@ class FuzzyMatcherApp(tk.Tk):
         super().__init__()
         self.data_processor = data_processor
         self.file_manager = file_manager
+        self.screen_coords = ScreenCoords()
+        self.screen_coords.update_coords(self.winfo_screenwidth(), self.winfo_screenheight())
 
         self.title("Fuzzy Matcher")
 
@@ -79,15 +94,7 @@ class FuzzyMatcherApp(tk.Tk):
 
     ### ----------------------- UI Setup ----------------------- ###
     def initialize_window(self):
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-        window_size_multiplier = 0.8
-        window_width = int(screen_width * window_size_multiplier)
-        window_height = int(screen_height * window_size_multiplier)
-        x_position = int((screen_width - window_width) / 2)
-        y_position = int((screen_height - window_height) / 2)
-
-        self.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
+        self.geometry(f"{self.screen_coords.window_width}x{self.screen_coords.window_height}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}")
         # self.state('zoomed')
 
     def configure_grid(self):
@@ -416,14 +423,10 @@ class FuzzyMatcherApp(tk.Tk):
         # Create a popup to get user entry for rename
         rename_dialog_popup = tk.Toplevel(self)
         rename_dialog_popup.title("Rename Category")
-        rename_dialog_popup.geometry("300x100")
 
         # Center the popup on the main window
-        window_width = self.winfo_reqwidth()
-        window_height = self.winfo_reqheight()
-        position_right = int(self.winfo_screenwidth() / 2 - window_width / 2)
-        position_down = int(self.winfo_screenheight() / 2 - window_height / 2)
-        rename_dialog_popup.geometry(f"+{position_right}+{position_down}")
+
+        rename_dialog_popup.geometry(f"300x100+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}")
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
         rename_dialog_popup.transient(self)
@@ -528,6 +531,25 @@ class FuzzyMatcherApp(tk.Tk):
 
         self.update_treeview_selections(selected_categories=selected_categories)
 
+
+    def display_category_results(self, category):
+        for item in self.category_results_tree.get_children():
+            self.category_results_tree.delete(item)
+
+        if category in self.categories_display:
+            responses_and_counts = [
+                (response, self.response_counts.get(response, 0))
+                for response in self.categories_display[category]
+            ]
+            sorted_responses = sorted(
+                responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0])
+            )  # Sort first by score and then alphabetically
+
+            for response, count in sorted_responses:
+                self.category_results_tree.insert("", "end", values=(response, count))
+
+        self.category_results_label.config(text=f"Results for Category: {category}")
+
     def display_category_results_for_selected_category(self):
         selected_categories = self.categories_tree.selection()
 
@@ -535,24 +557,7 @@ class FuzzyMatcherApp(tk.Tk):
             # Get the selected category as a string
             category = self.categories_tree.item(selected_categories[0])["values"][0]
 
-            for item in self.category_results_tree.get_children():
-                self.category_results_tree.delete(item)
-
-            if category in self.categories_display:
-                responses_and_counts = [
-                    (response, self.response_counts.get(response, 0))
-                    for response in self.categories_display[category]
-                ]
-                sorted_responses = sorted(
-                    responses_and_counts, key=lambda x: (-x[1], x[0])
-                )  # Sort first by score and then alphabetically
-
-                for response, count in sorted_responses:
-                    self.category_results_tree.insert(
-                        "", "end", values=(response, count)
-                    )
-
-            self.category_results_label.config(text=f"Results for Category: {category}")
+            self.display_category_results(category)
 
             # Assign variable for currently displayed category
             self.currently_displayed_category = (
@@ -572,22 +577,7 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showerror("Error", "No category results currently displayed")
             return
 
-        for item in self.category_results_tree.get_children():
-            self.category_results_tree.delete(item)
-
-        if category in self.categories_display:
-            responses_and_counts = [
-                (response, self.response_counts[response])
-                for response in self.categories_display[category]
-            ]
-            sorted_responses = sorted(
-                responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0])
-            )  # Sort first by score and then alphabetically
-
-            for response, count in sorted_responses:
-                self.category_results_tree.insert("", "end", values=(response, count))
-
-        self.category_results_label.config(text=f"Results for Category: {category}")
+        self.display_category_results(category)
 
     def selected_categories(self):
         return {
@@ -697,14 +687,10 @@ class FuzzyMatcherApp(tk.Tk):
         # Create popup
         categorization_type_popup = tk.Toplevel(self)
         categorization_type_popup.title("Select Categorization Type")
-        categorization_type_popup.geometry("400x200")
 
         # Center the popup on the main window
-        window_width = self.winfo_reqwidth()
-        window_height = self.winfo_reqheight()
-        position_right = int(self.winfo_screenwidth() / 2 - window_width / 2)
-        position_down = int(self.winfo_screenheight() / 2 - window_height / 2)
-        categorization_type_popup.geometry(f"+{position_right}+{position_down}")
+
+        categorization_type_popup.geometry(f"400x200+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}")
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
         categorization_type_popup.transient(self)
