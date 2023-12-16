@@ -27,6 +27,7 @@ class ScreenCoords:
         self.centre_y = int((screen_height - self.window_height) / 2)
 
 
+#TODO: maybe hold the df inside here???? i dunno dodude
 class FileManager:
     def file_import(self, file_path):
         with open(file_path, "rb") as file:
@@ -38,11 +39,13 @@ class FileManager:
 class FuzzyMatcherApp(tk.Tk):
     def __init__(self, data_processor, file_manager):
         super().__init__()
+        self.include_missing_data_bool = tk.BooleanVar(value=True)
+        self.type_of_categorization_var = tk.StringVar()
         self.data_processor = data_processor
         self.file_manager = file_manager
         self.screen_coords = ScreenCoords()
         self.screen_coords.update_coords(self.winfo_screenwidth(), self.winfo_screenheight())
-
+       
         self.title("Fuzzy Matcher")
 
 
@@ -56,6 +59,8 @@ class FuzzyMatcherApp(tk.Tk):
         self.configure_style()
         self.resize_treeview_columns()
         self.resize_text_wraplength()
+
+        
 
 
         # Bind resizing functions to window size change
@@ -455,11 +460,11 @@ class FuzzyMatcherApp(tk.Tk):
             self.display_categories()
             self.refresh_category_results_for_currently_displayed_category()
 
-    def display_match_results(self, match_results):
+    def display_match_results(self):
         #doin work
         # Filter the fuzzy match results based on the threshold
-        filtered_results = match_results[
-            match_results["score"] >= self.threshold_slider.get()
+        filtered_results = self.data_processor.match_results[
+            self.data_processor.match_results["score"] >= self.threshold_slider.get()
         ]
 
         aggregated_results = (
@@ -510,10 +515,10 @@ class FuzzyMatcherApp(tk.Tk):
         for item in self.category_results_tree.get_children():
             self.category_results_tree.delete(item)
 
-        if category in self.categories_display:
+        if category in self.data_processor.categories_display:
             responses_and_counts = [
-                (response, self.response_counts.get(response, 0))
-                for response in self.categories_display[category]
+                (response, self.data_processor.response_counts.get(response, 0))
+                for response in self.data_processor.categories_display[category]
             ]
             sorted_responses = sorted(
                 responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0])
@@ -534,7 +539,7 @@ class FuzzyMatcherApp(tk.Tk):
             self.display_category_results(category)
 
             # Assign variable for currently displayed category
-            self.currently_displayed_category = (
+            self.data_processor.currently_displayed_category = (
                 category  # This is now the currently displayed category
             )
 
@@ -545,7 +550,7 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showerror("Error", "No category selected")
 
     def refresh_category_results_for_currently_displayed_category(self):
-        category = self.currently_displayed_category
+        category = self.data_processor.currently_displayed_category
 
         if not category:
             messagebox.showerror("Error", "No category results currently displayed")
@@ -588,7 +593,7 @@ class FuzzyMatcherApp(tk.Tk):
     ### ----------------------- Project Management ----------------------- ###
     def start_new_project(self):
         if self.file_import_process():
-            self.data_processor.populate_data_structures_new_project()
+            self.data_processor.populate_data_structures_new_project(self.df)
             self.display_categories()
             self.refresh_category_results_for_currently_displayed_category()
             self.display_match_results()
@@ -626,13 +631,13 @@ class FuzzyMatcherApp(tk.Tk):
         single_categorization_rb = tk.Radiobutton(
             categorization_type_popup,
             text="Single Categorization",
-            command = lambda x: self.data_processor.is_single_categorization = True
+            command = self.data_processor.set_is_single_categorization(True),
             value="Single",
         )
         multi_categorization_rb = tk.Radiobutton(
             categorization_type_popup,
             text="Multi Categorization",
-            command = lambda x: self.data_processor.is_single_categorization = False
+            command= self.data_processor.set_is_single_categorization(False),
             value="Multi",
         )
         confirm_button = tk.Button(
@@ -650,7 +655,7 @@ class FuzzyMatcherApp(tk.Tk):
         confirm_button.pack()
 
     def set_categorization_type_label(self):
-        chosen_type = self.categorization_var.get()
+        chosen_type = "Single" if self.data_processor.is_single_categorization else "Multi"
         self.categorization_label.config(text="Categorization Type: " + chosen_type)
 
     def load_project(self):
@@ -673,7 +678,7 @@ class FuzzyMatcherApp(tk.Tk):
 
     def append_data_behaviour(self):
         if self.file_import_append_data():
-            self.data_processor.populate_data_structures_append_data()  # Reinitialize with new data
+            self.data_processor.populate_data_structures_append_data(self.df)  # Reinitialize with new data
             self.display_categories()
             self.refresh_category_results_for_currently_displayed_category()
             messagebox.showinfo("Success", "Data appended successfully")
@@ -732,9 +737,11 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showinfo("Export", "Export cancelled")
 
     ### ----------------------- Main Functionality ----------------------- ###
+            
+    
     def process_match(self):
         try:
-            self.match_results = self.data_processor.get_match_results()
+            self.data_processor.get_match_results(self.match_string_entry.get())
             self.display_match_results()
         except TypeError:
             messagebox.showerror("Error", "No dataset loaded")
@@ -831,7 +838,7 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showinfo("Info", "Please enter a non-empty category name.")
             return
 
-        if new_category in self.categories_display:
+        if new_category in self.data_processor.categories_display:
             messagebox.showinfo("Info", "A category with this name already exists.")
             return
 

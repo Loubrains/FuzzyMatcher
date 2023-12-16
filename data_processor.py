@@ -24,13 +24,12 @@ class DataProcessor:
         }
         self.match_results = pd.DataFrame(columns=["response", "score"])
         self.currently_displayed_category = "Uncategorized"
-        self.is_including_missing_data = True #UI MUST TALK TO YOU
 
 
     def populate_data_structures_new_project(self, df):
         self.df_preprocessed = pd.DataFrame(
             df.iloc[:, 1:].map(
-                self.data_processor.preprocess_text  # , na_action="ignore"
+                self.preprocess_text  # , na_action="ignore"
             )
         )
 
@@ -43,7 +42,7 @@ class DataProcessor:
 
         self.response_counts = df_series.value_counts().to_dict()
 
-        uuids = self.df.iloc[:, 0]
+        uuids = df.iloc[:, 0]
         self.response_columns = list(self.df_preprocessed.columns)
 
         # categorized_data carries all response columns and all categories until export where response columns are dropped
@@ -56,7 +55,6 @@ class DataProcessor:
         self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
 
         self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
-        self.is_including_missing_data = True
 
     def populate_data_structures_load_project(self, data_loaded):
         # Convert JSON back to data / set default variable values
@@ -72,10 +70,10 @@ class DataProcessor:
         self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
         self.include_missing_data_bool.set(data_loaded["include_missing_data_bool"])
     
-    def populate_data_structures_append_data(self):
+    def populate_data_structures_append_data(self, df):
         old_data_size = len(self.df_preprocessed)
         new_df_preprocessed = pd.DataFrame(
-            self.df.iloc[old_data_size:, 1:].map(self.data_processor.preprocess_text)
+            df.iloc[old_data_size:, 1:].map(self.preprocess_text)
         )
         self.df_preprocessed = pd.concat([self.df_preprocessed, new_df_preprocessed])
 
@@ -88,7 +86,7 @@ class DataProcessor:
         self.response_columns = list(self.df_preprocessed.columns)
 
         new_categorized_data = pd.concat(
-            [self.df.iloc[old_data_size:, 0], new_df_preprocessed], axis=1
+            [df.iloc[old_data_size:, 0], new_df_preprocessed], axis=1
         )
 
         self.categorized_data = pd.concat(
@@ -149,7 +147,7 @@ class DataProcessor:
 
         return df_result
 
-    def make_dict_to_save(self):
+    def make_dict_to_save(self, include_missing_data_bool):
          return {
             "is_single_categorization": self.is_single_categorization,
             "df_preprocessed": self.df_preprocessed.to_json(),
@@ -159,12 +157,12 @@ class DataProcessor:
             "categories_display": {
                 k: list(v) for k, v in self.categories_display.items()
             },
-            "is_including_missing_data": self.is_including_missing_data,
+            "including_missing_data_bool": include_missing_data_bool,
         }
-    def get_match_results(self):
+    def get_match_results(self, match_string):
         if self.df_preprocessed is not None:
-            return self.data_processor.fuzzy_matching(
-                self.df_preprocessed, self.match_string_entry.get()
+            self.match_results = self.fuzzy_matching(
+                self.df_preprocessed, match_string
             )
         else:
             raise TypeError("Data not found")
@@ -236,6 +234,7 @@ class DataProcessor:
     def calculate_count(self, responses):
         return sum(self.response_counts.get(response, 0) for response in responses)
 
+# TODO: make two seperate percentage methods based off the bool idk
     def calculate_percentage(self, responses, include_missing_data_bool):
         count = self.calculate_count(responses)
 
@@ -248,3 +247,6 @@ class DataProcessor:
             total_responses = sum(self.response_counts.values()) - missing_data_count
 
         return (count / total_responses) * 100 if total_responses > 0 else 0
+    
+    def set_is_single_categorization(self,value):
+        self.is_single_categorization = value
