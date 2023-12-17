@@ -836,13 +836,27 @@ class FuzzyMatcherApp(tk.Tk):
 
     ### ----------------------- Main Functionality ----------------------- ###
     def process_match(self):
-        if self.df_preprocessed is not None:
-            self.match_results = self.data_model.fuzzy_matching(
-                self.df_preprocessed, self.match_string_entry.get()
-            )
-            self.display_match_results()
-        else:
+        if self.categorized_data.empty:
             messagebox.showerror("Error", "No dataset loaded")
+            return
+
+        if self.categorized_data is not None:
+            ### The below doesn't work because I've set this all up very badly and it would stop you from seeing any response in the entire row if one response in that row is categorized ###
+            # data_to_match = self.categorized_data[
+            #     self.categorized_data["Uncategorized"] == 1
+            # ]
+            # data_to_match = data_to_match[self.response_columns]
+            uncategorized_responses = self.categories_display["Uncategorized"]
+            uncategorized_df = self.df_preprocessed[
+                self.df_preprocessed.isin(uncategorized_responses)
+            ].dropna(how="all")
+
+            # Perform fuzzy matching on these uncategorized responses
+            self.match_results = self.data_model.fuzzy_matching(
+                uncategorized_df, self.match_string_entry.get()
+            )
+
+            self.display_match_results()
 
     def categorize_missing_data(self):
         def is_missing(value):
@@ -883,6 +897,14 @@ class FuzzyMatcherApp(tk.Tk):
                 "You cannot recategorize 'NaN' or 'Missing data' values",
             )
 
+        if self.categorization_var.get() == "Single":
+            if len(categories) > 1:
+                messagebox.showwarning(
+                    "Warning",
+                    "Only one category can be selected in Single Categorization mode.",
+                )
+                return
+
         self.categorize_responses(responses, categories)
 
     def categorize_responses(self, responses, categories):
@@ -896,13 +918,6 @@ class FuzzyMatcherApp(tk.Tk):
             mask |= self.categorized_data[column].isin(responses)
 
         if self.categorization_var.get() == "Single":
-            if len(categories) > 1:
-                messagebox.showwarning(
-                    "Warning",
-                    "Only one category can be selected in Single Categorization mode.",
-                )
-                return
-
             for category in self.categories_display:
                 self.categorized_data.loc[mask, category] = 0
                 self.categories_display[category] -= responses
@@ -917,7 +932,7 @@ class FuzzyMatcherApp(tk.Tk):
             self.categories_display[category].update(responses)
 
         self.display_categories()
-        self.display_match_results()
+        self.process_match()
         self.update_treeview_selections(
             selected_categories=categories,
             selected_responses=responses,
