@@ -5,3 +5,5 @@ virtualenv/
 !README.md
 !/.gitignore
 !requirements.txt
+!FileManager.py
+!DataModel.py

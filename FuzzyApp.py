@@ -1,13 +1,11 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import ctypes
-from typing import Any
 import pandas as pd
-import re
-import chardet
-from thefuzz import fuzz
 import json
 from io import StringIO
+from DataModel import DataModel
+from FileManager import FileManager
 
 # Set DPI awareness
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -16,7 +14,8 @@ ctypes.windll.shcore.SetProcessDpiAwareness(1)
 class ScreenCoords:
     def __init__(self):
         self.WINDOW_SIZE_MULTIPLIER = 0.8
-        self.POPUPS_SIZE = "400x200"
+        self.POPUP_WIDTH = "400"
+        self.POPUP_HEIGHT = "200"
 
     def update_coords(self, screen_width, screen_height):
         self.screen_width = screen_width
@@ -27,46 +26,11 @@ class ScreenCoords:
         self.centre_y = int((screen_height - self.window_height) / 2)
 
 
-class FileManager:
-    def file_import(self, file_path):
-        with open(file_path, "rb") as file:
-            encoding = chardet.detect(file.read())["encoding"]  # Detect encoding
-        return pd.read_csv(file_path, encoding=encoding)
-
-
-class DataProcessor:
-    def preprocess_text(self, text: Any) -> str:
-        text = str(text).lower()
-        text = re.sub(
-            r"\s+", " ", text
-        )  # Convert one or more of any kind of space to single space
-        text = re.sub(r"[^a-z0-9\s]", "", text)  # Remove special characters
-        text = text.strip()
-        return text
-
-    def fuzzy_matching(self, df_preprocessed, match_string):
-        def fuzzy_match(element):
-            return fuzz.WRatio(
-                match_string, str(element)
-            )  # Weighted ratio of several fuzzy matching protocols
-
-        # Get fuzzy matching scores and format result: {response: score}
-        results = []
-        for row in df_preprocessed.itertuples(index=True, name=None):
-            for response in row[1:]:
-                score = fuzzy_match(response)
-                results.append({"response": response, "score": score})
-
-        df_result = pd.DataFrame(results)
-
-        return df_result
-
-
 # Main application class
 class FuzzyMatcherApp(tk.Tk):
-    def __init__(self, data_processor, file_manager):
+    def __init__(self, data_model, file_manager):
         super().__init__()
-        self.data_processor = data_processor
+        self.data_model = data_model
         self.file_manager = file_manager
         self.screen_coords = ScreenCoords()
         self.screen_coords.update_coords(
@@ -432,7 +396,7 @@ class FuzzyMatcherApp(tk.Tk):
         # Center the popup on the main window
 
         rename_dialog_popup.geometry(
-            f"{self.screen_coords.POPUPS_SIZE}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
+            f"{self.screen_coords.POPUP_WIDTH}x{self.screen_coords.POPUP_HEIGHT}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
         )
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
@@ -661,7 +625,7 @@ class FuzzyMatcherApp(tk.Tk):
     def populate_data_structures_new_project(self):
         self.df_preprocessed = pd.DataFrame(
             self.df.iloc[:, 1:].map(
-                self.data_processor.preprocess_text  # , na_action="ignore"
+                self.data_model.preprocess_text  # , na_action="ignore"
             )
         )
 
@@ -697,7 +661,7 @@ class FuzzyMatcherApp(tk.Tk):
         # Center the popup on the main window
 
         categorization_type_popup.geometry(
-            f"{self.screen_coords.POPUPS_SIZE}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
+            f"{self.screen_coords.POPUP_WIDTH}x{self.screen_coords.POPUP_HEIGHT}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
         )
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
@@ -796,7 +760,7 @@ class FuzzyMatcherApp(tk.Tk):
     def populate_data_structures_append_data(self):
         old_data_size = len(self.df_preprocessed)
         new_df_preprocessed = pd.DataFrame(
-            self.df.iloc[old_data_size:, 1:].map(self.data_processor.preprocess_text)
+            self.df.iloc[old_data_size:, 1:].map(self.data_model.preprocess_text)
         )
         self.df_preprocessed = pd.concat([self.df_preprocessed, new_df_preprocessed])
 
@@ -873,7 +837,7 @@ class FuzzyMatcherApp(tk.Tk):
     ### ----------------------- Main Functionality ----------------------- ###
     def process_match(self):
         if self.df_preprocessed is not None:
-            self.match_results = self.data_processor.fuzzy_matching(
+            self.match_results = self.data_model.fuzzy_matching(
                 self.df_preprocessed, self.match_string_entry.get()
             )
             self.display_match_results()
@@ -1077,7 +1041,7 @@ class FuzzyMatcherApp(tk.Tk):
 
 
 if __name__ == "__main__":
-    data_processor = DataProcessor()
+    data_model = DataModel()
     file_manager = FileManager()
-    app = FuzzyMatcherApp(data_processor, file_manager)
+    app = FuzzyMatcherApp(data_model, file_manager)
     app.mainloop()
