@@ -774,6 +774,7 @@ class FuzzyMatcherApp(tk.Tk):
             self.populate_data_structures_append_data()  # Reinitialize with new data
             self.display_categories()
             self.refresh_category_results_for_currently_displayed_category()
+            self.display_match_results()
             messagebox.showinfo("Success", "Data appended successfully")
 
     def file_import_append_data(self):
@@ -783,7 +784,7 @@ class FuzzyMatcherApp(tk.Tk):
                 if new_df.empty or new_df.shape[1] != self.df.shape[1]:
                     messagebox.showerror(
                         "Error",
-                        "Dataset is empty or does not have the same shape as the current dataset.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian response the same number of response columns.",
+                        "Dataset is empty or does not have the same shape as the current dataset.\nThe dataset should contain uuids in the first column, and the subsequent columns should contain the same number of response columns.",
                     )
                     return False
                 self.df = pd.concat([self.df, new_df], ignore_index=True)
@@ -800,27 +801,25 @@ class FuzzyMatcherApp(tk.Tk):
         self.df_preprocessed = pd.concat([self.df_preprocessed, new_df_preprocessed])
 
         # categories_display is dict of categories to the deduplicated set of all responses
+        new_df_series = new_df_preprocessed.stack().reset_index(drop=True)
         df_series = self.df_preprocessed.stack().reset_index(drop=True)
-
         self.response_counts = df_series.value_counts().to_dict()
-
-        uuids = self.df.iloc[:, 0]
-        self.response_columns = list(self.df_preprocessed.columns)
+        self.categories_display["Uncategorized"].update(
+            set(new_df_series) - {"nan", "missing data"}
+        )
 
         new_categorized_data = pd.concat(
             [self.df.iloc[old_data_size:, 0], new_df_preprocessed], axis=1
         )
-
         self.categorized_data = pd.concat(
             [self.categorized_data, new_categorized_data], axis=0
         )
+
         self.categorized_data["Uncategorized"].iloc[
             old_data_size:
         ] = 1  # Everything starts uncategorized
         self.categorized_data["Missing data"].iloc[old_data_size:] = 0
         self.categorize_missing_data()
-
-        self.categorized_data = pd.concat([self.categorized_data, new_categorized_data])
 
         self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
         self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
@@ -908,22 +907,22 @@ class FuzzyMatcherApp(tk.Tk):
             )
             return
 
-        if categories == "Missing data":
+        if "Missing data" in categories:
             messagebox.showinfo(
                 "Info", 'You cannot categorize values into "Missing data".'
             )
             return
 
-        self.categorize_responses(responses, categories)
-
-    def categorize_responses(self, responses, categories):
         if "nan" in responses or "missing data" in responses:
             messagebox.showwarning(
                 "Warning",
                 "You cannot recategorize 'NaN' or 'Missing data' values",
             )
-            responses -= {"nan", "missing data"}
 
+        self.categorize_responses(responses, categories)
+
+    def categorize_responses(self, responses, categories):
+        responses -= {"nan", "missing data"}
         # In categorized_data, each category is a column, with a 1 or 0 for each response
 
         # Boolean mask for rows in categorized_data containing selected responses
@@ -976,7 +975,13 @@ class FuzzyMatcherApp(tk.Tk):
 
         if self.currently_displayed_category == "Missing data":
             messagebox.showinfo(
-                "Info", 'You cannot recategorize "Missing data" values.'
+                "Info", 'You cannot recategorize "NaN" or "Missing data" values.'
+            )
+            return
+
+        if "Missing data" in categories:
+            messagebox.showinfo(
+                "Info", 'You cannot categorize values into "Missing data".'
             )
             return
 
