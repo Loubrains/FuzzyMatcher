@@ -897,13 +897,12 @@ class FuzzyMatcherApp(tk.Tk):
                 "You cannot recategorize 'NaN' or 'Missing data' values",
             )
 
-        if self.categorization_var.get() == "Single":
-            if len(categories) > 1:
-                messagebox.showwarning(
-                    "Warning",
-                    "Only one category can be selected in Single Categorization mode.",
-                )
-                return
+        if self.categorization_var.get() == "Single" and len(categories) > 1:
+            messagebox.showwarning(
+                "Warning",
+                "Only one category can be selected in Single Categorization mode.",
+            )
+            return
 
         self.categorize_responses(responses, categories)
 
