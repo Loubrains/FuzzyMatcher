@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox
 import ctypes
 import pandas as pd
 import json
@@ -40,7 +40,7 @@ class Controller:
             "<Button-1>", lambda event: self.execute_match()
         )
         self.user_interface.categorize_button.bind(
-            "<Button-1>", lambda event: self.categorize_selected_responses
+            "<Button-1>", lambda event: self.categorize_selected_responses()
         )
         self.user_interface.display_category_results_for_selected_category_button.bind(
             "<Button-1>",
@@ -61,9 +61,9 @@ class Controller:
         self.user_interface.delete_categories_button.bind(
             "<Button-1>", lambda event: self.ask_delete_categories()
         )
-        self.user_interface.include_missing_data_checkbox.bind(
-            "<Button-1>", lambda event: self.display_categories()
-        )
+        self.user_interface.include_missing_data_bool.trace_add(
+            "write", lambda *args: self.display_categories()
+        )  # Using trace_add() to make sure it calls the command only after setting the bool value.
         self.user_interface.new_project_button.bind(
             "<Button-1>", lambda event: self.start_new_project()
         )
@@ -98,7 +98,7 @@ class Controller:
             formatted_categories = ", ".join(selected_categories)
             messagebox.showinfo(
                 "Info",
-                f"You may not delete the category/categories {formatted_categories}.",
+                f"You may not rename the category/categories {formatted_categories}.",
             )
             return
 

@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk
 
 
 class ScreenCoords:
@@ -27,11 +27,12 @@ class FuzzyUI(tk.Tk):
 
         self.title("Fuzzy Matcher")
 
+        self.include_missing_data_bool = tk.BooleanVar(value=False)
+
         # Setup the UI
         self.initialize_window()
         self.configure_grid()
         self.configure_frames()
-        self.include_missing_data_bool = tk.BooleanVar(value=True)
         self.create_widgets()
         self.bind_widgets_to_frames()
         self.configure_sub_grids()
