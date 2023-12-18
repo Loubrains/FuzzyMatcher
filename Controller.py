@@ -350,7 +350,7 @@ class Controller:
         self.df_preprocessed = pd.DataFrame(
             self.df.iloc[:, 1:].map(
                 self.data_model.preprocess_text  # , na_action="ignore"
-            )
+            )  # type: ignore
         )
 
         # categories_display is dict of categories to the deduplicated set of all responses
@@ -488,7 +488,7 @@ class Controller:
     def populate_data_structures_append_data(self):
         old_data_size = len(self.df_preprocessed)
         new_df_preprocessed = pd.DataFrame(
-            self.df.iloc[old_data_size:, 1:].map(self.data_model.preprocess_text)
+            self.df.iloc[old_data_size:, 1:].map(self.data_model.preprocess_text)  # type: ignore
         )
         self.df_preprocessed = pd.concat([self.df_preprocessed, new_df_preprocessed])
 
@@ -595,7 +595,7 @@ class Controller:
                 or value == "nan"
             )
 
-        all_missing_mask = self.df_preprocessed.map(is_missing).all(
+        all_missing_mask = self.df_preprocessed.map(is_missing).all(  # type: ignore
             axis=1
         )  # Boolean mask where each row is True if all elements are missing
         self.categorized_data.loc[all_missing_mask, "Missing data"] = 1
