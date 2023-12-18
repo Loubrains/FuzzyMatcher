@@ -80,6 +80,9 @@ class Controller:
             "<Button-1>", lambda event: self.export_to_csv()
         )
 
+    def run(self):
+        self.user_interface.mainloop()
+
     ### ----------------------- UI Management ----------------------- ###
     def ask_rename_category(self):
         selected_categories = self.selected_categories()
