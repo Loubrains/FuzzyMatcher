@@ -102,7 +102,7 @@ class Controller:
         old_category = selected_categories.pop()
 
         # Create a popup to get user entry for rename
-        rename_dialog_popup = tk.Toplevel(user_interface)
+        rename_dialog_popup = tk.Toplevel(self.user_interface)
         rename_dialog_popup.title("Rename Category")
 
         # Center the popup on the main window
@@ -112,7 +112,7 @@ class Controller:
         )
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
-        rename_dialog_popup.transient(user_interface)
+        rename_dialog_popup.transient(self.user_interface)
         rename_dialog_popup.grab_set()
 
         # Create widgets
@@ -376,7 +376,7 @@ class Controller:
 
     def ask_categorization_type(self):
         # Create popup
-        categorization_type_popup = tk.Toplevel(user_interface)
+        categorization_type_popup = tk.Toplevel(self.user_interface)
         categorization_type_popup.title("Select Categorization Type")
 
         # Center the popup on the main window
@@ -386,7 +386,7 @@ class Controller:
         )
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
-        categorization_type_popup.transient(user_interface)
+        categorization_type_popup.transient(self.user_interface)
         categorization_type_popup.grab_set()
 
         # Create buttons that assign value to self.categoriztation_type
