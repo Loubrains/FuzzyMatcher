@@ -7,3 +7,4 @@ virtualenv/
 !requirements.txt
 !FileManager.py
 !DataModel.py
+!FuzzyUI.py

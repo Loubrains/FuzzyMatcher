@@ -6,367 +6,79 @@ import json
 from io import StringIO
 from DataModel import DataModel
 from FileManager import FileManager
+from FuzzyUI import FuzzyUI
 
 # Set DPI awareness
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
-class ScreenCoords:
-    def __init__(self):
-        self.WINDOW_SIZE_MULTIPLIER = 0.8
-        self.POPUP_WIDTH = "400"
-        self.POPUP_HEIGHT = "200"
-
-    def update_coords(self, screen_width, screen_height):
-        self.screen_width = screen_width
-        self.screen_height = screen_height
-        self.window_width = int(screen_width * self.WINDOW_SIZE_MULTIPLIER)
-        self.window_height = int(screen_height * self.WINDOW_SIZE_MULTIPLIER)
-        self.centre_x = int((screen_width - self.window_width) / 2)
-        self.centre_y = int((screen_height - self.window_height) / 2)
-
-
 # Main application class
-class FuzzyMatcherApp(tk.Tk):
-    def __init__(self, data_model, file_manager):
+class Controller:
+    def __init__(self, user_interface, data_model, file_manager):
         super().__init__()
+        self.user_interface = user_interface
         self.data_model = data_model
         self.file_manager = file_manager
-        self.screen_coords = ScreenCoords()
-        self.screen_coords.update_coords(
-            self.winfo_screenwidth(), self.winfo_screenheight()
-        )
-
-        self.title("Fuzzy Matcher")
 
         self.initialize_data_structures()  # Empty/default variables
+        self.setup_UI_bindings()
 
-        # Setup the UI
-        self.initialize_window()
-        self.configure_grid()
-        self.configure_frames()
-        self.create_widgets()
-        self.bind_widgets_to_frames()
-        self.configure_sub_grids()
-        self.configure_style()
-        self.resize_treeview_columns()
-        self.resize_text_wraplength()
-
-        # Bind resizing functions to window size change
-        self.bind("<Configure>", self.on_window_resize)
-
-        # After setting up the UI, refresh all displays
-        self.after(100, self.display_categories)
-        self.after(100, self.refresh_category_results_for_currently_displayed_category)
-
-    ### ----------------------- UI Setup ----------------------- ###
-    def initialize_window(self):
-        self.geometry(
-            f"{self.screen_coords.window_width}x{self.screen_coords.window_height}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
-        )
-        # self.state('zoomed')
-
-    def configure_grid(self):
-        self.grid_columnconfigure(0, weight=1)  # Fuzzy matching
-        self.grid_columnconfigure(1, weight=1)  # Category results
-        self.grid_columnconfigure(2, weight=1)  # Categories display
-        self.grid_rowconfigure(0, weight=0)  # Buttons, entries, labels, etc
-        self.grid_rowconfigure(1, weight=1)  # Treeviews
-        self.grid_rowconfigure(2, weight=0)  # Project management
-        # Weights set such that all columns and only middle row can expand/contract
-
-    def configure_frames(self):
-        self.top_left_frame = tk.Frame(self)
-        self.middle_left_frame = tk.Frame(self)
-        self.top_middle_frame = tk.Frame(self)
-        self.middle_middle_frame = tk.Frame(self)
-        self.top_right_frame = tk.Frame(self)
-        self.middle_right_frame = tk.Frame(self)
-        self.bottom_frame = tk.Frame(self)
-
-        self.top_left_frame.grid(row=0, column=0, sticky="sew", padx=10, pady=10)
-        self.middle_left_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
-        self.top_middle_frame.grid(row=0, column=1, sticky="sew", padx=10, pady=10)
-        self.middle_middle_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
-        self.top_right_frame.grid(row=0, column=2, sticky="sew", padx=10, pady=10)
-        self.middle_right_frame.grid(row=1, column=2, sticky="nsew", padx=10, pady=10)
-        self.bottom_frame.grid(
-            row=2, column=0, columnspan=3, sticky="new", padx=10, pady=10
+        self.user_interface.after(100, self.display_categories)
+        self.user_interface.after(
+            100,
+            self.refresh_category_results_for_currently_displayed_category,
         )
 
-    def create_widgets(self):
-        # Top left frame widgets (fuzzy matching entry, slider, buttons and lable)
-        self.match_string_label = tk.Label(
-            self.top_left_frame, text="Enter String to Match:"
+    def setup_UI_bindings(self):
+        self.user_interface.match_string_entry.bind(
+            "<Return>", lambda event: self.execute_match()
         )
-        self.match_string_entry = tk.Entry(self.top_left_frame)
-        self.match_string_entry.bind("<Return>", lambda event: self.process_match())
-        self.threshold_label = tk.Label(
-            self.top_left_frame,
-            text="Set Fuzz Threshold (100 is precise, 0 is imprecise):",
+        self.user_interface.threshold_slider.bind(
+            "<ButtonRelease-1>", lambda val: self.display_match_results()
         )
-        self.threshold_slider = tk.Scale(
-            self.top_left_frame,
-            from_=0,
-            to=100,
-            orient="horizontal",
-            resolution=1,
-            command=lambda val: self.display_match_results(),
+        self.user_interface.match_button.bind(
+            "<Button-1>", lambda event: self.execute_match()
         )
-        self.threshold_slider.set(
-            60
-        )  # Setting default value to 60, gets decent results
-        self.match_button = tk.Button(
-            self.top_left_frame, text="Match", command=self.process_match
+        self.user_interface.categorize_button.bind(
+            "<Button-1>", lambda event: self.categorize_selected_responses
         )
-        self.categorize_button = tk.Button(
-            self.top_left_frame,
-            text="Categorize Selected Results",
-            command=self.categorize_selected_responses,
+        self.user_interface.display_category_results_for_selected_category_button.bind(
+            "<Button-1>",
+            lambda event: self.display_category_results_for_selected_category(),
         )
-        self.categorization_label = tk.Label(
-            self.top_left_frame, text="Categorization Type: Single"
+        self.user_interface.recategorize_selected_responses_button.bind(
+            "<Button-1>", lambda event: self.recategorize_selected_responses()
         )
-
-        # Middle_left frame widgets (fuzzy matching treeview)
-        self.match_results_tree = ttk.Treeview(
-            self.middle_left_frame,
-            columns=("Response", "Score", "Count"),
-            show="headings",
+        self.user_interface.new_category_entry.bind(
+            "<Return>", lambda event: self.create_category()
         )
-        self.match_results_tree.heading("Response", text="Response")
-        self.match_results_tree.heading("Score", text="Score")
-        self.match_results_tree.heading("Count", text="Count")
-        self.match_results_tree.column("Score", anchor="center")
-        self.match_results_tree.column("Count", anchor="center")
-        self.results_scrollbar = tk.Scrollbar(
-            self.middle_left_frame,
-            orient="vertical",
-            command=self.match_results_tree.yview,
+        self.user_interface.add_category_button.bind(
+            "<Button-1>", lambda event: self.create_category()
         )
-
-        # Top middle frame widgets (category results buttons and labels)
-        self.display_category_results_for_selected_category_button = tk.Button(
-            self.top_middle_frame,
-            text="Display Category Results",
-            command=self.display_category_results_for_selected_category,
+        self.user_interface.rename_category_button.bind(
+            "<Button-1>", lambda event: self.ask_rename_category()
         )
-        self.recategorize_selected_responses_button = tk.Button(
-            self.top_middle_frame,
-            text="Recategorize Selected Results",
-            command=self.recategorize_selected_responses,
+        self.user_interface.delete_categories_button.bind(
+            "<Button-1>", lambda event: self.ask_delete_categories()
         )
-        self.category_results_label = tk.Label(
-            self.top_middle_frame, text="Results for Category: "
+        self.user_interface.include_missing_data_checkbox.bind(
+            "<Button-1>", lambda event: self.display_categories()
         )
-
-        # Middle Frame Widgets (category results treeview)
-        self.category_results_tree = ttk.Treeview(
-            self.middle_middle_frame, columns=("Response", "Count"), show="headings"
+        self.user_interface.new_project_button.bind(
+            "<Button-1>", lambda event: self.start_new_project()
         )
-        self.category_results_tree.heading("Response", text="Response")
-        self.category_results_tree.heading("Count", text="Count")
-        self.category_results_tree.column("Count", anchor="center")
-        self.category_results_scrollbar = tk.Scrollbar(
-            self.middle_middle_frame,
-            orient="vertical",
-            command=self.category_results_tree.yview,
+        self.user_interface.load_button.bind(
+            "<Button-1>", lambda event: self.load_project()
         )
-
-        # Top right frame widgets (category buttons and entry)
-        self.new_category_entry = tk.Entry(self.top_right_frame)
-        self.new_category_entry.bind("<Return>", lambda event: self.create_category())
-        self.add_category_button = tk.Button(
-            self.top_right_frame, text="Add Category", command=self.create_category
+        self.user_interface.append_data_button.bind(
+            "<Button-1>", lambda event: self.append_data_behaviour()
         )
-        self.rename_category_button = tk.Button(
-            self.top_right_frame,
-            text="Rename Category",
-            command=self.ask_rename_category,
+        self.user_interface.save_button.bind(
+            "<Button-1>", lambda event: self.save_project()
         )
-        self.delete_categories_button = tk.Button(
-            self.top_right_frame,
-            text="Delete Category",
-            command=self.ask_delete_categories,
+        self.user_interface.export_csv_button.bind(
+            "<Button-1>", lambda event: self.export_to_csv()
         )
-        self.include_missing_data_checkbox = tk.Checkbutton(
-            self.top_right_frame,
-            text="Base to total",
-            variable=self.include_missing_data_bool,
-            command=self.display_categories,
-        )
-
-        # Top middle frame widgets (categories treeview)
-        self.categories_tree = ttk.Treeview(
-            self.middle_right_frame,
-            columns=("Category", "Count", "Percentage"),
-            show="headings",
-        )
-        self.categories_tree.heading("Category", text="Category")
-        self.categories_tree.heading("Count", text="Count")
-        self.categories_tree.heading("Percentage", text="%")
-        self.categories_tree.column("Count", anchor="center")
-        self.categories_tree.column("Percentage", anchor="center")
-        self.categories_scrollbar = tk.Scrollbar(
-            self.middle_right_frame,
-            orient="vertical",
-            command=self.categories_tree.yview,
-        )
-
-        # Bottom frame widgets (new project, load project, save project, export to csv)
-        self.new_project_button = tk.Button(
-            self.bottom_frame, text="New Project", command=self.start_new_project
-        )
-        self.load_button = tk.Button(
-            self.bottom_frame, text="Load Project", command=self.load_project
-        )
-        self.append_data_button = tk.Button(
-            self.bottom_frame, text="Append Data", command=self.append_data_behaviour
-        )
-        self.save_button = tk.Button(
-            self.bottom_frame, text="Save Project", command=self.save_project
-        )
-        self.export_csv_button = tk.Button(
-            self.bottom_frame, text="Export to CSV", command=self.export_to_csv
-        )
-
-    def bind_widgets_to_frames(self):
-        # Top left frame widgets
-        self.match_string_label.grid(row=0, column=0, sticky="ew", padx=5)
-        self.match_string_entry.grid(row=1, column=0, sticky="ew", padx=5)
-        self.threshold_label.grid(row=0, column=1, sticky="ew", padx=5)
-        self.threshold_slider.grid(row=1, column=1, sticky="ew", padx=5)
-        self.categorization_label.grid(row=2, column=1, sticky="ew")
-        self.match_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
-        self.categorize_button.grid(row=3, column=1, sticky="ew", padx=10, pady=10)
-
-        # Middle left frame widgets
-        self.match_results_tree.grid(
-            row=0, column=0, columnspan=2, sticky="nsew", padx=10, pady=10
-        )
-        self.results_scrollbar.grid(row=0, column=2, sticky="ns")
-        self.match_results_tree.configure(yscrollcommand=self.results_scrollbar.set)
-
-        # Top middle frame widgets
-        self.display_category_results_for_selected_category_button.grid(
-            row=0, column=0, sticky="ew", padx=10, pady=10
-        )
-        self.recategorize_selected_responses_button.grid(
-            row=0, column=1, sticky="ew", padx=10, pady=10
-        )
-        self.category_results_label.grid(
-            row=1, column=0, columnspan=2, sticky="ew", padx=10, pady=10
-        )
-
-        # Middle middle frame widgets
-        self.category_results_tree.grid(
-            row=0, column=0, columnspan=2, sticky="nsew", padx=10, pady=10
-        )
-        self.category_results_scrollbar.grid(row=0, column=2, sticky="ns")
-        self.category_results_tree.configure(
-            yscrollcommand=self.category_results_scrollbar.set
-        )
-
-        # Top right frame widgets
-        self.new_category_entry.grid(row=0, column=0, sticky="ew", padx=5)
-        self.add_category_button.grid(row=0, column=1, sticky="ew", padx=5)
-        self.rename_category_button.grid(row=0, column=2, sticky="ew", padx=5)
-        self.delete_categories_button.grid(row=0, column=3, sticky="ew", padx=5)
-        self.include_missing_data_checkbox.grid(row=1, column=3, sticky="e")
-
-        # Middle right frame widgets
-        self.categories_tree.grid(
-            row=0, column=0, columnspan=4, sticky="nsew", padx=10, pady=10
-        )
-        self.categories_scrollbar.grid(row=0, column=4, sticky="ns")
-        self.categories_tree.configure(yscrollcommand=self.categories_scrollbar.set)
-
-        # Bottom frame widgets
-        self.new_project_button.grid(row=0, column=0, sticky="w", padx=10, pady=10)
-        self.append_data_button.grid(row=0, column=1, sticky="w", padx=10, pady=10)
-        self.load_button.grid(row=1, column=0, sticky="w", padx=10, pady=10)
-        self.save_button.grid(row=0, column=2, sticky="e", padx=10, pady=10)
-        self.export_csv_button.grid(row=1, column=2, sticky="e", padx=10, pady=10)
-
-    def configure_sub_grids(self):
-        # Allow the treeviews to expand vertically
-        self.middle_left_frame.grid_rowconfigure(0, weight=1)
-        self.middle_middle_frame.grid_rowconfigure(0, weight=1)
-        self.middle_right_frame.grid_rowconfigure(0, weight=1)
-
-        # Don't allow the scrollbar to expand horizontally
-        self.middle_left_frame.grid_columnconfigure(2, weight=0)
-        self.middle_middle_frame.grid_columnconfigure(2, weight=0)
-        self.middle_right_frame.grid_columnconfigure(4, weight=0)
-
-        # Allow all buttons and treviews to expand/contract horizontally together
-        self.top_left_frame.grid_columnconfigure(0, weight=1)
-        self.top_left_frame.grid_columnconfigure(1, weight=1)
-        self.middle_left_frame.grid_columnconfigure(0, weight=1)
-        self.middle_left_frame.grid_columnconfigure(1, weight=1)
-        self.top_middle_frame.grid_columnconfigure(0, weight=1)
-        self.top_middle_frame.grid_columnconfigure(1, weight=1)
-        self.middle_middle_frame.grid_columnconfigure(0, weight=1)
-        self.middle_middle_frame.grid_columnconfigure(1, weight=1)
-        self.top_right_frame.grid_columnconfigure(0, weight=1)
-        self.top_right_frame.grid_columnconfigure(1, weight=1)
-        self.top_right_frame.grid_columnconfigure(2, weight=1)
-        self.top_right_frame.grid_columnconfigure(3, weight=1)
-        self.middle_right_frame.grid_columnconfigure(0, weight=1)
-        self.middle_right_frame.grid_columnconfigure(1, weight=1)
-        self.middle_right_frame.grid_columnconfigure(2, weight=1)
-        self.middle_right_frame.grid_columnconfigure(3, weight=1)
-
-        # Allow the bottom frame to expand horizontally
-        self.bottom_frame.columnconfigure(0, weight=1)
-        self.bottom_frame.columnconfigure(1, weight=1)
-        self.bottom_frame.columnconfigure(2, weight=1)
-
-    def configure_style(self):
-        # Configure Treeview style for larger row height and centered column text
-        style = ttk.Style(self)
-        style.configure("Treeview", rowheight=25)
-        style.configure("Treeview.Item", anchor="center")
-
-    def on_window_resize(self, event):
-        self.resize_treeview_columns()
-        self.resize_text_wraplength()
-
-    def resize_text_wraplength(self):
-        for frame in self.winfo_children():
-            for widget in frame.winfo_children():
-                if isinstance(widget, (tk.Label, tk.Button, tk.Radiobutton)):
-                    width = (
-                        widget.winfo_width() + 10
-                    )  # Extra added to make it slightly less eager to resize
-                    widget.configure(wraplength=width)
-
-    def resize_treeview_columns(self):
-        for frame in self.winfo_children():
-            for widget in frame.winfo_children():
-                if isinstance(widget, ttk.Treeview):
-                    treeview = widget
-                    treeview_width = treeview.winfo_width()
-
-                    num_columns = len(treeview["columns"])
-                    if num_columns > 1:
-                        # Each column after the first one should be 1/6th the total treeview width,
-                        # with the first one taking the remaining space.
-                        secondary_column_width = treeview_width // 6
-                        first_column_width = treeview_width - (
-                            secondary_column_width * (num_columns - 1)
-                        )
-
-                        treeview.column(
-                            treeview["columns"][0], width=first_column_width
-                        )
-                        for col in treeview["columns"][1:]:
-                            treeview.column(
-                                col, minwidth=50, width=secondary_column_width
-                            )
-                    else:
-                        # If there is only one column, it should take all the space
-                        treeview.column(treeview["columns"][0], width=treeview_width)
 
     ### ----------------------- UI Management ----------------------- ###
     def ask_rename_category(self):
@@ -390,17 +102,17 @@ class FuzzyMatcherApp(tk.Tk):
         old_category = selected_categories.pop()
 
         # Create a popup to get user entry for rename
-        rename_dialog_popup = tk.Toplevel(self)
+        rename_dialog_popup = tk.Toplevel(user_interface)
         rename_dialog_popup.title("Rename Category")
 
         # Center the popup on the main window
 
         rename_dialog_popup.geometry(
-            f"{self.screen_coords.POPUP_WIDTH}x{self.screen_coords.POPUP_HEIGHT}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
+            f"{self.user_interface.screen_coords.POPUP_WIDTH}x{self.user_interface.screen_coords.POPUP_HEIGHT}+{self.user_interface.screen_coords.centre_x}+{self.user_interface.screen_coords.centre_y}"
         )
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
-        rename_dialog_popup.transient(self)
+        rename_dialog_popup.transient(user_interface)
         rename_dialog_popup.grab_set()
 
         # Create widgets
@@ -456,7 +168,7 @@ class FuzzyMatcherApp(tk.Tk):
     def display_match_results(self):
         # Filter the fuzzy match results based on the threshold
         filtered_results = self.match_results[
-            self.match_results["score"] >= self.threshold_slider.get()
+            self.match_results["score"] >= self.user_interface.threshold_slider.get()
         ]
 
         aggregated_results = (
@@ -472,22 +184,22 @@ class FuzzyMatcherApp(tk.Tk):
             by=["score", "count"], ascending=[False, False]
         )
 
-        for item in self.match_results_tree.get_children():
-            self.match_results_tree.delete(item)
+        for item in self.user_interface.match_results_tree.get_children():
+            self.user_interface.match_results_tree.delete(item)
 
         for _, row in sorted_results.iterrows():
-            self.match_results_tree.insert(
+            self.user_interface.match_results_tree.insert(
                 "", "end", values=(row["response"], row["score"], row["count"])
             )
 
     def display_categories(self):
         selected_categories = self.selected_categories()
-        include_missing_data_bool = self.include_missing_data_bool.get()
+        include_missing_data_bool = self.user_interface.include_missing_data_bool.get()
 
-        for item in self.categories_tree.get_children():
-            self.categories_tree.delete(item)
+        for item in self.user_interface.categories_tree.get_children():
+            self.user_interface.categories_tree.delete(item)
 
-        for category, responses in self.categories_display.items():
+        for category, responses in self.categorized_dict.items():
             count = self.calculate_count(responses)
             if not include_missing_data_bool and category == "Missing data":
                 percentage_str = ""
@@ -496,36 +208,42 @@ class FuzzyMatcherApp(tk.Tk):
                     responses, include_missing_data_bool
                 )
                 percentage_str = f"{percentage:.2f}%"
-            self.categories_tree.insert(
+            self.user_interface.categories_tree.insert(
                 "", "end", values=(category, count, percentage_str)
             )
 
         self.update_treeview_selections(selected_categories=selected_categories)
 
     def display_category_results(self, category):
-        for item in self.category_results_tree.get_children():
-            self.category_results_tree.delete(item)
+        for item in self.user_interface.category_results_tree.get_children():
+            self.user_interface.category_results_tree.delete(item)
 
-        if category in self.categories_display:
+        if category in self.categorized_dict:
             responses_and_counts = [
                 (response, self.response_counts.get(response, 0))
-                for response in self.categories_display[category]
+                for response in self.categorized_dict[category]
             ]
             sorted_responses = sorted(
                 responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0])
             )  # Sort first by score and then alphabetically
 
             for response, count in sorted_responses:
-                self.category_results_tree.insert("", "end", values=(response, count))
+                self.user_interface.category_results_tree.insert(
+                    "", "end", values=(response, count)
+                )
 
-        self.category_results_label.config(text=f"Results for Category: {category}")
+        self.user_interface.category_results_label.config(
+            text=f"Results for Category: {category}"
+        )
 
     def display_category_results_for_selected_category(self):
-        selected_categories = self.categories_tree.selection()
+        selected_categories = self.user_interface.categories_tree.selection()
 
         if len(selected_categories) == 1:
             # Get the selected category as a string
-            category = self.categories_tree.item(selected_categories[0])["values"][0]
+            category = self.user_interface.categories_tree.item(selected_categories[0])[
+                "values"
+            ][0]
 
             self.display_category_results(category)
 
@@ -551,20 +269,20 @@ class FuzzyMatcherApp(tk.Tk):
 
     def selected_categories(self):
         return {
-            self.categories_tree.item(item_id)["values"][0]
-            for item_id in self.categories_tree.selection()
+            self.user_interface.categories_tree.item(item_id)["values"][0]
+            for item_id in self.user_interface.categories_tree.selection()
         }
 
     def selected_match_responses(self):
         return {
-            self.match_results_tree.item(item_id)["values"][0]
-            for item_id in self.match_results_tree.selection()
+            self.user_interface.match_results_tree.item(item_id)["values"][0]
+            for item_id in self.user_interface.match_results_tree.selection()
         }
 
     def selected_category_responses(self):
         return {
-            self.category_results_tree.item(item_id)["values"][0]
-            for item_id in self.category_results_tree.selection()
+            self.user_interface.category_results_tree.item(item_id)["values"][0]
+            for item_id in self.user_interface.category_results_tree.selection()
         }
 
     def update_treeview_selections(
@@ -577,9 +295,13 @@ class FuzzyMatcherApp(tk.Tk):
 
         # Re-select categories and if multi-categorization re-select match results
         if selected_categories is not None:
-            reselect_treeview_items(self.categories_tree, selected_categories)
+            reselect_treeview_items(
+                self.user_interface.categories_tree, selected_categories
+            )
         if self.categorization_var.get() == "Multi" and selected_responses is not None:
-            reselect_treeview_items(self.match_results_tree, selected_responses)
+            reselect_treeview_items(
+                self.user_interface.match_results_tree, selected_responses
+            )
 
     ### ----------------------- Project Management ----------------------- ###
     def initialize_data_structures(self):
@@ -589,13 +311,12 @@ class FuzzyMatcherApp(tk.Tk):
         self.response_columns = []
         self.categorized_data = pd.DataFrame()
         self.response_counts = {}
-        self.categories_display = {
+        self.categorized_dict = {
             "Uncategorized": set(),
             "Missing data": {"nan", "missing data"},
         }
         self.match_results = pd.DataFrame(columns=["response", "score"])
         self.currently_displayed_category = "Uncategorized"
-        self.include_missing_data_bool = tk.BooleanVar(value=True)
 
         # categorized_data will contain a column for each, with a 1 or 0 for each response
 
@@ -631,7 +352,7 @@ class FuzzyMatcherApp(tk.Tk):
 
         # categories_display is dict of categories to the deduplicated set of all responses
         df_series = self.df_preprocessed.stack().reset_index(drop=True)
-        self.categories_display = {
+        self.categorized_dict = {
             "Uncategorized": set(df_series) - {"nan", "missing data"},
             "Missing data": {"nan", "missing data"},  # default
         }
@@ -651,21 +372,21 @@ class FuzzyMatcherApp(tk.Tk):
         self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
 
         self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
-        self.include_missing_data_bool.set(True)
+        self.user_interface.include_missing_data_bool.set(True)
 
     def ask_categorization_type(self):
         # Create popup
-        categorization_type_popup = tk.Toplevel(self)
+        categorization_type_popup = tk.Toplevel(user_interface)
         categorization_type_popup.title("Select Categorization Type")
 
         # Center the popup on the main window
 
         categorization_type_popup.geometry(
-            f"{self.screen_coords.POPUP_WIDTH}x{self.screen_coords.POPUP_HEIGHT}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
+            f"{self.user_interface.screen_coords.POPUP_WIDTH}x{self.user_interface.screen_coords.POPUP_HEIGHT}+{self.user_interface.screen_coords.centre_x}+{self.user_interface.screen_coords.centre_y}"
         )
 
         # Keep the popup window on top and ensure all events are directed to this window until closed
-        categorization_type_popup.transient(self)
+        categorization_type_popup.transient(user_interface)
         categorization_type_popup.grab_set()
 
         # Create buttons that assign value to self.categoriztation_type
@@ -697,7 +418,9 @@ class FuzzyMatcherApp(tk.Tk):
 
     def set_categorization_type_label(self):
         chosen_type = self.categorization_var.get()
-        self.categorization_label.config(text="Categorization Type: " + chosen_type)
+        self.user_interface.categorization_label.config(
+            text="Categorization Type: " + chosen_type
+        )
 
     def load_project(self):
         if file_path := filedialog.askopenfilename(
@@ -724,12 +447,14 @@ class FuzzyMatcherApp(tk.Tk):
         self.response_columns = data_loaded["response_columns"]
         self.categorized_data = pd.read_json(StringIO(data_loaded["categorized_data"]))
         self.response_counts = data_loaded["response_counts"]
-        self.categories_display = {
+        self.categorized_dict = {
             k: set(v) for k, v in data_loaded["categories_display"].items()
         }
         self.currently_displayed_category = "Uncategorized"  # Default
         self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
-        self.include_missing_data_bool.set(data_loaded["include_missing_data_bool"])
+        self.user_interface.include_missing_data_bool.set(
+            data_loaded["include_missing_data_bool"]
+        )
 
         # In categorized_data, each category is a column, with a 1 or 0 for each response
 
@@ -768,7 +493,7 @@ class FuzzyMatcherApp(tk.Tk):
         new_df_series = new_df_preprocessed.stack().reset_index(drop=True)
         df_series = self.df_preprocessed.stack().reset_index(drop=True)
         self.response_counts = df_series.value_counts().to_dict()
-        self.categories_display["Uncategorized"].update(
+        self.categorized_dict["Uncategorized"].update(
             set(new_df_series) - {"nan", "missing data"}
         )
 
@@ -801,9 +526,9 @@ class FuzzyMatcherApp(tk.Tk):
             "categorized_data": self.categorized_data.to_json(),
             "response_counts": self.response_counts,
             "categories_display": {
-                k: list(v) for k, v in self.categories_display.items()
+                k: list(v) for k, v in self.categorized_dict.items()
             },
-            "include_missing_data_bool": self.include_missing_data_bool.get(),
+            "include_missing_data_bool": self.user_interface.include_missing_data_bool.get(),
         }
 
         if file_path := filedialog.asksaveasfilename(
@@ -835,7 +560,7 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showinfo("Export", "Export cancelled")
 
     ### ----------------------- Main Functionality ----------------------- ###
-    def process_match(self):
+    def execute_match(self):
         if self.categorized_data.empty:
             messagebox.showerror("Error", "No dataset loaded")
             return
@@ -846,14 +571,14 @@ class FuzzyMatcherApp(tk.Tk):
             #     self.categorized_data["Uncategorized"] == 1
             # ]
             # data_to_match = data_to_match[self.response_columns]
-            uncategorized_responses = self.categories_display["Uncategorized"]
+            uncategorized_responses = self.categorized_dict["Uncategorized"]
             uncategorized_df = self.df_preprocessed[
                 self.df_preprocessed.isin(uncategorized_responses)
             ].dropna(how="all")
 
             # Perform fuzzy matching on these uncategorized responses
             self.match_results = self.data_model.fuzzy_matching(
-                uncategorized_df, self.match_string_entry.get()
+                uncategorized_df, self.user_interface.match_string_entry.get()
             )
 
             self.display_match_results()
@@ -917,9 +642,9 @@ class FuzzyMatcherApp(tk.Tk):
             mask |= self.categorized_data[column].isin(responses)
 
         if self.categorization_var.get() == "Single":
-            for category in self.categories_display:
+            for category in self.categorized_dict:
                 self.categorized_data.loc[mask, category] = 0
-                self.categories_display[category] -= responses
+                self.categorized_dict[category] -= responses
 
             # # Remove responses from match results because they can't be categorized anymore in single mode
             # self.match_results = self.match_results[
@@ -928,10 +653,10 @@ class FuzzyMatcherApp(tk.Tk):
 
         for category in categories:
             self.categorized_data.loc[mask, category] = 1
-            self.categories_display[category].update(responses)
+            self.categorized_dict[category].update(responses)
 
         self.display_categories()
-        self.process_match()
+        self.execute_match()
         self.update_treeview_selections(
             selected_categories=categories,
             selected_responses=responses,
@@ -982,11 +707,11 @@ class FuzzyMatcherApp(tk.Tk):
             return
 
         self.categorized_data.loc[mask, self.currently_displayed_category] = 0
-        self.categories_display[self.currently_displayed_category] -= responses
+        self.categorized_dict[self.currently_displayed_category] -= responses
 
         for category in categories:
             self.categorized_data.loc[mask, category] = 1
-            self.categories_display[category].update(responses)
+            self.categorized_dict[category].update(responses)
 
         self.display_categories()
         self.update_treeview_selections(
@@ -996,10 +721,10 @@ class FuzzyMatcherApp(tk.Tk):
         self.refresh_category_results_for_currently_displayed_category()
 
     def create_category(self):
-        new_category = self.new_category_entry.get()
+        new_category = self.user_interface.new_category_entry.get()
         if new_category and new_category not in self.categorized_data.columns:
             self.categorized_data[new_category] = 0
-            self.categories_display[new_category] = set()
+            self.categorized_dict[new_category] = set()
             self.display_categories()
 
     def rename_category_in_data(self, old_category, new_category):
@@ -1007,7 +732,7 @@ class FuzzyMatcherApp(tk.Tk):
             messagebox.showinfo("Info", "Please enter a non-empty category name.")
             return
 
-        if new_category in self.categories_display:
+        if new_category in self.categorized_dict:
             messagebox.showinfo("Info", "A category with this name already exists.")
             return
 
@@ -1016,9 +741,7 @@ class FuzzyMatcherApp(tk.Tk):
             return
 
         self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
-        self.categories_display[new_category] = self.categories_display.pop(
-            old_category
-        )
+        self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
 
     def delete_categories_in_data(self, categories_to_delete):
         for category in categories_to_delete:
@@ -1030,11 +753,11 @@ class FuzzyMatcherApp(tk.Tk):
                 ].index
                 for response_index in responses_to_reclassify:
                     self.categorized_data.loc[response_index, "Uncategorized"] = 1
-                self.categories_display["Uncategorized"].update(
-                    self.categories_display[category]
+                self.categorized_dict["Uncategorized"].update(
+                    self.categorized_dict[category]
                 )
 
-            del self.categories_display[category]
+            del self.categorized_dict[category]
             self.categorized_data.drop(columns=category, inplace=True)
 
     def calculate_count(self, responses):
@@ -1047,7 +770,7 @@ class FuzzyMatcherApp(tk.Tk):
 
         if not include_missing_data_bool:
             missing_data_count = self.calculate_count(
-                self.categories_display["Missing data"]
+                self.categorized_dict["Missing data"]
             )
             total_responses = sum(self.response_counts.values()) - missing_data_count
 
@@ -1057,5 +780,6 @@ class FuzzyMatcherApp(tk.Tk):
 if __name__ == "__main__":
     data_model = DataModel()
     file_manager = FileManager()
-    app = FuzzyMatcherApp(data_model, file_manager)
-    app.mainloop()
+    user_interface = FuzzyUI()
+    controller = Controller(user_interface, data_model, file_manager)
+    user_interface.mainloop()
