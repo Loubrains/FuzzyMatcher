@@ -1,10 +1,11 @@
 # Ignore everything except the main app file, README and .gitignore
 *
 virtualenv/
-!FuzzyApp.py
-!README.md
-!/.gitignore
-!requirements.txt
-!FileManager.py
-!DataModel.py
+!main.py
+!Controller.py
 !FuzzyUI.py
+!DataModel.py
+!FileManager.py
+!README.md
+!requirements.txt
+!/.gitignore

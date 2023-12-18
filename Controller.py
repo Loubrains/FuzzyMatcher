@@ -775,11 +775,3 @@ class Controller:
             total_responses = sum(self.response_counts.values()) - missing_data_count
 
         return (count / total_responses) * 100 if total_responses > 0 else 0
-
-
-if __name__ == "__main__":
-    data_model = DataModel()
-    file_manager = FileManager()
-    user_interface = FuzzyUI()
-    controller = Controller(user_interface, data_model, file_manager)
-    user_interface.mainloop()
