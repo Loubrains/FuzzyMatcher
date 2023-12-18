@@ -31,13 +31,13 @@ class Controller:
 
     def setup_UI_bindings(self):
         self.user_interface.match_string_entry.bind(
-            "<Return>", lambda event: self.execute_match()
+            "<Return>", lambda event: self.perform_fuzzy_match()
         )
         self.user_interface.threshold_slider.bind(
             "<ButtonRelease-1>", lambda val: self.display_match_results()
         )
         self.user_interface.match_button.bind(
-            "<Button-1>", lambda event: self.execute_match()
+            "<Button-1>", lambda event: self.perform_fuzzy_match()
         )
         self.user_interface.categorize_button.bind(
             "<Button-1>", lambda event: self.categorize_selected_responses()
@@ -170,8 +170,9 @@ class Controller:
 
     def display_match_results(self):
         # Filter the fuzzy match results based on the threshold
-        filtered_results = self.match_results[
-            self.match_results["score"] >= self.user_interface.threshold_slider.get()
+        filtered_results = self.fuzzy_match_results[
+            self.fuzzy_match_results["score"]
+            >= self.user_interface.threshold_slider.get()
         ]
 
         aggregated_results = (
@@ -318,7 +319,7 @@ class Controller:
             "Uncategorized": set(),
             "Missing data": {"nan", "missing data"},
         }
-        self.match_results = pd.DataFrame(columns=["response", "score"])
+        self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])
         self.currently_displayed_category = "Uncategorized"
 
         # categorized_data will contain a column for each, with a 1 or 0 for each response
@@ -374,7 +375,9 @@ class Controller:
 
         self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
 
-        self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
+        self.fuzzy_match_results = pd.DataFrame(
+            columns=["response", "score"]
+        )  # Default
         self.user_interface.include_missing_data_bool.set(False)
 
     def ask_categorization_type(self):
@@ -454,7 +457,9 @@ class Controller:
             k: set(v) for k, v in data_loaded["categories_display"].items()
         }
         self.currently_displayed_category = "Uncategorized"  # Default
-        self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
+        self.fuzzy_match_results = pd.DataFrame(
+            columns=["response", "score"]
+        )  # Default
         self.user_interface.include_missing_data_bool.set(
             data_loaded["include_missing_data_bool"]
         )
@@ -514,7 +519,9 @@ class Controller:
         self.categorize_missing_data()
 
         self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
-        self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
+        self.fuzzy_match_results = pd.DataFrame(
+            columns=["response", "score"]
+        )  # Default
 
     def save_project(self):
         # Pandas NAType is not JSON serializable
@@ -563,7 +570,7 @@ class Controller:
             messagebox.showinfo("Export", "Export cancelled")
 
     ### ----------------------- Main Functionality ----------------------- ###
-    def execute_match(self):
+    def perform_fuzzy_match(self):
         if self.categorized_data.empty:
             messagebox.showerror("Error", "No dataset loaded")
             return
@@ -580,7 +587,7 @@ class Controller:
             ].dropna(how="all")
 
             # Perform fuzzy matching on these uncategorized responses
-            self.match_results = self.data_model.fuzzy_matching(
+            self.fuzzy_match_results = self.data_model.fuzzy_matching(
                 uncategorized_df, self.user_interface.match_string_entry.get()
             )
 
@@ -645,21 +652,15 @@ class Controller:
             mask |= self.categorized_data[column].isin(responses)
 
         if self.categorization_var.get() == "Single":
-            for category in self.categorized_dict:
-                self.categorized_data.loc[mask, category] = 0
-                self.categorized_dict[category] -= responses
-
-            # # Remove responses from match results because they can't be categorized anymore in single mode
-            # self.match_results = self.match_results[
-            #     ~self.match_results["response"].isin(self.selected_match_responses())
-            # ]
+            self.categorized_data.loc[mask, "Uncategorized"] = 0
+            self.categorized_dict["Uncategorized"] -= responses
 
         for category in categories:
             self.categorized_data.loc[mask, category] = 1
             self.categorized_dict[category].update(responses)
 
         self.display_categories()
-        self.execute_match()
+        self.perform_fuzzy_match()
         self.update_treeview_selections(
             selected_categories=categories,
             selected_responses=responses,
@@ -691,6 +692,13 @@ class Controller:
             )
             return
 
+        if self.categorization_var.get() == "Single" and len(categories) > 1:
+            messagebox.showwarning(
+                "Warning",
+                "Only one category can be selected in Single Categorization mode.",
+            )
+            return
+
         self.recategorize_responses(responses, categories)
 
     def recategorize_responses(self, responses, categories):
@@ -701,13 +709,6 @@ class Controller:
 
         for column in self.categorized_data[self.response_columns]:
             mask |= self.categorized_data[column].isin(responses)
-
-        if self.categorization_var.get() == "Single" and len(categories) > 1:
-            messagebox.showwarning(
-                "Warning",
-                "Only one category can be selected in Single Categorization mode.",
-            )
-            return
 
         self.categorized_data.loc[mask, self.currently_displayed_category] = 0
         self.categorized_dict[self.currently_displayed_category] -= responses
