@@ -375,7 +375,7 @@ class Controller:
         self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
 
         self.match_results = pd.DataFrame(columns=["response", "score"])  # Default
-        self.user_interface.include_missing_data_bool.set(True)
+        self.user_interface.include_missing_data_bool.set(False)
 
     def ask_categorization_type(self):
         # Create popup
