@@ -4,9 +4,9 @@ import ctypes
 import pandas as pd
 import json
 from io import StringIO
+from FuzzyUI import FuzzyUI
 from DataModel import DataModel
 from FileManager import FileManager
-from FuzzyUI import FuzzyUI
 
 # Set DPI awareness
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -14,7 +14,9 @@ ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 # Main application class
 class Controller:
-    def __init__(self, user_interface, data_model, file_manager):
+    def __init__(
+        self, user_interface: FuzzyUI, data_model: DataModel, file_manager: FileManager
+    ):
         super().__init__()
         self.user_interface = user_interface
         self.data_model = data_model
@@ -556,7 +558,7 @@ class Controller:
         if file_path := filedialog.askopenfilename(
             title="Please select a file containing your dataset"
         ):
-            self.df = self.file_manager.file_import(file_path)
+            self.df = self.file_manager.read_csv_to_dataframe(file_path)
             if self.df.empty or self.df.shape[1] < 2:
                 messagebox.showerror(
                     "Error",
@@ -657,8 +659,7 @@ class Controller:
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
             title="Load Project",
         ):
-            with open(file_path, "r") as f:
-                data_loaded = json.load(f)
+            data_loaded = self.file_manager.load_json(file_path)
 
             self.populate_data_structures_load_project(data_loaded)
             self.set_categorization_type_label()
@@ -770,8 +771,8 @@ class Controller:
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
             title="Save Project As",
         ):
-            with open(file_path, "w") as f:
-                json.dump(data_to_save, f, default=none_handler)
+            self.file_manager.save_data_to_json(file_path, data_to_save, none_handler)
+
             messagebox.showinfo(
                 "Save Project", "Project saved successfully to " + file_path
             )
@@ -788,7 +789,8 @@ class Controller:
             filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
             title="Save As",
         ):
-            export_df.to_csv(file_path, index=False)
+            self.file_manager.export_dataframe_to_csv(file_path, export_df)
+
             messagebox.showinfo("Export", "Data exported successfully to " + file_path)
         else:
             messagebox.showinfo("Export", "Export cancelled")
