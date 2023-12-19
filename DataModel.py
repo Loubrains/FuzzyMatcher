@@ -34,6 +34,20 @@ class DataModel:
         self.categorized_dict[new_category] = set()
         return True, "Category created successfully"
 
+    def rename_category(self, old_category, new_category):
+        if new_category in self.categorized_dict:
+            message = "A category with this name already exists."
+            return False, message
+
+        if old_category == "Missing data":
+            message = 'You cannot rename "Missing data".'
+            return False, message
+
+        self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
+        self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
+        message = "Category renamed successfully"
+        return True, message
+
     def preprocess_text(self, text: Any) -> str:
         text = str(text).lower()
         text = re.sub(

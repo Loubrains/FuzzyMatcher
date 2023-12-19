@@ -112,45 +112,35 @@ class Controller:
 
         # Create popup
         self.user_interface.create_rename_category_popup(old_category)
-
-        # Functions to execute on confirmation
-        def _on_confirm():
-            self.rename_category_in_data(
-                old_category, self.user_interface.new_category_entry.get()
-            )
-            self.user_interface.rename_dialog_popup.destroy()
-            self.display_categories()
-            self.refresh_category_results_for_currently_displayed_category()
-
         # Bind widgets to commands
-        self.user_interface.ok_button.bind("<Button-1>", lambda event: _on_confirm())
+        self.user_interface.ok_button.bind(
+            "<Button-1>", lambda event: self.on_rename_entry()
+        )
         self.user_interface.new_category_entry.bind(
-            "<Return>", lambda event: _on_confirm()
+            "<Return>", lambda event: self.on_rename_entry()
         )
         self.user_interface.cancel_button.bind(
             "<Button-1>",
             lambda event: self.user_interface.rename_dialog_popup.destroy(),
         )
 
-    def rename_category_in_data(self, old_category, new_category):
+    # Functions to execute on confirmation
+    def on_rename_entry(self):
+        old_category = self.user_interface.selected_categories().pop()
+        new_category = self.user_interface.new_category_entry.get()
+
         if not new_category:
             self.user_interface.show_error("Please enter a non-empty category name.")
             return
 
-        if new_category in self.data_model.categorized_dict:
-            self.user_interface.show_error("A category with this name already exists.")
-            return
+        success, message = self.data_model.rename_category(old_category, new_category)
 
-        if old_category == "Missing data":
-            self.user_interface.show_warning('You cannot rename "Missing data".')
-            return
-
-        self.data_model.categorized_data.rename(
-            columns={old_category: new_category}, inplace=True
-        )
-        self.data_model.categorized_dict[
-            new_category
-        ] = self.data_model.categorized_dict.pop(old_category)
+        if success:
+            self.user_interface.rename_dialog_popup.destroy()
+            self.display_categories()
+            self.refresh_category_results_for_currently_displayed_category()
+        else:
+            self.user_interface.show_error(message)
 
     def ask_delete_categories(self):
         selected_categories = self.user_interface.selected_categories()
