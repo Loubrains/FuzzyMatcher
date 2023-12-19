@@ -44,7 +44,7 @@ class DataModel:
         return text
 
     def fuzzy_matching(self, df_preprocessed, match_string):
-        def fuzzy_match(element):
+        def _fuzzy_match(element):
             return fuzz.WRatio(
                 match_string, str(element)
             )  # Weighted ratio of several fuzzy matching protocols
@@ -53,7 +53,7 @@ class DataModel:
         results = []
         for row in df_preprocessed.itertuples(index=True, name=None):
             for response in row[1:]:
-                score = fuzzy_match(response)
+                score = _fuzzy_match(response)
                 results.append({"response": response, "score": score})
 
         df_result = pd.DataFrame(results)

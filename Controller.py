@@ -110,52 +110,27 @@ class Controller:
 
         old_category = selected_categories.pop()
 
-        # Create a popup to get user entry for rename
-        rename_dialog_popup = tk.Toplevel(self.user_interface)
-        rename_dialog_popup.title("Rename Category")
+        # Create popup
+        self.user_interface.create_rename_category_popup(old_category)
 
-        # Center the popup on the main window
-        rename_dialog_popup.geometry(
-            f"{self.user_interface.screen_coords.POPUP_WIDTH}x{self.user_interface.screen_coords.POPUP_HEIGHT}+{self.user_interface.screen_coords.centre_x}+{self.user_interface.screen_coords.centre_y}"
-        )
+        # Functions to execute on confirmation
+        def _on_confirm():
+            self.rename_category_in_data(
+                old_category, self.user_interface.new_category_entry.get()
+            )
+            self.user_interface.rename_dialog_popup.destroy()
+            self.display_categories()
+            self.refresh_category_results_for_currently_displayed_category()
 
-        # Keep the popup window on top and ensure all events are directed to this window until closed
-        rename_dialog_popup.transient(self.user_interface)
-        rename_dialog_popup.grab_set()
-
-        # Create widgets
-        label = tk.Label(
-            rename_dialog_popup, text=f"Enter a new name for '{old_category}':"
+        # Bind widgets to commands
+        self.user_interface.ok_button.bind("<Button-1>", lambda event: _on_confirm())
+        self.user_interface.new_category_entry.bind(
+            "<Return>", lambda event: _on_confirm()
         )
-        new_category_entry = tk.Entry(rename_dialog_popup)
-        new_category_entry.bind(
-            "<Return>",
-            lambda event: [
-                self.rename_category_in_data(old_category, new_category_entry.get()),
-                rename_dialog_popup.destroy(),
-                self.display_categories(),
-                self.refresh_category_results_for_currently_displayed_category(),
-            ],
+        self.user_interface.cancel_button.bind(
+            "<Button-1>",
+            lambda event: self.user_interface.rename_dialog_popup.destroy(),
         )
-        ok_button = tk.Button(
-            rename_dialog_popup,
-            text="OK",
-            command=lambda: [
-                self.rename_category_in_data(old_category, new_category_entry.get()),
-                rename_dialog_popup.destroy(),
-                self.display_categories(),
-                self.refresh_category_results_for_currently_displayed_category(),
-            ],
-        )
-        cancel_button = tk.Button(
-            rename_dialog_popup, text="Cancel", command=rename_dialog_popup.destroy
-        )
-
-        # Add widgets to popup
-        label.pack(pady=10)
-        new_category_entry.pack()
-        ok_button.pack(side="left", padx=20)
-        cancel_button.pack(side="right", padx=20)
 
     def rename_category_in_data(self, old_category, new_category):
         if not new_category:
@@ -568,50 +543,20 @@ class Controller:
 
     def ask_categorization_type(self):
         # Create popup
-        categorization_type_popup = tk.Toplevel(self.user_interface)
-        categorization_type_popup.title("Select Categorization Type")
+        self.user_interface.create_ask_categorization_type_popup()
 
-        # Center the popup on the main window
-        categorization_type_popup.geometry(
-            f"{self.user_interface.screen_coords.POPUP_WIDTH}x{self.user_interface.screen_coords.POPUP_HEIGHT}+{self.user_interface.screen_coords.centre_x}+{self.user_interface.screen_coords.centre_y}"
-        )
-
-        # Keep the popup window on top and ensure all events are directed to this window until closed
-        categorization_type_popup.transient(self.user_interface)
-        categorization_type_popup.grab_set()
-
-        # Function to execute upon confirm/Enter
-        def confirm_action():
+        # Functions to execute upon confirm/Enter
+        def _on_confirm():
             self.set_categorization_type_label()
-            categorization_type_popup.destroy()
+            self.user_interface.categorization_type_popup.destroy()
 
-        # Create buttons that assign value to self.categoriztation_type
-        single_categorization_rb = tk.Radiobutton(
-            categorization_type_popup,
-            text="Single Categorization",
-            variable=self.user_interface.categorization_var,
-            value="Single",
+        # Bind widgets to commands
+        self.user_interface.confirm_button.bind(
+            "<Button-1>", lambda event: _on_confirm()
         )
-        multi_categorization_rb = tk.Radiobutton(
-            categorization_type_popup,
-            text="Multi Categorization",
-            variable=self.user_interface.categorization_var,
-            value="Multi",
+        self.user_interface.categorization_type_popup.bind(
+            "<Return>", lambda event: _on_confirm()
         )
-        confirm_button = tk.Button(
-            categorization_type_popup,
-            text="Confirm",
-            command=confirm_action,
-        )
-        categorization_type_popup.bind("<Return>", lambda event: confirm_action())
-
-        # Add the buttons to the window
-        single_categorization_rb.pack()
-        multi_categorization_rb.pack()
-        confirm_button.pack()
-
-        # Set focus on this popup so that you can straight away press enter
-        categorization_type_popup.focus_set()
 
     def set_categorization_type_label(self):
         chosen_type = self.user_interface.categorization_var.get()

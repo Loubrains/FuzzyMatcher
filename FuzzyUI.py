@@ -324,17 +324,64 @@ class FuzzyUI(tk.Tk):
                         treeview.column(treeview["columns"][0], width=treeview_width)
 
     def create_popup(self, title: str):
-        rename_dialog_popup = tk.Toplevel(self)
-        rename_dialog_popup.title(title)
+        popup = tk.Toplevel(self)
+        popup.title(title)
 
         # Center the popup on the main window
-        rename_dialog_popup.geometry(
+        popup.geometry(
             f"{self.screen_coords.POPUP_WIDTH}x{self.screen_coords.POPUP_HEIGHT}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
         )
 
-        # Keep the popup window on top and ensure all events are directed to this window until closed
-        rename_dialog_popup.transient(self)
-        rename_dialog_popup.grab_set()
+        # Keep the popup window on top
+        # Ensure all events are directed to this window until closed
+        # Set focus on this popup so that you can straight away press enter
+        popup.transient(self)
+        popup.grab_set()
+        popup.focus_set()
+
+        return popup
+
+    def create_rename_category_popup(self, old_category):
+        self.rename_dialog_popup = self.create_popup("Rename Category")
+        # Create widgets
+        self.label = tk.Label(
+            self.rename_dialog_popup, text=f"Enter a new name for '{old_category}':"
+        )
+        self.new_category_entry = tk.Entry(self.rename_dialog_popup)
+        self.ok_button = tk.Button(self.rename_dialog_popup, text="OK")
+        self.cancel_button = tk.Button(self.rename_dialog_popup, text="Cancel")
+
+        # Add widgets to popup
+        self.label.pack(pady=10)
+        self.new_category_entry.pack()
+        self.ok_button.pack(side="left", padx=20)
+        self.cancel_button.pack(side="right", padx=20)
+
+    def create_ask_categorization_type_popup(self):
+        self.categorization_type_popup = self.create_popup("Select Categorization Type")
+
+        # Create buttons that assign value to self.categoriztation_type
+        single_categorization_rb = tk.Radiobutton(
+            self.categorization_type_popup,
+            text="Single Categorization",
+            variable=self.categorization_var,
+            value="Single",
+        )
+        multi_categorization_rb = tk.Radiobutton(
+            self.categorization_type_popup,
+            text="Multi Categorization",
+            variable=self.categorization_var,
+            value="Multi",
+        )
+        self.confirm_button = tk.Button(
+            self.categorization_type_popup,
+            text="Confirm",
+        )
+
+        # Add the buttons to the window
+        single_categorization_rb.pack()
+        multi_categorization_rb.pack()
+        self.confirm_button.pack()
 
     def selected_categories(self):
         return {
