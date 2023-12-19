@@ -137,7 +137,7 @@ class Controller:
             self.user_interface.show_error("Please enter a non-empty category name.")
             return
 
-        if new_category in self.categorized_dict:
+        if new_category in self.data_model.categorized_dict:
             self.user_interface.show_error("A category with this name already exists.")
             return
 
@@ -145,8 +145,12 @@ class Controller:
             self.user_interface.show_warning('You cannot rename "Missing data".')
             return
 
-        self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
-        self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
+        self.data_model.categorized_data.rename(
+            columns={old_category: new_category}, inplace=True
+        )
+        self.data_model.categorized_dict[
+            new_category
+        ] = self.data_model.categorized_dict.pop(old_category)
 
     def ask_delete_categories(self):
         selected_categories = self.user_interface.selected_categories()
@@ -176,22 +180,24 @@ class Controller:
             if (
                 self.user_interface.categorization_var.get() == "Single"
             ):  # In single mode, return the responses from this category to 'Uncategorized'
-                responses_to_reclassify = self.categorized_data[
-                    self.categorized_data[category] == 1
+                responses_to_reclassify = self.data_model.categorized_data[
+                    self.data_model.categorized_data[category] == 1
                 ].index
                 for response_index in responses_to_reclassify:
-                    self.categorized_data.loc[response_index, "Uncategorized"] = 1
-                self.categorized_dict["Uncategorized"].update(
-                    self.categorized_dict[category]
+                    self.data_model.categorized_data.loc[
+                        response_index, "Uncategorized"
+                    ] = 1
+                self.data_model.categorized_dict["Uncategorized"].update(
+                    self.data_model.categorized_dict[category]
                 )
 
-            del self.categorized_dict[category]
-            self.categorized_data.drop(columns=category, inplace=True)
+            del self.data_model.categorized_dict[category]
+            self.data_model.categorized_data.drop(columns=category, inplace=True)
 
     def display_match_results(self):
         # Filter the fuzzy match results based on the threshold
-        filtered_results = self.fuzzy_match_results[
-            self.fuzzy_match_results["score"]
+        filtered_results = self.data_model.fuzzy_match_results[
+            self.data_model.fuzzy_match_results["score"]
             >= self.user_interface.threshold_slider.get()
         ]
 
@@ -228,7 +234,7 @@ class Controller:
             self.display_category_results(category)
 
             # Assign variable for currently displayed category
-            self.currently_displayed_category = (
+            self.data_model.currently_displayed_category = (
                 category  # This is now the currently displayed category
             )
 
@@ -239,7 +245,7 @@ class Controller:
             self.user_interface.show_error("No category selected")
 
     def refresh_category_results_for_currently_displayed_category(self):
-        category = self.currently_displayed_category
+        category = self.data_model.currently_displayed_category
 
         if not category:
             self.user_interface.show_error("No category results currently displayed")
@@ -251,10 +257,10 @@ class Controller:
         for item in self.user_interface.category_results_tree.get_children():
             self.user_interface.category_results_tree.delete(item)
 
-        if category in self.categorized_dict:
+        if category in self.data_model.categorized_dict:
             responses_and_counts = [
-                (response, self.response_counts.get(response, 0))
-                for response in self.categorized_dict[category]
+                (response, self.data_model.response_counts.get(response, 0))
+                for response in self.data_model.categorized_dict[category]
             ]
             sorted_responses = sorted(
                 responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0])
@@ -276,7 +282,7 @@ class Controller:
         for item in self.user_interface.categories_tree.get_children():
             self.user_interface.categories_tree.delete(item)
 
-        for category, responses in self.categorized_dict.items():
+        for category, responses in self.data_model.categorized_dict.items():
             count = self.calculate_count(responses)
             if not include_missing_data_bool and category == "Missing data":
                 percentage_str = ""
@@ -314,23 +320,23 @@ class Controller:
 
     ### ----------------------- Main Functionality ----------------------- ###
     def perform_fuzzy_match(self):
-        if self.categorized_data.empty:
+        if self.data_model.categorized_data.empty:
             self.user_interface.show_error("No dataset loaded")
             return
 
-        if self.categorized_data is not None:
+        if self.data_model.categorized_data is not None:
             ### The below doesn't work because I've set this all up very badly and it would stop you from seeing any response in the entire row if one response in that row is categorized ###
-            # data_to_match = self.categorized_data[
-            #     self.categorized_data["Uncategorized"] == 1
+            # data_to_match = self.data_model.categorized_data[
+            #     self.data_model.categorized_data["Uncategorized"] == 1
             # ]
-            # data_to_match = data_to_match[self.response_columns]
-            uncategorized_responses = self.categorized_dict["Uncategorized"]
-            uncategorized_df = self.df_preprocessed[
-                self.df_preprocessed.isin(uncategorized_responses)
+            # data_to_match = data_to_match[self.data_model.response_columns]
+            uncategorized_responses = self.data_model.categorized_dict["Uncategorized"]
+            uncategorized_df = self.data_model.df_preprocessed[
+                self.data_model.df_preprocessed.isin(uncategorized_responses)
             ].dropna(how="all")
 
             # Perform fuzzy matching on these uncategorized responses
-            self.fuzzy_match_results = self.data_model.fuzzy_matching(
+            self.data_model.fuzzy_match_results = self.data_model.fuzzy_matching(
                 uncategorized_df, self.user_interface.match_string_entry.get()
             )
 
@@ -375,18 +381,20 @@ class Controller:
         # In categorized_data, each category is a column, with a 1 or 0 for each response
 
         # Boolean mask for rows in categorized_data containing selected responses
-        mask = pd.Series([False] * len(self.categorized_data))
+        mask = pd.Series([False] * len(self.data_model.categorized_data))
 
-        for column in self.categorized_data[self.response_columns]:
-            mask |= self.categorized_data[column].isin(responses)
+        for column in self.data_model.categorized_data[
+            self.data_model.response_columns
+        ]:
+            mask |= self.data_model.categorized_data[column].isin(responses)
 
         if self.user_interface.categorization_var.get() == "Single":
-            self.categorized_data.loc[mask, "Uncategorized"] = 0
-            self.categorized_dict["Uncategorized"] -= responses
+            self.data_model.categorized_data.loc[mask, "Uncategorized"] = 0
+            self.data_model.categorized_dict["Uncategorized"] -= responses
 
         for category in categories:
-            self.categorized_data.loc[mask, category] = 1
-            self.categorized_dict[category].update(responses)
+            self.data_model.categorized_data.loc[mask, category] = 1
+            self.data_model.categorized_dict[category].update(responses)
 
         self.display_categories()
         self.perform_fuzzy_match()
@@ -408,7 +416,7 @@ class Controller:
             )
             return
 
-        if self.currently_displayed_category == "Missing data":
+        if self.data_model.currently_displayed_category == "Missing data":
             self.user_interface.show_info(
                 'You cannot recategorize "NaN" or "Missing data" values.'
             )
@@ -435,17 +443,23 @@ class Controller:
         # In categorized_data, each category is a column, with a 1 or 0 for each response
 
         # Boolean mask for rows in categorized_data containing selected responses
-        mask = pd.Series([False] * len(self.categorized_data))
+        mask = pd.Series([False] * len(self.data_model.categorized_data))
 
-        for column in self.categorized_data[self.response_columns]:
-            mask |= self.categorized_data[column].isin(responses)
+        for column in self.data_model.categorized_data[
+            self.data_model.response_columns
+        ]:
+            mask |= self.data_model.categorized_data[column].isin(responses)
 
-        self.categorized_data.loc[mask, self.currently_displayed_category] = 0
-        self.categorized_dict[self.currently_displayed_category] -= responses
+        self.data_model.categorized_data.loc[
+            mask, self.data_model.currently_displayed_category
+        ] = 0
+        self.data_model.categorized_dict[
+            self.data_model.currently_displayed_category
+        ] -= responses
 
         for category in categories:
-            self.categorized_data.loc[mask, category] = 1
-            self.categorized_dict[category].update(responses)
+            self.data_model.categorized_data.loc[mask, category] = 1
+            self.data_model.categorized_dict[category].update(responses)
 
         self.display_categories()
         self.update_treeview_selections(
@@ -463,25 +477,29 @@ class Controller:
                 or value == "nan"
             )
 
-        all_missing_mask = self.df_preprocessed.map(is_missing).all(  # type: ignore
+        all_missing_mask = self.data_model.df_preprocessed.map(is_missing).all(  # type: ignore
             axis=1
         )  # Boolean mask where each row is True if all elements are missing
-        self.categorized_data.loc[all_missing_mask, "Missing data"] = 1
-        self.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
+        self.data_model.categorized_data.loc[all_missing_mask, "Missing data"] = 1
+        self.data_model.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
 
     def calculate_count(self, responses):
-        return sum(self.response_counts.get(response, 0) for response in responses)
+        return sum(
+            self.data_model.response_counts.get(response, 0) for response in responses
+        )
 
     def calculate_percentage(self, responses, include_missing_data_bool):
         count = self.calculate_count(responses)
 
-        total_responses = sum(self.response_counts.values())
+        total_responses = sum(self.data_model.response_counts.values())
 
         if not include_missing_data_bool:
             missing_data_count = self.calculate_count(
-                self.categorized_dict["Missing data"]
+                self.data_model.categorized_dict["Missing data"]
             )
-            total_responses = sum(self.response_counts.values()) - missing_data_count
+            total_responses = (
+                sum(self.data_model.response_counts.values()) - missing_data_count
+            )
 
         return (count / total_responses) * 100 if total_responses > 0 else 0
 
@@ -509,34 +527,38 @@ class Controller:
         return is_file_selected
 
     def populate_data_structures_new_project(self):
-        self.df_preprocessed = pd.DataFrame(
+        self.data_model.df_preprocessed = pd.DataFrame(
             self.df.iloc[:, 1:].map(
                 self.data_model.preprocess_text  # , na_action="ignore"
             )  # type: ignore
         )
 
         # categories_display is dict of categories to the deduplicated set of all responses
-        df_series = self.df_preprocessed.stack().reset_index(drop=True)
-        self.categorized_dict = {
+        df_series = self.data_model.df_preprocessed.stack().reset_index(drop=True)
+        self.data_model.categorized_dict = {
             "Uncategorized": set(df_series) - {"nan", "missing data"},
             "Missing data": {"nan", "missing data"},  # default
         }
 
-        self.response_counts = df_series.value_counts().to_dict()
+        self.data_model.response_counts = df_series.value_counts().to_dict()
 
         uuids = self.df.iloc[:, 0]
-        self.response_columns = list(self.df_preprocessed.columns)
+        self.data_model.response_columns = list(self.data_model.df_preprocessed.columns)
 
         # categorized_data carries all response columns and all categories until export where response columns are dropped
         # In categorized_data, each category is a column, with a 1 or 0 for each response
-        self.categorized_data = pd.concat([uuids, self.df_preprocessed], axis=1)
-        self.categorized_data["Uncategorized"] = 1  # Everything starts uncategorized
-        self.categorized_data["Missing data"] = 0
+        self.data_model.categorized_data = pd.concat(
+            [uuids, self.data_model.df_preprocessed], axis=1
+        )
+        self.data_model.categorized_data[
+            "Uncategorized"
+        ] = 1  # Everything starts uncategorized
+        self.data_model.categorized_data["Missing data"] = 0
         self.categorize_missing_data()
 
-        self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
+        self.data_model.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
 
-        self.fuzzy_match_results = pd.DataFrame(
+        self.data_model.fuzzy_match_results = pd.DataFrame(
             columns=["response", "score"]
         )  # Default
         self.user_interface.include_missing_data_bool.set(False)
@@ -584,15 +606,19 @@ class Controller:
     def populate_data_structures_load_project(self, data_loaded):
         # Convert JSON back to data / set default variable values
         self.user_interface.categorization_var.set(data_loaded["categorization_var"])
-        self.df_preprocessed = pd.read_json(StringIO(data_loaded["df_preprocessed"]))
-        self.response_columns = data_loaded["response_columns"]
-        self.categorized_data = pd.read_json(StringIO(data_loaded["categorized_data"]))
-        self.response_counts = data_loaded["response_counts"]
-        self.categorized_dict = {
+        self.data_model.df_preprocessed = pd.read_json(
+            StringIO(data_loaded["df_preprocessed"])
+        )
+        self.data_model.response_columns = data_loaded["response_columns"]
+        self.data_model.categorized_data = pd.read_json(
+            StringIO(data_loaded["categorized_data"])
+        )
+        self.data_model.response_counts = data_loaded["response_counts"]
+        self.data_model.categorized_dict = {
             k: set(v) for k, v in data_loaded["categories_display"].items()
         }
-        self.currently_displayed_category = "Uncategorized"  # Default
-        self.fuzzy_match_results = pd.DataFrame(
+        self.data_model.currently_displayed_category = "Uncategorized"  # Default
+        self.data_model.fuzzy_match_results = pd.DataFrame(
             columns=["response", "score"]
         )  # Default
         self.user_interface.include_missing_data_bool.set(
@@ -627,35 +653,37 @@ class Controller:
         return False
 
     def populate_data_structures_append_data(self):
-        old_data_size = len(self.df_preprocessed)
+        old_data_size = len(self.data_model.df_preprocessed)
         new_df_preprocessed = pd.DataFrame(
             self.df.iloc[old_data_size:, 1:].map(self.data_model.preprocess_text)  # type: ignore
         )
-        self.df_preprocessed = pd.concat([self.df_preprocessed, new_df_preprocessed])
+        self.data_model.df_preprocessed = pd.concat(
+            [self.data_model.df_preprocessed, new_df_preprocessed]
+        )
 
         # categories_display is dict of categories to the deduplicated set of all responses
         new_df_series = new_df_preprocessed.stack().reset_index(drop=True)
-        df_series = self.df_preprocessed.stack().reset_index(drop=True)
-        self.response_counts = df_series.value_counts().to_dict()
-        self.categorized_dict["Uncategorized"].update(
+        df_series = self.data_model.df_preprocessed.stack().reset_index(drop=True)
+        self.data_model.response_counts = df_series.value_counts().to_dict()
+        self.data_model.categorized_dict["Uncategorized"].update(
             set(new_df_series) - {"nan", "missing data"}
         )
 
         new_categorized_data = pd.concat(
             [self.df.iloc[old_data_size:, 0], new_df_preprocessed], axis=1
         )
-        self.categorized_data = pd.concat(
-            [self.categorized_data, new_categorized_data], axis=0
+        self.data_model.categorized_data = pd.concat(
+            [self.data_model.categorized_data, new_categorized_data], axis=0
         )
 
-        self.categorized_data["Uncategorized"].iloc[
+        self.data_model.categorized_data["Uncategorized"].iloc[
             old_data_size:
         ] = 1  # Everything starts uncategorized
-        self.categorized_data["Missing data"].iloc[old_data_size:] = 0
+        self.data_model.categorized_data["Missing data"].iloc[old_data_size:] = 0
         self.categorize_missing_data()
 
-        self.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
-        self.fuzzy_match_results = pd.DataFrame(
+        self.data_model.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
+        self.data_model.fuzzy_match_results = pd.DataFrame(
             columns=["response", "score"]
         )  # Default
 
@@ -667,12 +695,12 @@ class Controller:
 
         data_to_save = {
             "categorization_var": self.user_interface.categorization_var.get(),
-            "df_preprocessed": self.df_preprocessed.to_json(),
-            "response_columns": self.response_columns,
-            "categorized_data": self.categorized_data.to_json(),
-            "response_counts": self.response_counts,
+            "df_preprocessed": self.data_model.df_preprocessed.to_json(),
+            "response_columns": self.data_model.response_columns,
+            "categorized_data": self.data_model.categorized_data.to_json(),
+            "response_counts": self.data_model.response_counts,
             "categories_display": {
-                k: list(v) for k, v in self.categorized_dict.items()
+                k: list(v) for k, v in self.data_model.categorized_dict.items()
             },
             "include_missing_data_bool": self.user_interface.include_missing_data_bool.get(),
         }
@@ -688,7 +716,9 @@ class Controller:
 
     def export_to_csv(self):
         # Exported data needs only UUIDs and category binaries to be able to be imported into Q.
-        export_df = self.categorized_data.drop(columns=self.response_columns)
+        export_df = self.data_model.categorized_data.drop(
+            columns=self.data_model.response_columns
+        )
 
         if self.user_interface.categorization_var.get() == "Multi":
             export_df.drop("Uncategorized", axis=1, inplace=True)
