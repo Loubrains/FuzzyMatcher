@@ -505,26 +505,31 @@ class Controller:
 
     ### ----------------------- Project Management ----------------------- ###
     def start_new_project(self):
-        if self.file_import_process():
+        if self.file_import_new_project():
             self.populate_data_structures_new_project()
             self.display_categories()
             self.refresh_category_results_for_currently_displayed_category()
             self.display_match_results()
+            self.user_interface.show_info("Data imported successfully")
             self.ask_categorization_type()
 
-    def file_import_process(self):
-        is_file_selected = False
-        if file_path := self.user_interface.show_open_file_dialog(
-            title="Please select a file containing your dataset"
+    def file_import_new_project(self):
+        if not (
+            file_path := self.user_interface.show_open_file_dialog(
+                title="Please select a file containing your dataset"
+            )
         ):
-            self.df = self.file_manager.read_csv_to_dataframe(file_path)
-            if self.df.empty or self.df.shape[1] < 2:
-                self.user_interface.show_error(
-                    "Dataset is empty or does not contain enough columns.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses",
-                )
-            else:
-                is_file_selected = True
-        return is_file_selected
+            return False
+
+        self.df = self.file_manager.read_csv_to_dataframe(file_path)
+
+        if self.df.empty or self.df.shape[1] < 2:
+            self.user_interface.show_error(
+                "Dataset is empty or does not contain enough columns.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses",
+            )
+            return False
+
+        return True
 
     def populate_data_structures_new_project(self):
         self.data_model.df_preprocessed = pd.DataFrame(
@@ -556,7 +561,7 @@ class Controller:
         self.data_model.categorized_data["Missing data"] = 0
         self.categorize_missing_data()
 
-        self.data_model.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
+        self.data_model.currently_displayed_category = "Uncategorized"  # Default
 
         self.data_model.fuzzy_match_results = pd.DataFrame(
             columns=["response", "score"]
@@ -587,21 +592,23 @@ class Controller:
         )
 
     def load_project(self):
-        if file_path := self.user_interface.show_open_file_dialog(
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            title="Load Project",
-        ):
-            data_loaded = self.file_manager.load_json(file_path)
-
+        if data_loaded := self.file_import_load_project():
             self.populate_data_structures_load_project(data_loaded)
             self.set_categorization_type_label()
             self.display_match_results()
             self.refresh_category_results_for_currently_displayed_category()
             self.display_categories()
+            self.user_interface.show_info("Project loaded successfully")
 
-            self.user_interface.show_info(
-                "Project loaded successfully from " + file_path
+    def file_import_load_project(self):
+        if not (
+            file_path := self.user_interface.show_open_file_dialog(
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                title="Load Project",
             )
+        ):
+            return False
+        return self.file_manager.load_json(file_path)
 
     def populate_data_structures_load_project(self, data_loaded):
         # Convert JSON back to data / set default variable values
@@ -636,21 +643,27 @@ class Controller:
             self.user_interface.show_info("Data appended successfully")
 
     def file_import_append_data(self):
-        if file_path := self.user_interface.show_open_file_dialog(
-            title="Select file to append"
+        if not (
+            file_path := self.user_interface.show_open_file_dialog(
+                title="Select file to append"
+            )
         ):
-            try:
-                new_df = self.file_manager.read_csv_to_dataframe(file_path)
-                if new_df.empty or new_df.shape[1] != self.df.shape[1]:
-                    self.user_interface.show_error(
-                        "Dataset is empty or does not have the same shape as the current dataset.\nThe dataset should contain uuids in the first column, and the subsequent columns should contain the same number of response columns.",
-                    )
-                    return False
-                self.df = pd.concat([self.df, new_df], ignore_index=True)
-                return True
-            except Exception as e:
-                self.user_interface.show_error(f"Failed to append data: {e}")
-        return False
+            return False
+
+        try:
+            new_df = self.file_manager.read_csv_to_dataframe(file_path)
+
+            if new_df.empty or new_df.shape[1] != self.df.shape[1]:
+                self.user_interface.show_error(
+                    "Dataset is empty or does not have the same shape as the current dataset.\n\nThe dataset should contain uuids in the first column, and the subsequent columns should contain the same number of response columns.",
+                )
+                return False
+
+            self.df = pd.concat([self.df, new_df], ignore_index=True)
+            return True
+
+        except Exception as e:
+            self.user_interface.show_error(f"Failed to append data: {e}")
 
     def populate_data_structures_append_data(self):
         old_data_size = len(self.data_model.df_preprocessed)
@@ -676,13 +689,13 @@ class Controller:
             [self.data_model.categorized_data, new_categorized_data], axis=0
         )
 
-        self.data_model.categorized_data["Uncategorized"].iloc[
-            old_data_size:
+        self.data_model.categorized_data.loc[
+            old_data_size:, "Uncategorized"
         ] = 1  # Everything starts uncategorized
-        self.data_model.categorized_data["Missing data"].iloc[old_data_size:] = 0
+        self.data_model.categorized_data.loc[old_data_size:, "Missing data"] = 0
         self.categorize_missing_data()
 
-        self.data_model.currently_displayed_category = "Uncategorized"  # Default (this must come before calling self.categorize_responses below)
+        self.data_model.currently_displayed_category = "Uncategorized"  # Default
         self.data_model.fuzzy_match_results = pd.DataFrame(
             columns=["response", "score"]
         )  # Default
@@ -712,7 +725,7 @@ class Controller:
         ):
             self.file_manager.save_data_to_json(file_path, data_to_save, none_handler)
 
-            self.user_interface.show_info("Project saved successfully to " + file_path)
+            self.user_interface.show_info("Project saved successfully to\n" + file_path)
 
     def export_to_csv(self):
         # Exported data needs only UUIDs and category binaries to be able to be imported into Q.
@@ -730,6 +743,6 @@ class Controller:
         ):
             self.file_manager.export_dataframe_to_csv(file_path, export_df)
 
-            self.user_interface.show_info("Data exported successfully to " + file_path)
+            self.user_interface.show_info("Data exported successfully to\n" + file_path)
         else:
             self.user_interface.show_info("Export cancelled")

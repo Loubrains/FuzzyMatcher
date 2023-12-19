@@ -414,7 +414,7 @@ class FuzzyUI(tk.Tk):
         messagebox.showerror("Error", message)
 
     def show_info(self, message) -> None:
-        messagebox.showinfo(message)
+        messagebox.showinfo("Info", message)
 
     def show_warning(self, message) -> None:
         messagebox.showwarning("Warning", message)

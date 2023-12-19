@@ -8,7 +8,7 @@ The context for this is specifically for speeding up the categorization of open-
 
 # Running the app
 
-To run the app, make sure the latest version of python and all the required libraries are installed, and then run main.py with a python interpreter of your choice.
+To run the app, make sure the latest version of python is installed and all the required libraries are installed, and then run main.py
 
 # Requirements
 
