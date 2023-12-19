@@ -336,5 +336,5 @@ class FuzzyUI(tk.Tk):
         rename_dialog_popup.transient(self)
         rename_dialog_popup.grab_set()
 
-    def show_error(self, message):
-        messagebox.showerror("Error", message)
+    def show_message(self, type: str, message: str):
+        messagebox.showerror(type, message)

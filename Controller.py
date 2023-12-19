@@ -92,7 +92,7 @@ class Controller:
         if success:
             self.display_categories()
         else:
-            self.user_interface.show_error(message)
+            self.user_interface.show_message("Error", message)
 
     def ask_rename_category(self):
         selected_categories = self.selected_categories()
