@@ -46,13 +46,13 @@ class FuzzyUI(tk.Tk):
         self.bind("<Configure>", self.on_window_resize)
 
     ### ----------------------- UI Setup ----------------------- ###
-    def initialize_window(self):
+    def initialize_window(self) -> None:
         self.geometry(
             f"{self.screen_coords.window_width}x{self.screen_coords.window_height}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
         )
         # self.state('zoomed')
 
-    def configure_grid(self):
+    def configure_grid(self) -> None:
         self.grid_columnconfigure(0, weight=1)  # Fuzzy matching
         self.grid_columnconfigure(1, weight=1)  # Category results
         self.grid_columnconfigure(2, weight=1)  # Categories display
@@ -61,7 +61,7 @@ class FuzzyUI(tk.Tk):
         self.grid_rowconfigure(2, weight=0)  # Project management
         # Weights set such that all columns and only middle row can expand/contract
 
-    def configure_frames(self):
+    def configure_frames(self) -> None:
         self.top_left_frame = tk.Frame(self)
         self.middle_left_frame = tk.Frame(self)
         self.top_middle_frame = tk.Frame(self)
@@ -80,7 +80,7 @@ class FuzzyUI(tk.Tk):
             row=2, column=0, columnspan=3, sticky="new", padx=10, pady=10
         )
 
-    def create_widgets(self):
+    def create_widgets(self) -> None:
         # Top left frame widgets (fuzzy matching entry, slider, buttons and lable)
         self.match_string_label = tk.Label(
             self.top_left_frame, text="Enter String to Match:"
@@ -185,7 +185,7 @@ class FuzzyUI(tk.Tk):
         self.save_button = tk.Button(self.bottom_frame, text="Save Project")
         self.export_csv_button = tk.Button(self.bottom_frame, text="Export to CSV")
 
-    def bind_widgets_to_frames(self):
+    def bind_widgets_to_frames(self) -> None:
         # Top left frame widgets
         self.match_string_label.grid(row=0, column=0, sticky="ew", padx=5)
         self.match_string_entry.grid(row=1, column=0, sticky="ew", padx=5)
@@ -243,7 +243,7 @@ class FuzzyUI(tk.Tk):
         self.save_button.grid(row=0, column=2, sticky="e", padx=10, pady=10)
         self.export_csv_button.grid(row=1, column=2, sticky="e", padx=10, pady=10)
 
-    def configure_sub_grids(self):
+    def configure_sub_grids(self) -> None:
         # Allow the treeviews to expand vertically
         self.middle_left_frame.grid_rowconfigure(0, weight=1)
         self.middle_middle_frame.grid_rowconfigure(0, weight=1)
@@ -277,17 +277,17 @@ class FuzzyUI(tk.Tk):
         self.bottom_frame.columnconfigure(1, weight=1)
         self.bottom_frame.columnconfigure(2, weight=1)
 
-    def configure_style(self):
+    def configure_style(self) -> None:
         # Configure Treeview style for larger row height and centered column text
         style = ttk.Style(self)
         style.configure("Treeview", rowheight=25)
         style.configure("Treeview.Item", anchor="center")
 
-    def on_window_resize(self, event):
+    def on_window_resize(self, event) -> None:
         self.resize_treeview_columns()
         self.resize_text_wraplength()
 
-    def resize_text_wraplength(self):
+    def resize_text_wraplength(self) -> None:
         for frame in self.winfo_children():
             for widget in frame.winfo_children():
                 if isinstance(widget, (tk.Label, tk.Button, tk.Radiobutton)):
@@ -296,7 +296,7 @@ class FuzzyUI(tk.Tk):
                     )  # Extra added to make it slightly less eager to resize
                     widget.configure(wraplength=width)
 
-    def resize_treeview_columns(self):
+    def resize_treeview_columns(self) -> None:
         for frame in self.winfo_children():
             for widget in frame.winfo_children():
                 if isinstance(widget, ttk.Treeview):
@@ -336,5 +336,38 @@ class FuzzyUI(tk.Tk):
         rename_dialog_popup.transient(self)
         rename_dialog_popup.grab_set()
 
-    def show_message(self, type: str, message: str):
-        messagebox.showerror(type, message)
+    def selected_categories(self):
+        return {
+            self.categories_tree.item(item_id)["values"][0]
+            for item_id in self.categories_tree.selection()
+        }
+
+    def selected_match_responses(self):
+        return {
+            self.match_results_tree.item(item_id)["values"][0]
+            for item_id in self.match_results_tree.selection()
+        }
+
+    def selected_category_responses(self):
+        return {
+            self.category_results_tree.item(item_id)["values"][0]
+            for item_id in self.category_results_tree.selection()
+        }
+
+    def show_open_file_dialog(self, *args, **kwargs) -> str:
+        return filedialog.askopenfilename(*args, **kwargs)
+
+    def show_save_file_dialog(self, *args, **kwargs) -> str:
+        return filedialog.asksaveasfilename(*args, **kwargs)
+
+    def show_askyesno(self, title: str, message: str) -> bool:
+        return messagebox.askyesno(title, message)
+
+    def show_error(self, message: str) -> None:
+        messagebox.showerror("Error", message)
+
+    def show_info(self, message) -> None:
+        messagebox.showinfo(message)
+
+    def show_warning(self, message) -> None:
+        messagebox.showwarning("Warning", message)

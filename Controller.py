@@ -1,8 +1,6 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
 import ctypes
 import pandas as pd
-import json
 from io import StringIO
 from FuzzyUI import FuzzyUI
 from DataModel import DataModel
@@ -92,23 +90,21 @@ class Controller:
         if success:
             self.display_categories()
         else:
-            self.user_interface.show_message("Error", message)
+            self.user_interface.show_error(message)
 
     def ask_rename_category(self):
-        selected_categories = self.selected_categories()
+        selected_categories = self.user_interface.selected_categories()
 
         if len(selected_categories) != 1:
-            messagebox.showinfo("Info", "Please select one category to rename.")
+            self.user_interface.show_warning("Please select one category to rename.")
             return
 
         if (
             "Uncategorized" in selected_categories
             or "Missing data" in selected_categories
         ):
-            formatted_categories = ", ".join(selected_categories)
-            messagebox.showinfo(
-                "Info",
-                f"You may not rename the category/categories {formatted_categories}.",
+            self.user_interface.show_warning(
+                'You may not rename the categories "Uncategorized" or "Missing data".',
             )
             return
 
@@ -163,39 +159,37 @@ class Controller:
 
     def rename_category_in_data(self, old_category, new_category):
         if not new_category:
-            messagebox.showinfo("Info", "Please enter a non-empty category name.")
+            self.user_interface.show_error("Please enter a non-empty category name.")
             return
 
         if new_category in self.categorized_dict:
-            messagebox.showinfo("Info", "A category with this name already exists.")
+            self.user_interface.show_error("A category with this name already exists.")
             return
 
         if old_category == "Missing data":
-            messagebox.showinfo("Info", 'You cannot rename "Missing data".')
+            self.user_interface.show_warning('You cannot rename "Missing data".')
             return
 
         self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
         self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
 
     def ask_delete_categories(self):
-        selected_categories = self.selected_categories()
+        selected_categories = self.user_interface.selected_categories()
 
         if not selected_categories:
-            messagebox.showinfo("Info", "Please select categories to delete.")
+            self.user_interface.show_warning("Please select categories to delete.")
             return
 
         if (
             "Uncategorized" in selected_categories
             or "Missing data" in selected_categories
         ):
-            formatted_categories = ", ".join(selected_categories)
-            messagebox.showinfo(
-                "Info",
-                f"You may not delete the category/categories {formatted_categories}.",
+            self.user_interface.show_warning(
+                "You may not delete the categories 'Uncategorized' or 'Missing data'.",
             )
             return
 
-        if messagebox.askyesno(
+        if self.user_interface.show_askyesno(
             "Confirmation", "Are you sure you want to delete the selected categories?"
         ):
             self.delete_categories_in_data(selected_categories)
@@ -264,16 +258,16 @@ class Controller:
             )
 
         elif len(selected_categories) > 1:
-            messagebox.showerror("Error", "Please select only one category")
+            self.user_interface.show_warning("Please select only one category")
 
         else:
-            messagebox.showerror("Error", "No category selected")
+            self.user_interface.show_error("No category selected")
 
     def refresh_category_results_for_currently_displayed_category(self):
         category = self.currently_displayed_category
 
         if not category:
-            messagebox.showerror("Error", "No category results currently displayed")
+            self.user_interface.show_error("No category results currently displayed")
             return
 
         self.display_category_results(category)
@@ -301,7 +295,7 @@ class Controller:
         )
 
     def display_categories(self):
-        selected_categories = self.selected_categories()
+        selected_categories = self.user_interface.selected_categories()
         include_missing_data_bool = self.user_interface.include_missing_data_bool.get()
 
         for item in self.user_interface.categories_tree.get_children():
@@ -321,24 +315,6 @@ class Controller:
             )
 
         self.update_treeview_selections(selected_categories=selected_categories)
-
-    def selected_categories(self):
-        return {
-            self.user_interface.categories_tree.item(item_id)["values"][0]
-            for item_id in self.user_interface.categories_tree.selection()
-        }
-
-    def selected_match_responses(self):
-        return {
-            self.user_interface.match_results_tree.item(item_id)["values"][0]
-            for item_id in self.user_interface.match_results_tree.selection()
-        }
-
-    def selected_category_responses(self):
-        return {
-            self.user_interface.category_results_tree.item(item_id)["values"][0]
-            for item_id in self.user_interface.category_results_tree.selection()
-        }
 
     def update_treeview_selections(
         self, selected_categories=None, selected_responses=None
@@ -364,7 +340,7 @@ class Controller:
     ### ----------------------- Main Functionality ----------------------- ###
     def perform_fuzzy_match(self):
         if self.categorized_data.empty:
-            messagebox.showerror("Error", "No dataset loaded")
+            self.user_interface.show_error("No dataset loaded")
             return
 
         if self.categorized_data is not None:
@@ -387,34 +363,32 @@ class Controller:
 
     def categorize_selected_responses(self):
         responses, categories = (
-            self.selected_match_responses(),
-            self.selected_categories(),
+            self.user_interface.selected_match_responses(),
+            self.user_interface.selected_categories(),
         )
 
         if not categories or not responses:
-            messagebox.showinfo(
-                "Info", "Please select both a category and responses to categorize."
+            self.user_interface.show_warning(
+                "Please select both a category and responses to categorize."
             )
             return
 
         if "Missing data" in categories:
-            messagebox.showinfo(
-                "Info", 'You cannot categorize values into "Missing data".'
+            self.user_interface.show_warning(
+                'You cannot categorize values into "Missing data".'
             )
             return
 
         if "nan" in responses or "missing data" in responses:
-            messagebox.showwarning(
-                "Warning",
-                "You cannot recategorize 'NaN' or 'Missing data' values",
+            self.user_interface.show_warning(
+                'You cannot recategorize "NaN" or "Missing data" values',
             )
 
         if (
             self.user_interface.categorization_var.get() == "Single"
             and len(categories) > 1
         ):
-            messagebox.showwarning(
-                "Warning",
+            self.user_interface.show_warning(
                 "Only one category can be selected in Single Categorization mode.",
             )
             return
@@ -449,26 +423,25 @@ class Controller:
 
     def recategorize_selected_responses(self):
         responses, categories = (
-            self.selected_category_responses(),
-            self.selected_categories(),
+            self.user_interface.selected_category_responses(),
+            self.user_interface.selected_categories(),
         )
 
         if not categories or not responses:
-            messagebox.showinfo(
-                "Info",
+            self.user_interface.show_warning(
                 "Please select both a category and responses in the category results display to categorize.",
             )
             return
 
         if self.currently_displayed_category == "Missing data":
-            messagebox.showinfo(
-                "Info", 'You cannot recategorize "NaN" or "Missing data" values.'
+            self.user_interface.show_info(
+                'You cannot recategorize "NaN" or "Missing data" values.'
             )
             return
 
         if "Missing data" in categories:
-            messagebox.showinfo(
-                "Info", 'You cannot categorize values into "Missing data".'
+            self.user_interface.show_warning(
+                'You cannot categorize values into "Missing data".'
             )
             return
 
@@ -476,8 +449,7 @@ class Controller:
             self.user_interface.categorization_var.get() == "Single"
             and len(categories) > 1
         ):
-            messagebox.showwarning(
-                "Warning",
+            self.user_interface.show_warning(
                 "Only one category can be selected in Single Categorization mode.",
             )
             return
@@ -549,13 +521,12 @@ class Controller:
 
     def file_import_process(self):
         is_file_selected = False
-        if file_path := filedialog.askopenfilename(
+        if file_path := self.user_interface.show_open_file_dialog(
             title="Please select a file containing your dataset"
         ):
             self.df = self.file_manager.read_csv_to_dataframe(file_path)
             if self.df.empty or self.df.shape[1] < 2:
-                messagebox.showerror(
-                    "Error",
+                self.user_interface.show_error(
                     "Dataset is empty or does not contain enough columns.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses",
                 )
             else:
@@ -649,7 +620,7 @@ class Controller:
         )
 
     def load_project(self):
-        if file_path := filedialog.askopenfilename(
+        if file_path := self.user_interface.show_open_file_dialog(
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
             title="Load Project",
         ):
@@ -661,8 +632,8 @@ class Controller:
             self.refresh_category_results_for_currently_displayed_category()
             self.display_categories()
 
-            messagebox.showinfo(
-                "Load Project", "Project loaded successfully from " + file_path
+            self.user_interface.show_info(
+                "Project loaded successfully from " + file_path
             )
 
     def populate_data_structures_load_project(self, data_loaded):
@@ -691,22 +662,23 @@ class Controller:
             self.display_categories()
             self.refresh_category_results_for_currently_displayed_category()
             self.display_match_results()
-            messagebox.showinfo("Success", "Data appended successfully")
+            self.user_interface.show_info("Data appended successfully")
 
     def file_import_append_data(self):
-        if file_path := filedialog.askopenfilename(title="Select file to append"):
+        if file_path := self.user_interface.show_open_file_dialog(
+            title="Select file to append"
+        ):
             try:
                 new_df = self.file_manager.read_csv_to_dataframe(file_path)
                 if new_df.empty or new_df.shape[1] != self.df.shape[1]:
-                    messagebox.showerror(
-                        "Error",
+                    self.user_interface.show_error(
                         "Dataset is empty or does not have the same shape as the current dataset.\nThe dataset should contain uuids in the first column, and the subsequent columns should contain the same number of response columns.",
                     )
                     return False
                 self.df = pd.concat([self.df, new_df], ignore_index=True)
                 return True
             except Exception as e:
-                messagebox.showerror("Error", f"Failed to append data: {e}")
+                self.user_interface.show_error(f"Failed to append data: {e}")
         return False
 
     def populate_data_structures_append_data(self):
@@ -760,16 +732,14 @@ class Controller:
             "include_missing_data_bool": self.user_interface.include_missing_data_bool.get(),
         }
 
-        if file_path := filedialog.asksaveasfilename(
+        if file_path := self.user_interface.show_save_file_dialog(
             defaultextension=".json",
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
             title="Save Project As",
         ):
             self.file_manager.save_data_to_json(file_path, data_to_save, none_handler)
 
-            messagebox.showinfo(
-                "Save Project", "Project saved successfully to " + file_path
-            )
+            self.user_interface.show_info("Project saved successfully to " + file_path)
 
     def export_to_csv(self):
         # Exported data needs only UUIDs and category binaries to be able to be imported into Q.
@@ -778,13 +748,13 @@ class Controller:
         if self.user_interface.categorization_var.get() == "Multi":
             export_df.drop("Uncategorized", axis=1, inplace=True)
 
-        if file_path := filedialog.asksaveasfilename(
+        if file_path := self.user_interface.show_save_file_dialog(
             defaultextension=".csv",
             filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
             title="Save As",
         ):
             self.file_manager.export_dataframe_to_csv(file_path, export_df)
 
-            messagebox.showinfo("Export", "Data exported successfully to " + file_path)
+            self.user_interface.show_info("Data exported successfully to " + file_path)
         else:
-            messagebox.showinfo("Export", "Export cancelled")
+            self.user_interface.show_info("Export cancelled")
