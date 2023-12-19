@@ -88,9 +88,7 @@ class Controller:
     ### ----------------------- UI Management ----------------------- ###
     def create_category(self):
         new_category = self.user_interface.new_category_entry.get()
-        if new_category and new_category not in self.categorized_data.columns:
-            self.categorized_data[new_category] = 0
-            self.categorized_dict[new_category] = set()
+        if self.data_model.create_category(new_category):
             self.display_categories()
 
     def ask_rename_category(self):
@@ -204,7 +202,7 @@ class Controller:
     def delete_categories_in_data(self, categories_to_delete):
         for category in categories_to_delete:
             if (
-                self.categorization_var.get() == "Single"
+                self.user_interface.categorization_var.get() == "Single"
             ):  # In single mode, return the responses from this category to 'Uncategorized'
                 responses_to_reclassify = self.categorized_data[
                     self.categorized_data[category] == 1
@@ -352,7 +350,10 @@ class Controller:
             reselect_treeview_items(
                 self.user_interface.categories_tree, selected_categories
             )
-        if self.categorization_var.get() == "Multi" and selected_responses is not None:
+        if (
+            self.user_interface.categorization_var.get() == "Multi"
+            and selected_responses is not None
+        ):
             reselect_treeview_items(
                 self.user_interface.match_results_tree, selected_responses
             )
@@ -405,7 +406,10 @@ class Controller:
                 "You cannot recategorize 'NaN' or 'Missing data' values",
             )
 
-        if self.categorization_var.get() == "Single" and len(categories) > 1:
+        if (
+            self.user_interface.categorization_var.get() == "Single"
+            and len(categories) > 1
+        ):
             messagebox.showwarning(
                 "Warning",
                 "Only one category can be selected in Single Categorization mode.",
@@ -424,7 +428,7 @@ class Controller:
         for column in self.categorized_data[self.response_columns]:
             mask |= self.categorized_data[column].isin(responses)
 
-        if self.categorization_var.get() == "Single":
+        if self.user_interface.categorization_var.get() == "Single":
             self.categorized_data.loc[mask, "Uncategorized"] = 0
             self.categorized_dict["Uncategorized"] -= responses
 
@@ -465,7 +469,10 @@ class Controller:
             )
             return
 
-        if self.categorization_var.get() == "Single" and len(categories) > 1:
+        if (
+            self.user_interface.categorization_var.get() == "Single"
+            and len(categories) > 1
+        ):
             messagebox.showwarning(
                 "Warning",
                 "Only one category can be selected in Single Categorization mode.",
@@ -529,22 +536,6 @@ class Controller:
         return (count / total_responses) * 100 if total_responses > 0 else 0
 
     ### ----------------------- Project Management ----------------------- ###
-    def initialize_data_structures(self):
-        # Empty variables which will be populated during new project/load project
-        self.categorization_var = tk.StringVar(value="Single")
-        self.df_preprocessed = pd.DataFrame()
-        self.response_columns = []
-        self.categorized_data = pd.DataFrame()
-        self.response_counts = {}
-        self.categorized_dict = {
-            "Uncategorized": set(),
-            "Missing data": {"nan", "missing data"},
-        }
-        self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])
-        self.currently_displayed_category = "Uncategorized"
-
-        # categorized_data will contain a column for each, with a 1 or 0 for each response
-
     def start_new_project(self):
         if self.file_import_process():
             self.populate_data_structures_new_project()
@@ -624,13 +615,13 @@ class Controller:
         single_categorization_rb = tk.Radiobutton(
             categorization_type_popup,
             text="Single Categorization",
-            variable=self.categorization_var,
+            variable=self.user_interface.categorization_var,
             value="Single",
         )
         multi_categorization_rb = tk.Radiobutton(
             categorization_type_popup,
             text="Multi Categorization",
-            variable=self.categorization_var,
+            variable=self.user_interface.categorization_var,
             value="Multi",
         )
         confirm_button = tk.Button(
@@ -649,7 +640,7 @@ class Controller:
         categorization_type_popup.focus_set()
 
     def set_categorization_type_label(self):
-        chosen_type = self.categorization_var.get()
+        chosen_type = self.user_interface.categorization_var.get()
         self.user_interface.categorization_label.config(
             text="Categorization Type: " + chosen_type
         )
@@ -673,7 +664,7 @@ class Controller:
 
     def populate_data_structures_load_project(self, data_loaded):
         # Convert JSON back to data / set default variable values
-        self.categorization_var.set(data_loaded["categorization_var"])
+        self.user_interface.categorization_var.set(data_loaded["categorization_var"])
         self.df_preprocessed = pd.read_json(StringIO(data_loaded["df_preprocessed"]))
         self.response_columns = data_loaded["response_columns"]
         self.categorized_data = pd.read_json(StringIO(data_loaded["categorized_data"]))
@@ -755,7 +746,7 @@ class Controller:
                 return None
 
         data_to_save = {
-            "categorization_var": self.categorization_var.get(),
+            "categorization_var": self.user_interface.categorization_var.get(),
             "df_preprocessed": self.df_preprocessed.to_json(),
             "response_columns": self.response_columns,
             "categorized_data": self.categorized_data.to_json(),
@@ -781,7 +772,7 @@ class Controller:
         # Exported data needs only UUIDs and category binaries to be able to be imported into Q.
         export_df = self.categorized_data.drop(columns=self.response_columns)
 
-        if self.categorization_var.get() == "Multi":
+        if self.user_interface.categorization_var.get() == "Multi":
             export_df.drop("Uncategorized", axis=1, inplace=True)
 
         if file_path := filedialog.asksaveasfilename(

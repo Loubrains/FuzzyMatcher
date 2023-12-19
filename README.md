@@ -20,6 +20,7 @@ To run the app, make sure the latest version of python and all the required libr
 - thefuzz
 - json
 - io
+- typing
 
 # To do
 
