@@ -1,10 +1,39 @@
 import re
-from typing import Any
 from thefuzz import fuzz
 import pandas as pd
+from typing import Any
 
 
 class DataModel:
+    def __init__(self) -> None:
+        self.initialize_data_structures()  # Empty/default variables.
+
+    def initialize_data_structures(self):
+        # Empty variables which will be populated during new project/load project
+        self.df_preprocessed = pd.DataFrame()
+        self.response_columns = []
+        self.categorized_data = pd.DataFrame()
+        self.response_counts = {}
+        self.categorized_dict = {
+            "Uncategorized": set(),
+            "Missing data": {"nan", "missing data"},
+        }
+        self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])
+        self.currently_displayed_category = "Uncategorized"
+
+        # categorized_data will contain a column for each, with a 1 or 0 for each response
+
+    def create_category(self, new_category):
+        if not new_category:
+            return False, "Category name cannot be empty"
+
+        if new_category in self.categorized_data.columns:
+            return False, "Category already exists"
+
+        self.categorized_data[new_category] = 0
+        self.categorized_dict[new_category] = set()
+        return True, "Category created successfully"
+
     def preprocess_text(self, text: Any) -> str:
         text = str(text).lower()
         text = re.sub(

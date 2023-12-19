@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import filedialog, messagebox
 from tkinter import ttk
 
 
@@ -28,6 +29,7 @@ class FuzzyUI(tk.Tk):
         self.title("Fuzzy Matcher")
 
         self.include_missing_data_bool = tk.BooleanVar(value=False)
+        self.categorization_var = tk.StringVar(value="Single")
 
         # Setup the UI
         self.initialize_window()
@@ -320,3 +322,19 @@ class FuzzyUI(tk.Tk):
                     else:
                         # If there is only one column, it should take all the space
                         treeview.column(treeview["columns"][0], width=treeview_width)
+
+    def create_popup(self, title: str):
+        rename_dialog_popup = tk.Toplevel(self)
+        rename_dialog_popup.title(title)
+
+        # Center the popup on the main window
+        rename_dialog_popup.geometry(
+            f"{self.screen_coords.POPUP_WIDTH}x{self.screen_coords.POPUP_HEIGHT}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
+        )
+
+        # Keep the popup window on top and ensure all events are directed to this window until closed
+        rename_dialog_popup.transient(self)
+        rename_dialog_popup.grab_set()
+
+    def show_error(self, message):
+        messagebox.showerror("Error", message)

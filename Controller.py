@@ -22,7 +22,6 @@ class Controller:
         self.data_model = data_model
         self.file_manager = file_manager
 
-        self.initialize_data_structures()  # Empty/default variables
         self.setup_UI_bindings()
 
         self.user_interface.after(100, self.display_categories)
@@ -88,8 +87,12 @@ class Controller:
     ### ----------------------- UI Management ----------------------- ###
     def create_category(self):
         new_category = self.user_interface.new_category_entry.get()
-        if self.data_model.create_category(new_category):
+        success, message = self.data_model.create_category(new_category)
+
+        if success:
             self.display_categories()
+        else:
+            self.user_interface.show_error(message)
 
     def ask_rename_category(self):
         selected_categories = self.selected_categories()
@@ -693,7 +696,7 @@ class Controller:
     def file_import_append_data(self):
         if file_path := filedialog.askopenfilename(title="Select file to append"):
             try:
-                new_df = self.file_manager.file_import(file_path)
+                new_df = self.file_manager.read_csv_to_dataframe(file_path)
                 if new_df.empty or new_df.shape[1] != self.df.shape[1]:
                     messagebox.showerror(
                         "Error",
