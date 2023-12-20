@@ -445,12 +445,6 @@ class FuzzyUI(tk.Tk):
         messagebox.showwarning("Warning", message)
 
     ### ----------------------- Treeview Selections ----------------------- ###
-    def selected_categories(self) -> set[str]:
-        return {
-            self.categories_tree.item(item_id)["values"][0]
-            for item_id in self.categories_tree.selection()
-        }
-
     def selected_match_responses(self) -> set[str]:
         return {
             self.match_results_tree.item(item_id)["values"][0]
@@ -461,6 +455,12 @@ class FuzzyUI(tk.Tk):
         return {
             self.category_results_tree.item(item_id)["values"][0]
             for item_id in self.category_results_tree.selection()
+        }
+
+    def selected_categories(self) -> set[str]:
+        return {
+            self.categories_tree.item(item_id)["values"][0]
+            for item_id in self.categories_tree.selection()
         }
 
     def update_treeview_selections(

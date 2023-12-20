@@ -376,7 +376,7 @@ class Controller:
         self.user_interface.display_match_results(processed_results)
 
     def on_display_selected_category_results(self):
-        selected_categories = self.user_interface.categories_tree.selection()
+        selected_categories = self.user_interface.selected_categories()
 
         if len(selected_categories) == 0:
             self.user_interface.show_error("No category selected")
@@ -384,13 +384,10 @@ class Controller:
 
         if len(selected_categories) > 1:
             self.user_interface.show_warning("Please select only one category")
+            return
 
-        # Get the selected category as a string
-        category = self.user_interface.categories_tree.item(selected_categories[0])[
-            "values"
-        ][0]
         # Assign new currently displayed category
-        self.data_model.currently_displayed_category = category
+        self.data_model.currently_displayed_category = selected_categories.pop()
         self.display_category_results()
 
     def display_category_results(self):

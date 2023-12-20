@@ -8,9 +8,9 @@ class FileManager:
     def read_csv_to_dataframe(self, file_path: str) -> pd.DataFrame:
         with open(file_path, "rb") as file:
             encoding = chardet.detect(file.read())["encoding"]  # Detect encoding
-            return pd.read_csv(file_path, encoding=encoding)
+        return pd.read_csv(file_path, encoding=encoding)
 
-    def load_json(self, file_path: str) -> Any:
+    def load_json(self, file_path: str) -> dict[str, Any]:
         with open(file_path, "r") as f:
             return json.load(f)
 
