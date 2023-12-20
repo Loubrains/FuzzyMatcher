@@ -29,7 +29,7 @@ class FuzzyUI(tk.Tk):
         self.title("Fuzzy Matcher")
 
         self.include_missing_data_bool = tk.BooleanVar(value=False)
-        self.categorization_var = tk.StringVar(value="Single")
+        self.categorization_type = tk.StringVar(value="Single")
 
         # Setup the UI
         self.initialize_window()
@@ -364,13 +364,13 @@ class FuzzyUI(tk.Tk):
         single_categorization_rb = tk.Radiobutton(
             self.categorization_type_popup,
             text="Single Categorization",
-            variable=self.categorization_var,
+            variable=self.categorization_type,
             value="Single",
         )
         multi_categorization_rb = tk.Radiobutton(
             self.categorization_type_popup,
             text="Multi Categorization",
-            variable=self.categorization_var,
+            variable=self.categorization_type,
             value="Multi",
         )
         self.confirm_button = tk.Button(

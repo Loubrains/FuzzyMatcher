@@ -23,7 +23,24 @@ class DataModel:
 
         # categorized_data will contain a column for each, with a 1 or 0 for each response
 
-    def create_category(self, new_category):
+    def perform_fuzzy_match(self, string_to_match):
+        if self.categorized_data.empty or self.categorized_data is None:
+            message = "No dataset loaded"
+            return False, message
+
+        uncategorized_responses = self.categorized_dict["Uncategorized"]
+        uncategorized_df = self.df_preprocessed[
+            self.df_preprocessed.isin(uncategorized_responses)
+        ].dropna(how="all")
+
+        # Perform fuzzy matching on these uncategorized responses
+        self.fuzzy_match_results = self.fuzzy_matching(
+            uncategorized_df, string_to_match
+        )
+        message = "Successfully performed fuzzy match"
+        return True, message
+
+    def create_category(self, new_category: str):
         if not new_category:
             return False, "Category name cannot be empty"
 
@@ -34,7 +51,7 @@ class DataModel:
         self.categorized_dict[new_category] = set()
         return True, "Category created successfully"
 
-    def rename_category(self, old_category, new_category):
+    def rename_category(self, old_category: str, new_category: str):
         if new_category in self.categorized_dict:
             message = "A category with this name already exists."
             return False, message
@@ -47,6 +64,23 @@ class DataModel:
         self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
         message = "Category renamed successfully"
         return True, message
+
+    def delete_categories(self, categories_to_delete: set[str], categorization_type):
+        for category in categories_to_delete:
+            if (
+                categorization_type == "Single"
+            ):  # In single mode, return the responses from this category to 'Uncategorized'
+                responses_to_reclassify = self.categorized_data[
+                    self.categorized_data[category] == 1
+                ].index
+                for response_index in responses_to_reclassify:
+                    self.categorized_data.loc[response_index, "Uncategorized"] = 1
+                self.categorized_dict["Uncategorized"].update(
+                    self.categorized_dict[category]
+                )
+
+            del self.categorized_dict[category]
+            self.categorized_data.drop(columns=category, inplace=True)
 
     def preprocess_text(self, text: Any) -> str:
         text = str(text).lower()

@@ -1,4 +1,3 @@
-import tkinter as tk
 import ctypes
 import pandas as pd
 from io import StringIO
@@ -55,10 +54,10 @@ class Controller:
             "<Button-1>", lambda event: self.create_category()
         )
         self.user_interface.rename_category_button.bind(
-            "<Button-1>", lambda event: self.ask_rename_category()
+            "<Button-1>", lambda event: self.rename_category()
         )
         self.user_interface.delete_categories_button.bind(
-            "<Button-1>", lambda event: self.ask_delete_categories()
+            "<Button-1>", lambda event: self.delete_categories()
         )
         self.user_interface.include_missing_data_bool.trace_add(
             "write", lambda *args: self.display_categories()
@@ -82,7 +81,174 @@ class Controller:
     def run(self):
         self.user_interface.mainloop()
 
-    ### ----------------------- UI Management ----------------------- ###
+    ### ----------------------- Main Functionality ----------------------- ###
+    def perform_fuzzy_match(self):
+        self.data_model.perform_fuzzy_match(
+            self.user_interface.match_string_entry.get()
+        )
+        self.display_match_results()
+
+    def categorize_selected_responses(self):
+        responses, categories = (
+            self.user_interface.selected_match_responses(),
+            self.user_interface.selected_categories(),
+        )
+
+        if not categories or not responses:
+            self.user_interface.show_warning(
+                "Please select both a category and responses to categorize."
+            )
+            return
+
+        if "Missing data" in categories:
+            self.user_interface.show_warning(
+                'You cannot categorize values into "Missing data".'
+            )
+            return
+
+        if "nan" in responses or "missing data" in responses:
+            self.user_interface.show_warning(
+                'You cannot recategorize "NaN" or "Missing data" values',
+            )
+
+        if (
+            self.user_interface.categorization_type.get() == "Single"
+            and len(categories) > 1
+        ):
+            self.user_interface.show_warning(
+                "Only one category can be selected in Single Categorization mode.",
+            )
+            return
+
+        self.categorize_responses(responses, categories)
+
+    def categorize_responses(self, responses, categories):
+        responses -= {"nan", "missing data"}
+        # In categorized_data, each category is a column, with a 1 or 0 for each response
+
+        # Boolean mask for rows in categorized_data containing selected responses
+        mask = pd.Series([False] * len(self.data_model.categorized_data))
+
+        for column in self.data_model.categorized_data[
+            self.data_model.response_columns
+        ]:
+            mask |= self.data_model.categorized_data[column].isin(responses)
+
+        if self.user_interface.categorization_type.get() == "Single":
+            self.data_model.categorized_data.loc[mask, "Uncategorized"] = 0
+            self.data_model.categorized_dict["Uncategorized"] -= responses
+
+        for category in categories:
+            self.data_model.categorized_data.loc[mask, category] = 1
+            self.data_model.categorized_dict[category].update(responses)
+
+        self.display_categories()
+        self.perform_fuzzy_match()
+        self.update_treeview_selections(
+            selected_categories=categories,
+            selected_responses=responses,
+        )
+        self.refresh_category_results_for_currently_displayed_category()
+
+    def recategorize_selected_responses(self):
+        responses, categories = (
+            self.user_interface.selected_category_responses(),
+            self.user_interface.selected_categories(),
+        )
+
+        if not categories or not responses:
+            self.user_interface.show_warning(
+                "Please select both a category and responses in the category results display to categorize.",
+            )
+            return
+
+        if self.data_model.currently_displayed_category == "Missing data":
+            self.user_interface.show_info(
+                'You cannot recategorize "NaN" or "Missing data" values.'
+            )
+            return
+
+        if "Missing data" in categories:
+            self.user_interface.show_warning(
+                'You cannot categorize values into "Missing data".'
+            )
+            return
+
+        if (
+            self.user_interface.categorization_type.get() == "Single"
+            and len(categories) > 1
+        ):
+            self.user_interface.show_warning(
+                "Only one category can be selected in Single Categorization mode.",
+            )
+            return
+
+        self.recategorize_responses(responses, categories)
+
+    def recategorize_responses(self, responses, categories):
+        # In categorized_data, each category is a column, with a 1 or 0 for each response
+
+        # Boolean mask for rows in categorized_data containing selected responses
+        mask = pd.Series([False] * len(self.data_model.categorized_data))
+
+        for column in self.data_model.categorized_data[
+            self.data_model.response_columns
+        ]:
+            mask |= self.data_model.categorized_data[column].isin(responses)
+
+        self.data_model.categorized_data.loc[
+            mask, self.data_model.currently_displayed_category
+        ] = 0
+        self.data_model.categorized_dict[
+            self.data_model.currently_displayed_category
+        ] -= responses
+
+        for category in categories:
+            self.data_model.categorized_data.loc[mask, category] = 1
+            self.data_model.categorized_dict[category].update(responses)
+
+        self.display_categories()
+        self.update_treeview_selections(
+            selected_categories=categories,
+            selected_responses=responses,
+        )
+        self.refresh_category_results_for_currently_displayed_category()
+
+    def categorize_missing_data(self):
+        def is_missing(value):
+            return (
+                pd.isna(value)
+                or value is None
+                or value == "missing data"
+                or value == "nan"
+            )
+
+        all_missing_mask = self.data_model.df_preprocessed.map(is_missing).all(  # type: ignore
+            axis=1
+        )  # Boolean mask where each row is True if all elements are missing
+        self.data_model.categorized_data.loc[all_missing_mask, "Missing data"] = 1
+        self.data_model.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
+
+    def calculate_count(self, responses):
+        return sum(
+            self.data_model.response_counts.get(response, 0) for response in responses
+        )
+
+    def calculate_percentage(self, responses, include_missing_data_bool):
+        count = self.calculate_count(responses)
+
+        total_responses = sum(self.data_model.response_counts.values())
+
+        if not include_missing_data_bool:
+            missing_data_count = self.calculate_count(
+                self.data_model.categorized_dict["Missing data"]
+            )
+            total_responses = (
+                sum(self.data_model.response_counts.values()) - missing_data_count
+            )
+
+        return (count / total_responses) * 100 if total_responses > 0 else 0
+
     def create_category(self):
         new_category = self.user_interface.new_category_entry.get()
         success, message = self.data_model.create_category(new_category)
@@ -92,7 +258,7 @@ class Controller:
         else:
             self.user_interface.show_error(message)
 
-    def ask_rename_category(self):
+    def rename_category(self):
         selected_categories = self.user_interface.selected_categories()
 
         if len(selected_categories) != 1:
@@ -114,18 +280,17 @@ class Controller:
         self.user_interface.create_rename_category_popup(old_category)
         # Bind widgets to commands
         self.user_interface.ok_button.bind(
-            "<Button-1>", lambda event: self.on_rename_entry()
+            "<Button-1>", lambda event: self.on_rename_category_entry()
         )
         self.user_interface.new_category_entry.bind(
-            "<Return>", lambda event: self.on_rename_entry()
+            "<Return>", lambda event: self.on_rename_category_entry()
         )
         self.user_interface.cancel_button.bind(
             "<Button-1>",
             lambda event: self.user_interface.rename_dialog_popup.destroy(),
         )
 
-    # Functions to execute on confirmation
-    def on_rename_entry(self):
+    def on_rename_category_entry(self):
         old_category = self.user_interface.selected_categories().pop()
         new_category = self.user_interface.new_category_entry.get()
 
@@ -142,7 +307,7 @@ class Controller:
         else:
             self.user_interface.show_error(message)
 
-    def ask_delete_categories(self):
+    def delete_categories(self):
         selected_categories = self.user_interface.selected_categories()
 
         if not selected_categories:
@@ -161,29 +326,13 @@ class Controller:
         if self.user_interface.show_askyesno(
             "Confirmation", "Are you sure you want to delete the selected categories?"
         ):
-            self.delete_categories_in_data(selected_categories)
+            self.data_model.delete_categories(
+                selected_categories, self.user_interface.categorization_type.get()
+            )
             self.display_categories()
             self.refresh_category_results_for_currently_displayed_category()
 
-    def delete_categories_in_data(self, categories_to_delete):
-        for category in categories_to_delete:
-            if (
-                self.user_interface.categorization_var.get() == "Single"
-            ):  # In single mode, return the responses from this category to 'Uncategorized'
-                responses_to_reclassify = self.data_model.categorized_data[
-                    self.data_model.categorized_data[category] == 1
-                ].index
-                for response_index in responses_to_reclassify:
-                    self.data_model.categorized_data.loc[
-                        response_index, "Uncategorized"
-                    ] = 1
-                self.data_model.categorized_dict["Uncategorized"].update(
-                    self.data_model.categorized_dict[category]
-                )
-
-            del self.data_model.categorized_dict[category]
-            self.data_model.categorized_data.drop(columns=category, inplace=True)
-
+    ### ----------------------- UI management ----------------------- ###
     def display_match_results(self):
         # Filter the fuzzy match results based on the threshold
         filtered_results = self.data_model.fuzzy_match_results[
@@ -301,197 +450,12 @@ class Controller:
                 self.user_interface.categories_tree, selected_categories
             )
         if (
-            self.user_interface.categorization_var.get() == "Multi"
+            self.user_interface.categorization_type.get() == "Multi"
             and selected_responses is not None
         ):
             reselect_treeview_items(
                 self.user_interface.match_results_tree, selected_responses
             )
-
-    ### ----------------------- Main Functionality ----------------------- ###
-    def perform_fuzzy_match(self):
-        if self.data_model.categorized_data.empty:
-            self.user_interface.show_error("No dataset loaded")
-            return
-
-        if self.data_model.categorized_data is not None:
-            ### The below doesn't work because I've set this all up very badly and it would stop you from seeing any response in the entire row if one response in that row is categorized ###
-            # data_to_match = self.data_model.categorized_data[
-            #     self.data_model.categorized_data["Uncategorized"] == 1
-            # ]
-            # data_to_match = data_to_match[self.data_model.response_columns]
-            uncategorized_responses = self.data_model.categorized_dict["Uncategorized"]
-            uncategorized_df = self.data_model.df_preprocessed[
-                self.data_model.df_preprocessed.isin(uncategorized_responses)
-            ].dropna(how="all")
-
-            # Perform fuzzy matching on these uncategorized responses
-            self.data_model.fuzzy_match_results = self.data_model.fuzzy_matching(
-                uncategorized_df, self.user_interface.match_string_entry.get()
-            )
-
-            self.display_match_results()
-
-    def categorize_selected_responses(self):
-        responses, categories = (
-            self.user_interface.selected_match_responses(),
-            self.user_interface.selected_categories(),
-        )
-
-        if not categories or not responses:
-            self.user_interface.show_warning(
-                "Please select both a category and responses to categorize."
-            )
-            return
-
-        if "Missing data" in categories:
-            self.user_interface.show_warning(
-                'You cannot categorize values into "Missing data".'
-            )
-            return
-
-        if "nan" in responses or "missing data" in responses:
-            self.user_interface.show_warning(
-                'You cannot recategorize "NaN" or "Missing data" values',
-            )
-
-        if (
-            self.user_interface.categorization_var.get() == "Single"
-            and len(categories) > 1
-        ):
-            self.user_interface.show_warning(
-                "Only one category can be selected in Single Categorization mode.",
-            )
-            return
-
-        self.categorize_responses(responses, categories)
-
-    def categorize_responses(self, responses, categories):
-        responses -= {"nan", "missing data"}
-        # In categorized_data, each category is a column, with a 1 or 0 for each response
-
-        # Boolean mask for rows in categorized_data containing selected responses
-        mask = pd.Series([False] * len(self.data_model.categorized_data))
-
-        for column in self.data_model.categorized_data[
-            self.data_model.response_columns
-        ]:
-            mask |= self.data_model.categorized_data[column].isin(responses)
-
-        if self.user_interface.categorization_var.get() == "Single":
-            self.data_model.categorized_data.loc[mask, "Uncategorized"] = 0
-            self.data_model.categorized_dict["Uncategorized"] -= responses
-
-        for category in categories:
-            self.data_model.categorized_data.loc[mask, category] = 1
-            self.data_model.categorized_dict[category].update(responses)
-
-        self.display_categories()
-        self.perform_fuzzy_match()
-        self.update_treeview_selections(
-            selected_categories=categories,
-            selected_responses=responses,
-        )
-        self.refresh_category_results_for_currently_displayed_category()
-
-    def recategorize_selected_responses(self):
-        responses, categories = (
-            self.user_interface.selected_category_responses(),
-            self.user_interface.selected_categories(),
-        )
-
-        if not categories or not responses:
-            self.user_interface.show_warning(
-                "Please select both a category and responses in the category results display to categorize.",
-            )
-            return
-
-        if self.data_model.currently_displayed_category == "Missing data":
-            self.user_interface.show_info(
-                'You cannot recategorize "NaN" or "Missing data" values.'
-            )
-            return
-
-        if "Missing data" in categories:
-            self.user_interface.show_warning(
-                'You cannot categorize values into "Missing data".'
-            )
-            return
-
-        if (
-            self.user_interface.categorization_var.get() == "Single"
-            and len(categories) > 1
-        ):
-            self.user_interface.show_warning(
-                "Only one category can be selected in Single Categorization mode.",
-            )
-            return
-
-        self.recategorize_responses(responses, categories)
-
-    def recategorize_responses(self, responses, categories):
-        # In categorized_data, each category is a column, with a 1 or 0 for each response
-
-        # Boolean mask for rows in categorized_data containing selected responses
-        mask = pd.Series([False] * len(self.data_model.categorized_data))
-
-        for column in self.data_model.categorized_data[
-            self.data_model.response_columns
-        ]:
-            mask |= self.data_model.categorized_data[column].isin(responses)
-
-        self.data_model.categorized_data.loc[
-            mask, self.data_model.currently_displayed_category
-        ] = 0
-        self.data_model.categorized_dict[
-            self.data_model.currently_displayed_category
-        ] -= responses
-
-        for category in categories:
-            self.data_model.categorized_data.loc[mask, category] = 1
-            self.data_model.categorized_dict[category].update(responses)
-
-        self.display_categories()
-        self.update_treeview_selections(
-            selected_categories=categories,
-            selected_responses=responses,
-        )
-        self.refresh_category_results_for_currently_displayed_category()
-
-    def categorize_missing_data(self):
-        def is_missing(value):
-            return (
-                pd.isna(value)
-                or value is None
-                or value == "missing data"
-                or value == "nan"
-            )
-
-        all_missing_mask = self.data_model.df_preprocessed.map(is_missing).all(  # type: ignore
-            axis=1
-        )  # Boolean mask where each row is True if all elements are missing
-        self.data_model.categorized_data.loc[all_missing_mask, "Missing data"] = 1
-        self.data_model.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
-
-    def calculate_count(self, responses):
-        return sum(
-            self.data_model.response_counts.get(response, 0) for response in responses
-        )
-
-    def calculate_percentage(self, responses, include_missing_data_bool):
-        count = self.calculate_count(responses)
-
-        total_responses = sum(self.data_model.response_counts.values())
-
-        if not include_missing_data_bool:
-            missing_data_count = self.calculate_count(
-                self.data_model.categorized_dict["Missing data"]
-            )
-            total_responses = (
-                sum(self.data_model.response_counts.values()) - missing_data_count
-            )
-
-        return (count / total_responses) * 100 if total_responses > 0 else 0
 
     ### ----------------------- Project Management ----------------------- ###
     def start_new_project(self):
@@ -576,7 +540,7 @@ class Controller:
         )
 
     def set_categorization_type_label(self):
-        chosen_type = self.user_interface.categorization_var.get()
+        chosen_type = self.user_interface.categorization_type.get()
         self.user_interface.categorization_label.config(
             text="Categorization Type: " + chosen_type
         )
@@ -602,7 +566,7 @@ class Controller:
 
     def populate_data_structures_load_project(self, data_loaded):
         # Convert JSON back to data / set default variable values
-        self.user_interface.categorization_var.set(data_loaded["categorization_var"])
+        self.user_interface.categorization_type.set(data_loaded["categorization_type"])
         self.data_model.df_preprocessed = pd.read_json(
             StringIO(data_loaded["df_preprocessed"])
         )
@@ -697,7 +661,7 @@ class Controller:
                 return None
 
         data_to_save = {
-            "categorization_var": self.user_interface.categorization_var.get(),
+            "categorization_type": self.user_interface.categorization_type.get(),
             "df_preprocessed": self.data_model.df_preprocessed.to_json(),
             "response_columns": self.data_model.response_columns,
             "categorized_data": self.data_model.categorized_data.to_json(),
@@ -723,7 +687,7 @@ class Controller:
             columns=self.data_model.response_columns
         )
 
-        if self.user_interface.categorization_var.get() == "Multi":
+        if self.user_interface.categorization_type.get() == "Multi":
             export_df.drop("Uncategorized", axis=1, inplace=True)
 
         if file_path := self.user_interface.show_save_file_dialog(
