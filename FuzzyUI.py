@@ -360,6 +360,10 @@ class FuzzyUI(tk.Tk):
 
         self.update_treeview_selections(selected_categories=selected_categories)
 
+    def set_categorization_type_label(self):
+        chosen_type = self.categorization_type.get()
+        self.categorization_label.config(text="Categorization Type: " + chosen_type)
+
     ### ----------------------- Popups ----------------------- ###
     def create_popup(self, title: str) -> tk.Toplevel:
         popup = tk.Toplevel(self)

@@ -1,11 +1,14 @@
 import re
 from thefuzz import fuzz
 import pandas as pd
+from io import StringIO
 from typing import Any
+from FileManager import FileManager
 
 
 class DataModel:
-    def __init__(self) -> None:
+    def __init__(self, file_manager: FileManager) -> None:
+        self.file_manager = file_manager
         self.initialize_data_structures()  # Empty/default variables.
 
     def initialize_data_structures(self):
@@ -23,6 +26,7 @@ class DataModel:
 
         # categorized_data will contain a column for each, with a 1 or 0 for each response
 
+    ### ----------------------- Main functionality ----------------------- ###
     def perform_fuzzy_match(self, string_to_match):
         if self.categorized_data.empty or self.categorized_data is None:
             message = "No dataset loaded"
@@ -130,6 +134,148 @@ class DataModel:
             del self.categorized_dict[category]
             self.categorized_data.drop(columns=category, inplace=True)
 
+    ### ----------------------- Project Management ----------------------- ###
+    def file_import_on_new_project(self, file_path: str):
+        self.df = self.file_manager.read_csv_to_dataframe(file_path)
+        if self.df.empty or self.df.shape[1] < 2:
+            return (
+                False,
+                "Dataset is empty or does not contain enough columns.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses",
+            )
+        return True, "File imported successfully"
+
+    def populate_data_structures_on_new_project(self):
+        self.df_preprocessed = pd.DataFrame(
+            self.df.iloc[:, 1:].map(
+                self.preprocess_text  # , na_action="ignore"
+            )  # type: ignore
+        )
+
+        # categories_display is dict of categories to the deduplicated set of all responses
+        df_series = self.df_preprocessed.stack().reset_index(drop=True)
+        self.categorized_dict = {
+            "Uncategorized": set(df_series) - {"nan", "missing data"},
+            "Missing data": {"nan", "missing data"},  # default
+        }
+
+        self.response_counts = df_series.value_counts().to_dict()
+
+        uuids = self.df.iloc[:, 0]
+        self.response_columns = list(self.df_preprocessed.columns)
+
+        # categorized_data carries all response columns and all categories until export where response columns are dropped
+        # In categorized_data, each category is a column, with a 1 or 0 for each response
+        self.categorized_data = pd.concat([uuids, self.df_preprocessed], axis=1)
+        self.categorized_data["Uncategorized"] = 1  # Everything starts uncategorized
+        self.categorized_data["Missing data"] = 0
+        self.categorize_missing_data()
+
+        self.currently_displayed_category = "Uncategorized"  # Default
+
+        self.fuzzy_match_results = pd.DataFrame(
+            columns=["response", "score"]
+        )  # Default
+
+    def file_import_on_load_project(self, file_path: str):
+        self.data_loaded = self.file_manager.load_json(file_path)
+
+    def populate_data_structures_on_load_project(self):
+        # Convert JSON back to data / set default variable values
+        categorization_type = self.data_loaded["categorization_type"]
+        self.df_preprocessed = pd.read_json(
+            StringIO(self.data_loaded["df_preprocessed"])
+        )
+        self.response_columns = self.data_loaded["response_columns"]
+        self.categorized_data = pd.read_json(
+            StringIO(self.data_loaded["categorized_data"])
+        )
+        self.response_counts = self.data_loaded["response_counts"]
+        self.categorized_dict = {
+            k: set(v) for k, v in self.data_loaded["categories_display"].items()
+        }
+        self.currently_displayed_category = "Uncategorized"  # Default
+        self.fuzzy_match_results = pd.DataFrame(
+            columns=["response", "score"]
+        )  # Default
+        is_including_missing_data = self.data_loaded["is_including_missing_data"]
+
+        return categorization_type, is_including_missing_data
+
+    def file_import_on_append_data(self, file_path):
+        new_df = self.file_manager.read_csv_to_dataframe(file_path)
+
+        if new_df.empty or new_df.shape[1] != self.df.shape[1]:
+            return (
+                False,
+                "Dataset is empty or does not have the same shape as the current dataset.\n\nThe dataset should contain UUIDs in the first column, and the subsequent columns should contain the same number of response columns as the currently loaded data.",
+            )
+
+        self.df = pd.concat([self.df, new_df], ignore_index=True)
+        return True, "Data appended successfully"
+
+    def populate_data_structures_on_append_data(self):
+        old_data_size = len(self.df_preprocessed)
+        new_df_preprocessed = pd.DataFrame(
+            self.df.iloc[old_data_size:, 1:].map(self.preprocess_text)  # type: ignore
+        )
+        self.df_preprocessed = pd.concat([self.df_preprocessed, new_df_preprocessed])
+
+        # categories_display is dict of categories to the deduplicated set of all responses
+        new_df_series = new_df_preprocessed.stack().reset_index(drop=True)
+        df_series = self.df_preprocessed.stack().reset_index(drop=True)
+        self.response_counts = df_series.value_counts().to_dict()
+        self.categorized_dict["Uncategorized"].update(
+            set(new_df_series) - {"nan", "missing data"}
+        )
+
+        new_categorized_data = pd.concat(
+            [self.df.iloc[old_data_size:, 0], new_df_preprocessed], axis=1
+        )
+        self.categorized_data = pd.concat(
+            [self.categorized_data, new_categorized_data], axis=0
+        )
+
+        self.categorized_data.loc[
+            old_data_size:, "Uncategorized"
+        ] = 1  # Everything new starts uncategorized
+        self.categorized_data.loc[old_data_size:, "Missing data"] = 0
+        self.categorize_missing_data()
+
+        self.currently_displayed_category = "Uncategorized"  # Default
+        self.fuzzy_match_results = pd.DataFrame(
+            columns=["response", "score"]
+        )  # Default
+
+    def save_project(
+        self, file_path: str, user_interface_variables_to_add: dict[str, Any]
+    ):
+        data_to_save = {
+            "df_preprocessed": self.df_preprocessed.to_json(),
+            "response_columns": self.response_columns,
+            "categorized_data": self.categorized_data.to_json(),
+            "response_counts": self.response_counts,
+            "categories_display": {
+                k: list(v) for k, v in self.categorized_dict.items()
+            },
+        }
+        data_to_save.update(user_interface_variables_to_add)
+
+        # Pandas NAType is not JSON serializable
+        def _none_handler(o):
+            if pd.isna(o):
+                return None
+
+        self.file_manager.save_data_to_json(file_path, data_to_save, _none_handler)
+
+    def export_data_to_csv(self, file_path, categorization_type):
+        # Exported data needs only UUIDs and category binaries to be able to be imported into Q.
+        self.export_df = self.categorized_data.drop(columns=self.response_columns)
+        if categorization_type == "Multi":
+            self.export_df.drop("Uncategorized", axis=1, inplace=True)
+
+        self.file_manager.export_dataframe_to_csv(file_path, self.export_df)
+
+    ### ----------------------- Helper functions ----------------------- ###
     def get_responses_and_counts(self, category: str):
         responses_and_counts = [
             (response, self.response_counts.get(response, 0))

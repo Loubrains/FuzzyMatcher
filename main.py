@@ -5,10 +5,10 @@ from FileManager import FileManager
 
 
 def main():
-    data_model = DataModel()
     file_manager = FileManager()
+    data_model = DataModel(file_manager)
     user_interface = FuzzyUI()
-    controller = Controller(user_interface, data_model, file_manager)
+    controller = Controller(user_interface, data_model)
     controller.run()
 
 
