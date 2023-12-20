@@ -71,6 +71,21 @@ class DataModel:
             self.categorized_data.loc[mask, category] = 1
             self.categorized_dict[category].update(responses)
 
+    def categorize_missing_data(self):
+        def is_missing(value):
+            return (
+                pd.isna(value)
+                or value is None
+                or value == "missing data"
+                or value == "nan"
+            )
+
+        all_missing_mask = self.df_preprocessed.map(is_missing).all(  # type: ignore
+            axis=1
+        )  # Boolean mask where each row is True if all elements are missing
+        self.categorized_data.loc[all_missing_mask, "Missing data"] = 1
+        self.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
+
     def create_category(self, new_category: str):
         if not new_category:
             return False, "Category name cannot be empty"
@@ -115,6 +130,51 @@ class DataModel:
             del self.categorized_dict[category]
             self.categorized_data.drop(columns=category, inplace=True)
 
+    def get_responses_and_counts(self, category: str):
+        responses_and_counts = [
+            (response, self.response_counts.get(response, 0))
+            for response in self.categorized_dict[category]
+        ]
+        return sorted(
+            responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0])
+        )  # Sort first by score and then alphabetically
+
+    def format_categories_metrics(
+        self, is_including_missing_data: bool
+    ) -> list[tuple[str, str, str]]:
+        formatted_categories_metrics = []
+
+        for category, responses in self.categorized_dict.items():
+            count = self.calculate_count(responses)
+            if not is_including_missing_data and category == "Missing data":
+                percentage_str = ""
+            else:
+                percentage = self.calculate_percentage(
+                    responses, is_including_missing_data
+                )
+                percentage_str = f"{percentage:.2f}%"
+            formatted_categories_metrics.append((category, count, percentage_str))
+
+        return formatted_categories_metrics
+
+    def calculate_count(self, responses: set[str]) -> int:
+        return sum(self.response_counts.get(response, 0) for response in responses)
+
+    def calculate_percentage(
+        self, responses: set[str], is_including_missing_data: bool
+    ) -> float:
+        count = self.calculate_count(responses)
+
+        total_responses = sum(self.response_counts.values())
+
+        if not is_including_missing_data:
+            missing_data_count = self.calculate_count(
+                self.categorized_dict["Missing data"]
+            )
+            total_responses = sum(self.response_counts.values()) - missing_data_count
+
+        return (count / total_responses) * 100 if total_responses > 0 else 0
+
     def preprocess_text(self, text: Any) -> str:
         text = str(text).lower()
         text = re.sub(
@@ -124,7 +184,7 @@ class DataModel:
         text = text.strip()
         return text
 
-    def fuzzy_matching(self, df_preprocessed, match_string):
+    def fuzzy_matching(self, df_preprocessed, match_string) -> pd.DataFrame:
         def _fuzzy_match(element):
             return fuzz.WRatio(
                 match_string, str(element)
@@ -137,6 +197,23 @@ class DataModel:
                 score = _fuzzy_match(response)
                 results.append({"response": response, "score": score})
 
-        df_result = pd.DataFrame(results)
+        return pd.DataFrame(results)
 
-        return df_result
+    def process_fuzzy_match_results(self, threshold_value: float) -> pd.DataFrame:
+        # Filter the fuzzy match results based on the threshold
+        filtered_results = self.fuzzy_match_results[
+            self.fuzzy_match_results["score"] >= threshold_value
+        ]
+
+        aggregated_results = (
+            filtered_results.groupby("response")
+            .agg(
+                score=pd.NamedAgg(column="score", aggfunc="max"),
+                count=pd.NamedAgg(column="response", aggfunc="count"),
+            )
+            .reset_index()
+        )
+
+        return aggregated_results.sort_values(
+            by=["score", "count"], ascending=[False, False]
+        )

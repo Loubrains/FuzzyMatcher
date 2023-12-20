@@ -1,6 +1,11 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
+import ctypes
+import pandas as pd
+
+# Set DPI awareness
+ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
 class ScreenCoords:
@@ -28,7 +33,7 @@ class FuzzyUI(tk.Tk):
 
         self.title("Fuzzy Matcher")
 
-        self.include_missing_data_bool = tk.BooleanVar(value=False)
+        self.is_including_missing_data = tk.BooleanVar(value=False)
         self.categorization_type = tk.StringVar(value="Single")
 
         # Setup the UI
@@ -45,7 +50,7 @@ class FuzzyUI(tk.Tk):
         # Bind resizing functions to window size change
         self.bind("<Configure>", self.on_window_resize)
 
-    ### ----------------------- UI Setup ----------------------- ###
+    ### ----------------------- Setup ----------------------- ###
     def initialize_window(self) -> None:
         self.geometry(
             f"{self.screen_coords.window_width}x{self.screen_coords.window_height}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
@@ -158,7 +163,7 @@ class FuzzyUI(tk.Tk):
         self.include_missing_data_checkbox = tk.Checkbutton(
             self.top_right_frame,
             text="Base to total",
-            variable=self.include_missing_data_bool,
+            variable=self.is_including_missing_data,
         )
 
         # Top middle frame widgets (categories treeview)
@@ -323,7 +328,40 @@ class FuzzyUI(tk.Tk):
                         # If there is only one column, it should take all the space
                         treeview.column(treeview["columns"][0], width=treeview_width)
 
-    def create_popup(self, title: str):
+    ### ----------------------- Display Management ----------------------- ###
+    def display_match_results(self, processed_results: pd.DataFrame):
+        for item in self.match_results_tree.get_children():
+            self.match_results_tree.delete(item)
+
+        for _, row in processed_results.iterrows():
+            self.match_results_tree.insert(
+                "", "end", values=(row["response"], row["score"], row["count"])
+            )
+
+    def display_category_results(self, category: str, responses_and_counts):
+        for item in self.category_results_tree.get_children():
+            self.category_results_tree.delete(item)
+
+        for response, count in responses_and_counts:
+            self.category_results_tree.insert("", "end", values=(response, count))
+
+        self.category_results_label.config(text=f"Results for Category: {category}")
+
+    def display_categories(self, formatted_categories_metrics):
+        selected_categories = self.selected_categories()
+
+        for item in self.categories_tree.get_children():
+            self.categories_tree.delete(item)
+
+        for category, count, percentage_str in formatted_categories_metrics:
+            self.categories_tree.insert(
+                "", "end", values=(category, count, percentage_str)
+            )
+
+        self.update_treeview_selections(selected_categories=selected_categories)
+
+    ### ----------------------- Popups ----------------------- ###
+    def create_popup(self, title: str) -> tk.Toplevel:
         popup = tk.Toplevel(self)
         popup.title(title)
 
@@ -383,24 +421,7 @@ class FuzzyUI(tk.Tk):
         multi_categorization_rb.pack()
         self.confirm_button.pack()
 
-    def selected_categories(self):
-        return {
-            self.categories_tree.item(item_id)["values"][0]
-            for item_id in self.categories_tree.selection()
-        }
-
-    def selected_match_responses(self):
-        return {
-            self.match_results_tree.item(item_id)["values"][0]
-            for item_id in self.match_results_tree.selection()
-        }
-
-    def selected_category_responses(self):
-        return {
-            self.category_results_tree.item(item_id)["values"][0]
-            for item_id in self.category_results_tree.selection()
-        }
-
+    ### ----------------------- Dialog Boxes ----------------------- ###
     def show_open_file_dialog(self, *args, **kwargs) -> str:
         return filedialog.askopenfilename(*args, **kwargs)
 
@@ -418,3 +439,36 @@ class FuzzyUI(tk.Tk):
 
     def show_warning(self, message) -> None:
         messagebox.showwarning("Warning", message)
+
+    ### ----------------------- Treeview Selections ----------------------- ###
+    def selected_categories(self) -> set[str]:
+        return {
+            self.categories_tree.item(item_id)["values"][0]
+            for item_id in self.categories_tree.selection()
+        }
+
+    def selected_match_responses(self) -> set[str]:
+        return {
+            self.match_results_tree.item(item_id)["values"][0]
+            for item_id in self.match_results_tree.selection()
+        }
+
+    def selected_category_responses(self) -> set[str]:
+        return {
+            self.category_results_tree.item(item_id)["values"][0]
+            for item_id in self.category_results_tree.selection()
+        }
+
+    def update_treeview_selections(
+        self, selected_categories=None, selected_responses=None
+    ):
+        def reselect_treeview_items(treeview, values):
+            for item in treeview.get_children():
+                if treeview.item(item)["values"][0] in values:
+                    treeview.selection_add(item)
+
+        # Re-select categories and if multi-categorization re-select match results
+        if selected_categories is not None:
+            reselect_treeview_items(self.categories_tree, selected_categories)
+        if self.categorization_type.get() == "Multi" and selected_responses is not None:
+            reselect_treeview_items(self.match_results_tree, selected_responses)

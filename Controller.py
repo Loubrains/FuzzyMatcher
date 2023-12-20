@@ -1,12 +1,8 @@
-import ctypes
 import pandas as pd
 from io import StringIO
 from FuzzyUI import FuzzyUI
 from DataModel import DataModel
 from FileManager import FileManager
-
-# Set DPI awareness
-ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
 # Main application class
@@ -24,7 +20,7 @@ class Controller:
         self.user_interface.after(100, self.display_categories)
         self.user_interface.after(
             100,
-            self.refresh_category_results_for_currently_displayed_category,
+            self.display_category_results,
         )
 
     def setup_UI_bindings(self):
@@ -42,7 +38,7 @@ class Controller:
         )
         self.user_interface.display_category_results_for_selected_category_button.bind(
             "<Button-1>",
-            lambda event: self.display_category_results_for_selected_category(),
+            lambda event: self.on_display_selected_category_results(),
         )
         self.user_interface.recategorize_selected_responses_button.bind(
             "<Button-1>", lambda event: self.recategorize_selected_responses()
@@ -59,7 +55,7 @@ class Controller:
         self.user_interface.delete_categories_button.bind(
             "<Button-1>", lambda event: self.delete_categories()
         )
-        self.user_interface.include_missing_data_bool.trace_add(
+        self.user_interface.is_including_missing_data.trace_add(
             "write", lambda *args: self.display_categories()
         )  # Using trace_add() to make sure it calls the command only after setting the bool value.
         self.user_interface.new_project_button.bind(
@@ -123,7 +119,7 @@ class Controller:
             selected_categories=categories,
             selected_responses=responses,
         )
-        self.refresh_category_results_for_currently_displayed_category()
+        self.display_category_results()
 
     def recategorize_selected_responses(self):
         responses, categories = (
@@ -164,42 +160,7 @@ class Controller:
             selected_categories=categories,
             selected_responses=responses,
         )
-        self.refresh_category_results_for_currently_displayed_category()
-
-    def categorize_missing_data(self):
-        def is_missing(value):
-            return (
-                pd.isna(value)
-                or value is None
-                or value == "missing data"
-                or value == "nan"
-            )
-
-        all_missing_mask = self.data_model.df_preprocessed.map(is_missing).all(  # type: ignore
-            axis=1
-        )  # Boolean mask where each row is True if all elements are missing
-        self.data_model.categorized_data.loc[all_missing_mask, "Missing data"] = 1
-        self.data_model.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
-
-    def calculate_count(self, responses):
-        return sum(
-            self.data_model.response_counts.get(response, 0) for response in responses
-        )
-
-    def calculate_percentage(self, responses, include_missing_data_bool):
-        count = self.calculate_count(responses)
-
-        total_responses = sum(self.data_model.response_counts.values())
-
-        if not include_missing_data_bool:
-            missing_data_count = self.calculate_count(
-                self.data_model.categorized_dict["Missing data"]
-            )
-            total_responses = (
-                sum(self.data_model.response_counts.values()) - missing_data_count
-            )
-
-        return (count / total_responses) * 100 if total_responses > 0 else 0
+        self.display_category_results()
 
     def create_category(self):
         new_category = self.user_interface.new_category_entry.get()
@@ -255,7 +216,7 @@ class Controller:
         if success:
             self.user_interface.rename_dialog_popup.destroy()
             self.display_categories()
-            self.refresh_category_results_for_currently_displayed_category()
+            self.display_category_results()
         else:
             self.user_interface.show_error(message)
 
@@ -282,139 +243,51 @@ class Controller:
                 selected_categories, self.user_interface.categorization_type.get()
             )
             self.display_categories()
-            self.refresh_category_results_for_currently_displayed_category()
+            self.display_category_results()
 
     ### ----------------------- UI management ----------------------- ###
     def display_match_results(self):
-        # Filter the fuzzy match results based on the threshold
-        filtered_results = self.data_model.fuzzy_match_results[
-            self.data_model.fuzzy_match_results["score"]
-            >= self.user_interface.threshold_slider.get()
-        ]
-
-        aggregated_results = (
-            filtered_results.groupby("response")
-            .agg(
-                score=pd.NamedAgg(column="score", aggfunc="max"),
-                count=pd.NamedAgg(column="response", aggfunc="count"),
-            )
-            .reset_index()
+        processed_results = self.data_model.process_fuzzy_match_results(
+            self.user_interface.threshold_slider.get()
         )
+        self.user_interface.display_match_results(processed_results)
 
-        sorted_results = aggregated_results.sort_values(
-            by=["score", "count"], ascending=[False, False]
-        )
-
-        for item in self.user_interface.match_results_tree.get_children():
-            self.user_interface.match_results_tree.delete(item)
-
-        for _, row in sorted_results.iterrows():
-            self.user_interface.match_results_tree.insert(
-                "", "end", values=(row["response"], row["score"], row["count"])
-            )
-
-    def display_category_results_for_selected_category(self):
+    def on_display_selected_category_results(self):
         selected_categories = self.user_interface.categories_tree.selection()
 
-        if len(selected_categories) == 1:
-            # Get the selected category as a string
-            category = self.user_interface.categories_tree.item(selected_categories[0])[
-                "values"
-            ][0]
-
-            self.display_category_results(category)
-
-            # Assign variable for currently displayed category
-            self.data_model.currently_displayed_category = (
-                category  # This is now the currently displayed category
-            )
-
-        elif len(selected_categories) > 1:
-            self.user_interface.show_warning("Please select only one category")
-
-        else:
+        if len(selected_categories) == 0:
             self.user_interface.show_error("No category selected")
-
-    def refresh_category_results_for_currently_displayed_category(self):
-        category = self.data_model.currently_displayed_category
-
-        if not category:
-            self.user_interface.show_error("No category results currently displayed")
             return
 
-        self.display_category_results(category)
+        if len(selected_categories) > 1:
+            self.user_interface.show_warning("Please select only one category")
 
-    def display_category_results(self, category):
-        for item in self.user_interface.category_results_tree.get_children():
-            self.user_interface.category_results_tree.delete(item)
+        # Get the selected category as a string
+        category = self.user_interface.categories_tree.item(selected_categories[0])[
+            "values"
+        ][0]
+        # Assign new currently displayed category
+        self.data_model.currently_displayed_category = category
+        self.display_category_results()
 
-        if category in self.data_model.categorized_dict:
-            responses_and_counts = [
-                (response, self.data_model.response_counts.get(response, 0))
-                for response in self.data_model.categorized_dict[category]
-            ]
-            sorted_responses = sorted(
-                responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0])
-            )  # Sort first by score and then alphabetically
-
-            for response, count in sorted_responses:
-                self.user_interface.category_results_tree.insert(
-                    "", "end", values=(response, count)
-                )
-
-        self.user_interface.category_results_label.config(
-            text=f"Results for Category: {category}"
-        )
+    def display_category_results(self):
+        category = self.data_model.currently_displayed_category
+        responses_and_counts = self.data_model.get_responses_and_counts(category)
+        self.user_interface.display_category_results(category, responses_and_counts)
 
     def display_categories(self):
-        selected_categories = self.user_interface.selected_categories()
-        include_missing_data_bool = self.user_interface.include_missing_data_bool.get()
-
-        for item in self.user_interface.categories_tree.get_children():
-            self.user_interface.categories_tree.delete(item)
-
-        for category, responses in self.data_model.categorized_dict.items():
-            count = self.calculate_count(responses)
-            if not include_missing_data_bool and category == "Missing data":
-                percentage_str = ""
-            else:
-                percentage = self.calculate_percentage(
-                    responses, include_missing_data_bool
-                )
-                percentage_str = f"{percentage:.2f}%"
-            self.user_interface.categories_tree.insert(
-                "", "end", values=(category, count, percentage_str)
-            )
-
-        self.update_treeview_selections(selected_categories=selected_categories)
-
-    def update_treeview_selections(
-        self, selected_categories=None, selected_responses=None
-    ):
-        def reselect_treeview_items(treeview, values):
-            for item in treeview.get_children():
-                if treeview.item(item)["values"][0] in values:
-                    treeview.selection_add(item)
-
-        # Re-select categories and if multi-categorization re-select match results
-        if selected_categories is not None:
-            reselect_treeview_items(
-                self.user_interface.categories_tree, selected_categories
-            )
-        if (
-            self.user_interface.categorization_type.get() == "Multi"
-            and selected_responses is not None
-        ):
-            reselect_treeview_items(
-                self.user_interface.match_results_tree, selected_responses
-            )
+        is_including_missing_data = self.user_interface.is_including_missing_data.get()
+        formatted_categories_metrics = self.data_model.format_categories_metrics(
+            is_including_missing_data
+        )
+        self.user_interface.display_categories(formatted_categories_metrics)
 
     ### ----------------------- Project Management ----------------------- ###
     def start_new_project(self):
         if self.file_import_new_project():
             self.populate_data_structures_new_project()
             self.display_categories()
-            self.refresh_category_results_for_currently_displayed_category()
+            self.display_category_results()
             self.display_match_results()
             self.user_interface.show_info("Data imported successfully")
             self.ask_categorization_type()
@@ -465,14 +338,14 @@ class Controller:
             "Uncategorized"
         ] = 1  # Everything starts uncategorized
         self.data_model.categorized_data["Missing data"] = 0
-        self.categorize_missing_data()
+        self.data_model.categorize_missing_data()
 
         self.data_model.currently_displayed_category = "Uncategorized"  # Default
 
         self.data_model.fuzzy_match_results = pd.DataFrame(
             columns=["response", "score"]
         )  # Default
-        self.user_interface.include_missing_data_bool.set(False)
+        self.user_interface.is_including_missing_data.set(False)
 
     def ask_categorization_type(self):
         # Create popup
@@ -502,7 +375,7 @@ class Controller:
             self.populate_data_structures_load_project(data_loaded)
             self.set_categorization_type_label()
             self.display_match_results()
-            self.refresh_category_results_for_currently_displayed_category()
+            self.display_category_results()
             self.display_categories()
             self.user_interface.show_info("Project loaded successfully")
 
@@ -534,8 +407,8 @@ class Controller:
         self.data_model.fuzzy_match_results = pd.DataFrame(
             columns=["response", "score"]
         )  # Default
-        self.user_interface.include_missing_data_bool.set(
-            data_loaded["include_missing_data_bool"]
+        self.user_interface.is_including_missing_data.set(
+            data_loaded["is_including_missing_data"]
         )
 
         # In categorized_data, each category is a column, with a 1 or 0 for each response
@@ -544,7 +417,7 @@ class Controller:
         if self.file_import_append_data():
             self.populate_data_structures_append_data()  # Reinitialize with new data
             self.display_categories()
-            self.refresh_category_results_for_currently_displayed_category()
+            self.display_category_results()
             self.display_match_results()
             self.user_interface.show_info("Data appended successfully")
 
@@ -599,7 +472,7 @@ class Controller:
             old_data_size:, "Uncategorized"
         ] = 1  # Everything starts uncategorized
         self.data_model.categorized_data.loc[old_data_size:, "Missing data"] = 0
-        self.categorize_missing_data()
+        self.data_model.categorize_missing_data()
 
         self.data_model.currently_displayed_category = "Uncategorized"  # Default
         self.data_model.fuzzy_match_results = pd.DataFrame(
@@ -621,7 +494,7 @@ class Controller:
             "categories_display": {
                 k: list(v) for k, v in self.data_model.categorized_dict.items()
             },
-            "include_missing_data_bool": self.user_interface.include_missing_data_bool.get(),
+            "is_including_missing_data": self.user_interface.is_including_missing_data.get(),
         }
 
         if file_path := self.user_interface.show_save_file_dialog(
