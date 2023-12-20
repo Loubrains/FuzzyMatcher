@@ -37,7 +37,8 @@ To run the app, make sure the latest version of python is installed and all the 
 - Documentation (e.g. docstrings)
 - User guide for the end user
 - Environment Setup Script
-- Unit tests and GUI tests
+- Unit tests
 - Logging
-- Dependancy update tool
-- Dockerfile
+- GUI tests?
+- Dependancy update tool?
+- Dockerfile?
