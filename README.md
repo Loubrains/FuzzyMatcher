@@ -20,10 +20,10 @@ To run the app, make sure the latest version of python is installed and all the 
 
 ### Functionality:
 
-- Ability to switch back to multi from single (spit warning "can't go back").
+- Ability to switch back to multi from single (spit warning "can't go back")
 - Ability to sort results by other dimensions
-- Pass in a list of category names?
-- Might need to handle different formattings of missing data coming from different sources (Q, excel, SPSS, etc), ideally seperate from people responding with things like "N/A" etc.
+- Ability to pass in a list of category names?
+- Might need to handle different formattings of missing data coming from different sources (Q, excel, SPSS, etc), ideally seperate from people responding with things like "N/A" etc
 
 ### UI:
 
@@ -31,9 +31,13 @@ To run the app, make sure the latest version of python is installed and all the 
 - Tooltips (for what exactly?)
 - Make buttons size properly (all the same rectangles)
 
-### Comments and documentation
-
 ### Future:
 
-- Unit tests.
-- Maybe an auto mode? i.e. auto-match and categorize for each category in the list, for a pre-defined threshold.
+- Maybe an auto mode? i.e. auto-match and categorize for each category in the list, for a pre-defined threshold
+- Documentation (e.g. docstrings)
+- User guide for the end user
+- Environment Setup Script
+- Unit tests and GUI tests
+- Logging
+- Dependancy update tool
+- Dockerfile
