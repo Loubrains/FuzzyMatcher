@@ -6,6 +6,10 @@ The context for this is specifically for speeding up the categorization of open-
 
 **NOTE: THIS PROGRAM ASSUMES THAT THE FIRST COLUMN OF THE IMPORTED DATA CONTAINS UUIDS AND THE SUBSEQUENT COLUMNS CONTAIN RESPONSES.**
 
+# Running the app
+
+To run the app, make sure the latest version of python is installed and all the required libraries are installed, and then run main.py
+
 # Requirements
 
 - tkinter
@@ -16,6 +20,7 @@ The context for this is specifically for speeding up the categorization of open-
 - thefuzz
 - json
 - io
+- typing
 
 # To do
 
