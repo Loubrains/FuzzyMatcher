@@ -89,10 +89,9 @@ class Controller:
         self.display_match_results()
 
     def categorize_selected_responses(self):
-        responses, categories = (
-            self.user_interface.selected_match_responses(),
-            self.user_interface.selected_categories(),
-        )
+        responses = self.user_interface.selected_match_responses()
+        categories = self.user_interface.selected_categories()
+        categorization_type = self.user_interface.categorization_type.get()
 
         if not categories or not responses:
             self.user_interface.show_warning(
@@ -111,37 +110,13 @@ class Controller:
                 'You cannot recategorize "NaN" or "Missing data" values',
             )
 
-        if (
-            self.user_interface.categorization_type.get() == "Single"
-            and len(categories) > 1
-        ):
+        if categorization_type == "Single" and len(categories) > 1:
             self.user_interface.show_warning(
                 "Only one category can be selected in Single Categorization mode.",
             )
             return
 
-        self.categorize_responses(responses, categories)
-
-    def categorize_responses(self, responses, categories):
-        responses -= {"nan", "missing data"}
-        # In categorized_data, each category is a column, with a 1 or 0 for each response
-
-        # Boolean mask for rows in categorized_data containing selected responses
-        mask = pd.Series([False] * len(self.data_model.categorized_data))
-
-        for column in self.data_model.categorized_data[
-            self.data_model.response_columns
-        ]:
-            mask |= self.data_model.categorized_data[column].isin(responses)
-
-        if self.user_interface.categorization_type.get() == "Single":
-            self.data_model.categorized_data.loc[mask, "Uncategorized"] = 0
-            self.data_model.categorized_dict["Uncategorized"] -= responses
-
-        for category in categories:
-            self.data_model.categorized_data.loc[mask, category] = 1
-            self.data_model.categorized_dict[category].update(responses)
-
+        self.data_model.categorize_responses(responses, categories, categorization_type)
         self.display_categories()
         self.perform_fuzzy_match()
         self.update_treeview_selections(
@@ -183,30 +158,7 @@ class Controller:
             )
             return
 
-        self.recategorize_responses(responses, categories)
-
-    def recategorize_responses(self, responses, categories):
-        # In categorized_data, each category is a column, with a 1 or 0 for each response
-
-        # Boolean mask for rows in categorized_data containing selected responses
-        mask = pd.Series([False] * len(self.data_model.categorized_data))
-
-        for column in self.data_model.categorized_data[
-            self.data_model.response_columns
-        ]:
-            mask |= self.data_model.categorized_data[column].isin(responses)
-
-        self.data_model.categorized_data.loc[
-            mask, self.data_model.currently_displayed_category
-        ] = 0
-        self.data_model.categorized_dict[
-            self.data_model.currently_displayed_category
-        ] -= responses
-
-        for category in categories:
-            self.data_model.categorized_data.loc[mask, category] = 1
-            self.data_model.categorized_dict[category].update(responses)
-
+        self.data_model.recategorize_responses(responses, categories)
         self.display_categories()
         self.update_treeview_selections(
             selected_categories=categories,

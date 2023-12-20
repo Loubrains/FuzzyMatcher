@@ -40,6 +40,37 @@ class DataModel:
         message = "Successfully performed fuzzy match"
         return True, message
 
+    def categorize_responses(
+        self, responses: set[str], categories: set[str], categorization_type: str
+    ):
+        # Boolean mask for rows in categorized_data containing selected responses
+        mask = pd.Series([False] * len(self.categorized_data))
+
+        for column in self.categorized_data[self.response_columns]:
+            mask |= self.categorized_data[column].isin(responses)
+
+        if categorization_type == "Single":
+            self.categorized_data.loc[mask, "Uncategorized"] = 0
+            self.categorized_dict["Uncategorized"] -= responses
+
+        for category in categories:
+            self.categorized_data.loc[mask, category] = 1
+            self.categorized_dict[category].update(responses)
+
+    def recategorize_responses(self, responses: set[str], categories: set[str]):
+        # Boolean mask for rows in categorized_data containing selected responses
+        mask = pd.Series([False] * len(self.categorized_data))
+
+        for column in self.categorized_data[self.response_columns]:
+            mask |= self.categorized_data[column].isin(responses)
+
+        self.categorized_data.loc[mask, self.currently_displayed_category] = 0
+        self.categorized_dict[self.currently_displayed_category] -= responses
+
+        for category in categories:
+            self.categorized_data.loc[mask, category] = 1
+            self.categorized_dict[category].update(responses)
+
     def create_category(self, new_category: str):
         if not new_category:
             return False, "Category name cannot be empty"
@@ -65,7 +96,9 @@ class DataModel:
         message = "Category renamed successfully"
         return True, message
 
-    def delete_categories(self, categories_to_delete: set[str], categorization_type):
+    def delete_categories(
+        self, categories_to_delete: set[str], categorization_type: str
+    ):
         for category in categories_to_delete:
             if (
                 categorization_type == "Single"
