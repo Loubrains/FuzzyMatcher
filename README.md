@@ -12,15 +12,9 @@ To run the app, make sure the latest version of python is installed and all the 
 
 # Requirements
 
-- tkinter
-- ctypes
 - pandas
-- re
 - chardet
 - thefuzz
-- json
-- io
-- typing
 
 # To do
 
@@ -41,6 +35,5 @@ To run the app, make sure the latest version of python is installed and all the 
 
 ### Future:
 
-- Separate logic from UI.
 - Unit tests.
 - Maybe an auto mode? i.e. auto-match and categorize for each category in the list, for a pre-defined threshold.
