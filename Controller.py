@@ -115,7 +115,7 @@ class Controller:
         self.data_model.categorize_responses(responses, categories, categorization_type)
         self.display_categories()
         self.perform_fuzzy_match()
-        self.update_treeview_selections(
+        self.user_interface.update_treeview_selections(
             selected_categories=categories,
             selected_responses=responses,
         )
@@ -156,7 +156,7 @@ class Controller:
 
         self.data_model.recategorize_responses(responses, categories)
         self.display_categories()
-        self.update_treeview_selections(
+        self.user_interface.update_treeview_selections(
             selected_categories=categories,
             selected_responses=responses,
         )
