@@ -151,18 +151,15 @@ class DataModel:
             )  # type: ignore
         )
 
-        # categories_display is dict of categories to the deduplicated set of all responses
+        # categories_display is dict of categories containig the deduplicated set of all responses
         df_series = self.df_preprocessed.stack().reset_index(drop=True)
         self.categorized_dict = {
             "Uncategorized": set(df_series) - {"nan", "missing data"},
             "Missing data": {"nan", "missing data"},  # default
         }
-
         self.response_counts = df_series.value_counts().to_dict()
-
         uuids = self.df.iloc[:, 0]
         self.response_columns = list(self.df_preprocessed.columns)
-
         # categorized_data carries all response columns and all categories until export where response columns are dropped
         # In categorized_data, each category is a column, with a 1 or 0 for each response
         self.categorized_data = pd.concat([uuids, self.df_preprocessed], axis=1)
@@ -171,7 +168,6 @@ class DataModel:
         self.categorize_missing_data()
 
         self.currently_displayed_category = "Uncategorized"  # Default
-
         self.fuzzy_match_results = pd.DataFrame(
             columns=["response", "score"]
         )  # Default

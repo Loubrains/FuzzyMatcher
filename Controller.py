@@ -243,9 +243,7 @@ class Controller:
     def new_project(self):
         if self.file_import_on_new_project():
             self.populate_data_structures_on_new_project()
-            self.display_match_results()
-            self.display_category_results()
-            self.display_categories()
+            self.refresh_treeviews()
             self.user_interface.show_info("Data imported successfully")
             self.ask_categorization_type()
 
@@ -288,9 +286,7 @@ class Controller:
         if self.file_import_on_load_project():
             self.populate_data_structures_on_load_project()
             self.user_interface.set_categorization_type_label()
-            self.display_match_results()
-            self.display_category_results()
-            self.display_categories()
+            self.refresh_treeviews()
             self.user_interface.show_info("Project loaded successfully")
 
     def file_import_on_load_project(self):
@@ -315,9 +311,7 @@ class Controller:
     def append_data_behaviour(self):
         if self.file_import_on_append_data():
             self.data_model.populate_data_structures_on_append_data()
-            self.display_categories()
-            self.display_category_results()
-            self.display_match_results()
+            self.refresh_treeviews()
             self.user_interface.show_info("Data appended successfully")
 
     def file_import_on_append_data(self):
@@ -370,6 +364,11 @@ class Controller:
             )
 
     ### ----------------------- UI management ----------------------- ###
+    def refresh_treeviews(self):
+        self.display_match_results()
+        self.display_category_results()
+        self.display_categories()
+
     def display_match_results(self):
         processed_results = self.data_model.process_fuzzy_match_results(
             self.user_interface.threshold_slider.get()
