@@ -28,6 +28,12 @@ To ensure all the packages are up to date, run the following command:
 pip install --upgrade pandas thefuzz chardet pytest
 ```
 
+Or simply:
+
+```sh
+pip install --upgrade -r requirements.txt
+```
+
 ## Running the Application
 
 Once all packages are installed and updated, you can run the application by executing `main.py` from the `src` directory:
