@@ -1,5 +1,5 @@
 from fuzzy_ui import FuzzyUI
-from src.data_model import DataModel
+from data_model import DataModel
 
 
 # Main application class
