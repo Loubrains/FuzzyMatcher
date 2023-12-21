@@ -246,13 +246,14 @@ class DataModel:
         )  # Return Tkinter variables back to the UI class
 
     def file_import_on_append_data(self, file_path):
+        if self.df.empty:
+            return False, "No dataset loaded.\n\nClick 'Start New Project'"
         new_data = self.file_manager.read_csv_to_dataframe(file_path)
         if new_data.empty:
             return False, "Imported dataset is empty."
-        categorized_data_uuids_and_responses = self.categorized_data[
-            [self.categorized_data.columns[0]] + self.response_columns
-        ]
-        if new_data.shape[1] != categorized_data_uuids_and_responses.shape[1]:
+        if (
+            new_data.shape[1] != self.df.shape[1]
+        ):  # using self.df as it should have the same columns as self.categorized_data without the category columns.
             return (
                 False,
                 "Dataset does not have the same number of columns.\n\nThe dataset should contain UUIDs in the first column, and the subsequent columns should contain the same number of response columns as the currently loaded data.",
