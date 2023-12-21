@@ -14,6 +14,7 @@ class DataModel:
     def initialize_data_structures(self):
         # Empty variables which will be populated during new project/load project
         # categorized_data will contain a uuids, responses, and column for each category, with a 1 or 0 for each response
+        self.df = pd.DataFrame()
         self.df_preprocessed = pd.DataFrame()
         self.response_columns = []
         self.categorized_data = pd.DataFrame()
@@ -26,10 +27,12 @@ class DataModel:
         self.currently_displayed_category = "Uncategorized"
 
         # For validation on load project
+        #### Need to update this to be more specific (e.g. dict[str, set[str]) and handle stringified json too
         self.expected_json_structure = {
-            "df_preprocessed": pd.DataFrame,
-            "response_columns": pd.DataFrame,
-            "categorized_data": pd.DataFrame,
+            "df": str,
+            "df_preprocessed": str,
+            "response_columns": list,
+            "categorized_data": str,
             "response_counts": dict,
             "categories_display": dict,
             "categorization_type": str,
@@ -199,7 +202,9 @@ class DataModel:
         for expected_key, expected_type in expected_data.items():
             if expected_key not in loaded_json_data:
                 return False, f"Variable '{expected_key}' is missing"
-            if not loaded_json_data[expected_key]:
+            if (
+                expected_type is not bool and not loaded_json_data[expected_key]
+            ):  # skip the bool case (e.g. `is_including_missing_data`) since its false value can cause not(data) to evaluate true
                 return False, f"Variable '{expected_key}' has no data"
             if not isinstance(loaded_json_data[expected_key], expected_type):
                 return (
@@ -211,7 +216,7 @@ class DataModel:
 
     def populate_data_structures_on_load_project(self):
         # Convert JSON back to data / set default variable values
-        categorization_type = self.data_loaded["categorization_type"]
+        self.df = pd.read_json(StringIO(self.data_loaded["df"]))
         self.df_preprocessed = pd.read_json(
             StringIO(self.data_loaded["df_preprocessed"])
         )
@@ -227,21 +232,33 @@ class DataModel:
         self.fuzzy_match_results = pd.DataFrame(
             columns=["response", "score"]
         )  # Default
-        is_including_missing_data = self.data_loaded["is_including_missing_data"]
 
-        return categorization_type, is_including_missing_data
+        categorization_type = self.data_loaded[
+            "categorization_type"
+        ]  # Tkinter variable
+        is_including_missing_data = self.data_loaded[
+            "is_including_missing_data"
+        ]  # Tkinter variable
+
+        return (
+            categorization_type,
+            is_including_missing_data,
+        )  # Return Tkinter variables back to the UI class
 
     def file_import_on_append_data(self, file_path):
         new_data = self.file_manager.read_csv_to_dataframe(file_path)
         if new_data.empty:
             return False, "Imported dataset is empty."
-        if new_data.shape[1] != self.df.shape[1]:
+        categorized_data_uuids_and_responses = self.categorized_data[
+            [self.categorized_data.columns[0]] + self.response_columns
+        ]
+        if new_data.shape[1] != categorized_data_uuids_and_responses.shape[1]:
             return (
                 False,
                 "Dataset does not have the same number of columns.\n\nThe dataset should contain UUIDs in the first column, and the subsequent columns should contain the same number of response columns as the currently loaded data.",
             )
         self.data_to_append = new_data
-        return True, "Data appended successfully"
+        return True, "File imported successfully"
 
     def populate_data_structures_on_append_data(self):
         self.df = pd.concat([self.df, self.data_to_append], ignore_index=True)
@@ -281,6 +298,7 @@ class DataModel:
         self, file_path: str, user_interface_variables_to_add: dict[str, Any]
     ):
         data_to_save = {
+            "df": self.df.to_json(),
             "df_preprocessed": self.df_preprocessed.to_json(),
             "response_columns": self.response_columns,
             "categorized_data": self.categorized_data.to_json(),
