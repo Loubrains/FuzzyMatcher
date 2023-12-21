@@ -11,7 +11,7 @@ The context for this is specifically for speeding up the categorization of open-
 Open your command line tool and navigate to the project directory. Run the following command to install the required packages:
 
 ```sh
-pip install pandas chardet thefuzz
+pip install pandas thefuzz chardet pytest
 ```
 
 Or simply:
