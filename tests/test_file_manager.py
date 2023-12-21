@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import os
 import json
-from file_manager import FileManager
+from src.file_manager import FileManager
 
 file_manager = FileManager()
 
