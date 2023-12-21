@@ -1,7 +1,7 @@
-from Controller import Controller
-from FuzzyUI import FuzzyUI
-from DataModel import DataModel
-from FileManager import FileManager
+from controller import Controller
+from fuzzy_ui import FuzzyUI
+from data_model import DataModel
+from file_manager import FileManager
 
 
 def main():

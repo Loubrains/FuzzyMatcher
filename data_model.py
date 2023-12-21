@@ -3,7 +3,7 @@ from thefuzz import fuzz
 import pandas as pd
 from io import StringIO
 from typing import Any
-from FileManager import FileManager
+from file_manager import FileManager
 
 
 class DataModel:
