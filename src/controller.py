@@ -248,11 +248,10 @@ class Controller:
             self.ask_categorization_type()
 
     def file_import_on_new_project(self):
-        if not (
-            file_path := self.user_interface.show_open_file_dialog(
-                title="Please select a file containing your dataset"
-            )
-        ):
+        file_path = self.user_interface.show_open_file_dialog(
+            title="Please select a file containing your dataset"
+        )
+        if not file_path:
             return False
 
         success, message = self.data_model.file_import_on_new_project(file_path)
@@ -290,14 +289,18 @@ class Controller:
             self.user_interface.show_info("Project loaded successfully")
 
     def file_import_on_load_project(self):
-        if not (
-            file_path := self.user_interface.show_open_file_dialog(
-                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                title="Load Project",
-            )
-        ):
+        file_path = self.user_interface.show_open_file_dialog(
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            title="Load Project",
+        )
+        if not file_path:
+            return False  # No need to inform the user
+
+        success, message = self.data_model.file_import_on_load_project(file_path)
+        if not success:
+            self.user_interface.show_error(message)
             return False
-        self.data_model.file_import_on_load_project(file_path)
+
         return True
 
     def populate_data_structures_on_load_project(self):
@@ -315,20 +318,18 @@ class Controller:
             self.user_interface.show_info("Data appended successfully")
 
     def file_import_on_append_data(self):
-        if not (
-            file_path := self.user_interface.show_open_file_dialog(
-                title="Select file to append"
-            )
-        ):
+        file_path = self.user_interface.show_open_file_dialog(
+            title="Select file to append"
+        )
+
+        if not file_path:
             return False
 
         try:
             success, message = self.data_model.file_import_on_append_data(file_path)
-
             if not success:
                 self.user_interface.show_error(message)
                 return False
-
         except Exception as e:
             self.user_interface.show_error(f"Failed to append data: {e}")
             return False

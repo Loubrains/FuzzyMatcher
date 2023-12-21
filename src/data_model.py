@@ -13,6 +13,7 @@ class DataModel:
 
     def initialize_data_structures(self):
         # Empty variables which will be populated during new project/load project
+        # categorized_data will contain a uuids, responses, and column for each category, with a 1 or 0 for each response
         self.df_preprocessed = pd.DataFrame()
         self.response_columns = []
         self.categorized_data = pd.DataFrame()
@@ -24,7 +25,16 @@ class DataModel:
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])
         self.currently_displayed_category = "Uncategorized"
 
-        # categorized_data will contain a column for each, with a 1 or 0 for each response
+        # For validation on load project
+        self.expected_json_structure = {
+            "df_preprocessed": pd.DataFrame,
+            "response_columns": pd.DataFrame,
+            "categorized_data": pd.DataFrame,
+            "response_counts": dict,
+            "categories_display": dict,
+            "categorization_type": str,
+            "is_including_missing_data": bool,
+        }
 
     ### ----------------------- Main functionality ----------------------- ###
     def perform_fuzzy_match(self, string_to_match):
@@ -170,7 +180,34 @@ class DataModel:
         )  # Default
 
     def file_import_on_load_project(self, file_path: str):
-        self.data_loaded = self.file_manager.load_json(file_path)
+        new_data = self.file_manager.load_json(file_path)
+        success, message = self.validate_loaded_json(
+            new_data, self.expected_json_structure
+        )
+        if not success:
+            return False, message
+
+        self.data_loaded = new_data
+        return True, "Project data loaded successfully"
+
+    def validate_loaded_json(self, loaded_json_data, expected_data):
+        if not loaded_json_data:
+            return False, "Loaded project data is empty"
+        if unexpected_keys := set(loaded_json_data.keys()) - set(expected_data.keys()):
+            return False, f"Unexpected variables loaded: {', '.join(unexpected_keys)}"
+
+        for expected_key, expected_type in expected_data.items():
+            if expected_key not in loaded_json_data:
+                return False, f"Variable '{expected_key}' is missing"
+            if not loaded_json_data[expected_key]:
+                return False, f"Variable '{expected_key}' has no data"
+            if not isinstance(loaded_json_data[expected_key], expected_type):
+                return (
+                    False,
+                    f"Variable '{expected_key}' contains values that are not of expected type {expected_type.__name__}.",
+                )
+
+        return True, "Loaded JSON validated successfully"
 
     def populate_data_structures_on_load_project(self):
         # Convert JSON back to data / set default variable values
@@ -195,18 +232,19 @@ class DataModel:
         return categorization_type, is_including_missing_data
 
     def file_import_on_append_data(self, file_path):
-        new_df = self.file_manager.read_csv_to_dataframe(file_path)
-
-        if new_df.empty or new_df.shape[1] != self.df.shape[1]:
+        new_data = self.file_manager.read_csv_to_dataframe(file_path)
+        if new_data.empty:
+            return False, "Imported dataset is empty."
+        if new_data.shape[1] != self.df.shape[1]:
             return (
                 False,
-                "Dataset is empty or does not have the same shape as the current dataset.\n\nThe dataset should contain UUIDs in the first column, and the subsequent columns should contain the same number of response columns as the currently loaded data.",
+                "Dataset does not have the same number of columns.\n\nThe dataset should contain UUIDs in the first column, and the subsequent columns should contain the same number of response columns as the currently loaded data.",
             )
-
-        self.df = pd.concat([self.df, new_df], ignore_index=True)
+        self.data_to_append = new_data
         return True, "Data appended successfully"
 
     def populate_data_structures_on_append_data(self):
+        self.df = pd.concat([self.df, self.data_to_append], ignore_index=True)
         old_data_size = len(self.df_preprocessed)
         new_df_preprocessed = pd.DataFrame(
             self.df.iloc[old_data_size:, 1:].map(self.preprocess_text)  # type: ignore
