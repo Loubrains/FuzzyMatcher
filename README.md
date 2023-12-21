@@ -25,7 +25,7 @@ pip install -r requirements.txt
 To ensure all the packages are up to date, run the following command:
 
 ```sh
-pip install --upgrade pandas chardet thefuzz
+pip install --upgrade pandas thefuzz chardet pytest
 ```
 
 ## Running the Application
@@ -40,8 +40,9 @@ python src/main.py
 # Requirements
 
 - pandas
-- chardet
 - thefuzz
+- chardet
+- pytest
 
 # To do
 
