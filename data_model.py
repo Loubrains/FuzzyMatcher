@@ -29,8 +29,7 @@ class DataModel:
     ### ----------------------- Main functionality ----------------------- ###
     def perform_fuzzy_match(self, string_to_match):
         if self.categorized_data.empty or self.categorized_data is None:
-            message = "No dataset loaded"
-            return False, message
+            return False, "No dataset loaded"
 
         uncategorized_responses = self.categorized_dict["Uncategorized"]
         uncategorized_df = self.df_preprocessed[
@@ -41,8 +40,7 @@ class DataModel:
         self.fuzzy_match_results = self.fuzzy_matching(
             uncategorized_df, string_to_match
         )
-        message = "Successfully performed fuzzy match"
-        return True, message
+        return True, "Successfully performed fuzzy match"
 
     def categorize_responses(
         self, responses: set[str], categories: set[str], categorization_type: str
@@ -103,17 +101,14 @@ class DataModel:
 
     def rename_category(self, old_category: str, new_category: str):
         if new_category in self.categorized_dict:
-            message = "A category with this name already exists."
-            return False, message
+            return False, "A category with this name already exists."
 
         if old_category == "Missing data":
-            message = 'You cannot rename "Missing data".'
-            return False, message
+            return False, 'You cannot rename "Missing data".'
 
         self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
         self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
-        message = "Category renamed successfully"
-        return True, message
+        return True, "Category renamed successfully"
 
     def delete_categories(
         self, categories_to_delete: set[str], categorization_type: str
@@ -137,10 +132,12 @@ class DataModel:
     ### ----------------------- Project Management ----------------------- ###
     def file_import_on_new_project(self, file_path: str):
         self.df = self.file_manager.read_csv_to_dataframe(file_path)
-        if self.df.empty or self.df.shape[1] < 2:
+        if self.df.empty:
+            return False, "Dataset is empty"
+        if self.df.shape[1] < 2:
             return (
                 False,
-                "Dataset is empty or does not contain enough columns.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses",
+                "Dataset does not contain enough columns.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses",
             )
         return True, "File imported successfully"
 
@@ -261,7 +258,9 @@ class DataModel:
             if pd.isna(o):
                 return None
 
-        self.file_manager.save_data_to_json(file_path, data_to_save, _none_handler)
+        self.file_manager.save_data_to_json(
+            file_path, data_to_save, handler=_none_handler
+        )
 
     def export_data_to_csv(self, file_path, categorization_type):
         # Exported data needs only UUIDs and category binaries to be able to be imported into Q.

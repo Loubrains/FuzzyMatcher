@@ -1,10 +1,12 @@
-# Ignore everything except the files needed to build and run this app, and the README
+# Ignore everything except the files needed to build, run and test this app, and the README
 *
 !main.py
 !controller.py
 !fuzzy_ui.py
 !data_model.py
 !file_manager.py
+!tests
+!tests/*.py
 !README.md
 !requirements.txt
 !/.gitignore
