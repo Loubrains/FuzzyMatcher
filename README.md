@@ -4,13 +4,6 @@ This is a desktop app that allows the user to import a dataset, perform fuzzy ma
 
 The context for this is specifically for speeding up the categorization of open-ended text responses for questionnaires. This effectively replaces the broken/slow fuzzy matching functionality in Q Research Software.
 
-## Author
-
-Louie Atkins-Turkish  
-Data Analyst at Tapestry Research  
-Email: louie@tapestryresearch.com  
-Created on: November 30, 2023
-
 ## Prerequisites
 Before running the application, ensure you have Python installed on your system. If not, download and install the latest version from [Python's official website](https://www.python.org/downloads/).
 
@@ -70,3 +63,10 @@ python src/main.py
 - Implement an environment setup script
 - Implement unit tests and loggin
 - Establish a routine for updating dependencies and consider containerization with Docker.
+
+## Author
+
+Louie Atkins-Turkish  
+Data Analyst at Tapestry Research  
+Email: louie@tapestryresearch.com  
+Created on: November 30, 2023
