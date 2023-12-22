@@ -241,11 +241,14 @@ class Controller:
 
     ### ----------------------- Project Management ----------------------- ###
     def new_project(self):
-        if self.file_import_on_new_project():
-            self.populate_data_structures_on_new_project()
-            self.refresh_treeviews()
-            self.user_interface.show_info("Data imported successfully")
-            self.ask_categorization_type()
+        try:
+            if self.file_import_on_new_project():
+                self.populate_data_structures_on_new_project()
+                self.refresh_treeviews()
+                self.user_interface.show_info("Data imported successfully")
+                self.ask_categorization_type()
+        except Exception as e:
+            self.user_interface.show_error(f"Failed to initialize new project: {e}")
 
     def file_import_on_new_project(self):
         file_path = self.user_interface.show_open_file_dialog(
@@ -257,8 +260,9 @@ class Controller:
         success, message = self.data_model.file_import_on_new_project(file_path)
         if not success:
             self.user_interface.show_error(message)
+            return False
 
-        return success
+        return True
 
     def populate_data_structures_on_new_project(self):
         self.data_model.populate_data_structures_on_new_project()
@@ -282,11 +286,14 @@ class Controller:
         )
 
     def load_project(self):
-        if self.file_import_on_load_project():
-            self.populate_data_structures_on_load_project()
-            self.user_interface.set_categorization_type_label()
-            self.refresh_treeviews()
-            self.user_interface.show_info("Project loaded successfully")
+        try:
+            if self.file_import_on_load_project():
+                self.populate_data_structures_on_load_project()
+                self.user_interface.set_categorization_type_label()
+                self.refresh_treeviews()
+                self.user_interface.show_info("Project loaded successfully")
+        except Exception as e:
+            self.user_interface.show_error(f"Failed to load project: {e}")
 
     def file_import_on_load_project(self):
         file_path = self.user_interface.show_open_file_dialog(
@@ -312,10 +319,13 @@ class Controller:
         self.user_interface.is_including_missing_data.set(is_including_missing_data)
 
     def append_data_behaviour(self):
-        if self.file_import_on_append_data():
-            self.data_model.populate_data_structures_on_append_data()
-            self.refresh_treeviews()
-            self.user_interface.show_info("Data appended successfully")
+        try:
+            if self.file_import_on_append_data():
+                self.data_model.populate_data_structures_on_append_data()
+                self.refresh_treeviews()
+                self.user_interface.show_info("Data appended successfully")
+        except Exception as e:
+            self.user_interface.show_error(f"Failed to append data: {e}")
 
     def file_import_on_append_data(self):
         file_path = self.user_interface.show_open_file_dialog(
@@ -325,44 +335,46 @@ class Controller:
         if not file_path:
             return False
 
-        try:
-            success, message = self.data_model.file_import_on_append_data(file_path)
-            if not success:
-                self.user_interface.show_error(message)
-                return False
-        except Exception as e:
-            self.user_interface.show_error(f"Failed to append data: {e}")
+        success, message = self.data_model.file_import_on_append_data(file_path)
+        if not success:
+            self.user_interface.show_error(message)
             return False
 
         return True
 
     def save_project(self):
-        if file_path := self.user_interface.show_save_file_dialog(
-            defaultextension=".json",
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            title="Save Project As",
-        ):
-            user_interface_variables_to_add = {
-                "categorization_type": self.user_interface.categorization_type.get(),
-                "is_including_missing_data": self.user_interface.is_including_missing_data.get(),
-            }
-            self.data_model.save_project(file_path, user_interface_variables_to_add)
-            self.user_interface.show_info(
-                "Project saved successfully to:\n\n" + file_path
-            )
+        try:
+            if file_path := self.user_interface.show_save_file_dialog(
+                defaultextension=".json",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                title="Save Project As",
+            ):
+                user_interface_variables_to_add = {
+                    "categorization_type": self.user_interface.categorization_type.get(),
+                    "is_including_missing_data": self.user_interface.is_including_missing_data.get(),
+                }
+                self.data_model.save_project(file_path, user_interface_variables_to_add)
+                self.user_interface.show_info(
+                    "Project saved successfully to:\n\n" + file_path
+                )
+        except Exception as e:
+            self.user_interface.show_error(f"Failed to save project: {e}")
 
     def export_to_csv(self):
-        if file_path := self.user_interface.show_save_file_dialog(
-            defaultextension=".csv",
-            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
-            title="Save As",
-        ):
-            self.data_model.export_data_to_csv(
-                file_path, self.user_interface.categorization_type.get()
-            )
-            self.user_interface.show_info(
-                "Data exported successfully to:\n\n" + file_path
-            )
+        try:
+            if file_path := self.user_interface.show_save_file_dialog(
+                defaultextension=".csv",
+                filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+                title="Save As",
+            ):
+                self.data_model.export_data_to_csv(
+                    file_path, self.user_interface.categorization_type.get()
+                )
+                self.user_interface.show_info(
+                    "Data exported successfully to:\n\n" + file_path
+                )
+        except Exception as e:
+            self.user_interface.show_error(f"Failed to export data to csv: {e}")
 
     ### ----------------------- UI management ----------------------- ###
     def refresh_treeviews(self):

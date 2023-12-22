@@ -26,8 +26,9 @@ class DataModel:
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])
         self.currently_displayed_category = "Uncategorized"
 
-        # For validation on load project
-        #### Need to update this to be more specific (e.g. dict[str, set[str]) and handle stringified json too
+        # For validation on load project.
+        ## Update this when the data structure changes.
+        ### Need to update this to be more specific (e.g. dict[str, set[str]) and handle stringified json too
         self.expected_json_structure = {
             "df": str,
             "df_preprocessed": str,
@@ -144,13 +145,13 @@ class DataModel:
 
     ### ----------------------- Project Management ----------------------- ###
     def file_import_on_new_project(self, file_path: str):
-        self.df = self.file_manager.read_csv_to_dataframe(file_path)
+        self.df = self.file_manager.read_csv_or_xlsx_to_dataframe(file_path)
         if self.df.empty:
             return False, "Dataset is empty"
         if self.df.shape[1] < 2:
             return (
                 False,
-                "Dataset does not contain enough columns.\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses",
+                "Dataset does not contain enough columns.\n\nThe dataset should contain uuids in the first column, and the subsequent columns should contian responses",
             )
         return True, "File imported successfully"
 
@@ -248,7 +249,7 @@ class DataModel:
     def file_import_on_append_data(self, file_path):
         if self.df.empty:
             return False, "No dataset loaded.\n\nClick 'Start New Project'"
-        new_data = self.file_manager.read_csv_to_dataframe(file_path)
+        new_data = self.file_manager.read_csv_or_xlsx_to_dataframe(file_path)
         if new_data.empty:
             return False, "Imported dataset is empty."
         if (
