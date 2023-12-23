@@ -27,8 +27,8 @@ class DataModel:
         self.currently_displayed_category = "Uncategorized"
 
         # For validation on load project.
-        ## Update this when the data structure changes.
-        ### Need to update this to be more specific (e.g. dict[str, set[str]) and handle stringified json too
+        # NOTE: Update this when the data structure changes.
+        # TODO: Need to update this to be more specific (e.g. dict[str, set[str]) and handle stringified json too
         self.expected_json_structure = {
             "df": str,
             "df_preprocessed": str,
@@ -195,6 +195,7 @@ class DataModel:
         return True, "Project data loaded successfully"
 
     def validate_loaded_json(self, loaded_json_data, expected_data):
+        # NOTE: self.expected_json_structure is passed in. This needs to be updated when the data structure changes.
         if not loaded_json_data:
             return False, "Loaded project data is empty"
         if unexpected_keys := set(loaded_json_data.keys()) - set(expected_data.keys()):
