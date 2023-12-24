@@ -240,25 +240,18 @@ class FuzzyUI(tk.Tk):
 
     def configure_sub_grids(self) -> None:
         # TODO: Use loops to reduce boilerplate
-        # Allow the treeviews to expand vertically
-        self.middle_left_frame.grid_rowconfigure(0, weight=1)
-        self.middle_middle_frame.grid_rowconfigure(0, weight=1)
-        self.middle_right_frame.grid_rowconfigure(0, weight=1)
-
-        # Don't allow the scrollbar to expand horizontally
-        self.middle_left_frame.grid_columnconfigure(2, weight=0)
-        self.middle_middle_frame.grid_columnconfigure(2, weight=0)
-        self.middle_right_frame.grid_columnconfigure(4, weight=0)
 
         # Allow all buttons and treviews to expand/contract horizontally together
         self.top_left_frame.grid_columnconfigure(0, weight=1)
         self.top_left_frame.grid_columnconfigure(1, weight=1)
         self.middle_left_frame.grid_columnconfigure(0, weight=1)
         self.middle_left_frame.grid_columnconfigure(1, weight=1)
+        self.bottom_left_frame.grid_columnconfigure(1, weight=1)
         self.top_middle_frame.grid_columnconfigure(0, weight=1)
         self.top_middle_frame.grid_columnconfigure(1, weight=1)
         self.middle_middle_frame.grid_columnconfigure(0, weight=1)
         self.middle_middle_frame.grid_columnconfigure(1, weight=1)
+        self.bottom_middle_frame.grid_columnconfigure(0, weight=1)
         self.top_right_frame.grid_columnconfigure(0, weight=1)
         self.top_right_frame.grid_columnconfigure(1, weight=1)
         self.top_right_frame.grid_columnconfigure(2, weight=1)
@@ -267,14 +260,20 @@ class FuzzyUI(tk.Tk):
         self.middle_right_frame.grid_columnconfigure(1, weight=1)
         self.middle_right_frame.grid_columnconfigure(2, weight=1)
         self.middle_right_frame.grid_columnconfigure(3, weight=1)
+        self.bottom_right_frame.grid_columnconfigure(0, weight=1)
+
+        # Allow the treeviews to expand vertically
+        self.middle_left_frame.grid_rowconfigure(0, weight=1)
+        self.middle_middle_frame.grid_rowconfigure(0, weight=1)
+        self.middle_right_frame.grid_rowconfigure(0, weight=1)
 
         # Allow the bottom left frame buttons to group together
-        self.bottom_left_frame.columnconfigure(0, weight=0)
+        self.bottom_left_frame.grid_columnconfigure(0, weight=0)
 
-        # Allow bottom frames to expand horizontally
-        self.bottom_left_frame.columnconfigure(1, weight=1)
-        self.bottom_middle_frame.columnconfigure(0, weight=1)
-        self.bottom_right_frame.columnconfigure(0, weight=1)
+        # Don't allow the scrollbar to expand horizontally
+        self.middle_left_frame.grid_columnconfigure(2, weight=0)
+        self.middle_middle_frame.grid_columnconfigure(2, weight=0)
+        self.middle_right_frame.grid_columnconfigure(4, weight=0)
 
     def configure_style(self) -> None:
         # Configure Treeview style for larger row height and centered column text
