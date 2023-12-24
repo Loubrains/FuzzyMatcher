@@ -52,30 +52,20 @@ class Controller:
         self.user_interface.is_including_missing_data.trace_add(
             "write", lambda *args: self.display_categories()
         )  # Using trace_add() to make sure it calls the command only after setting the bool value.
-        self.user_interface.new_project_button.bind(
-            "<Button-1>", lambda event: self.new_project()
-        )
-        self.user_interface.load_button.bind(
-            "<Button-1>", lambda event: self.load_project()
-        )
+        self.user_interface.new_project_button.bind("<Button-1>", lambda event: self.new_project())
+        self.user_interface.load_button.bind("<Button-1>", lambda event: self.load_project())
         self.user_interface.append_data_button.bind(
             "<Button-1>", lambda event: self.append_data_behaviour()
         )
-        self.user_interface.save_button.bind(
-            "<Button-1>", lambda event: self.save_project()
-        )
-        self.user_interface.export_csv_button.bind(
-            "<Button-1>", lambda event: self.export_to_csv()
-        )
+        self.user_interface.save_button.bind("<Button-1>", lambda event: self.save_project())
+        self.user_interface.export_csv_button.bind("<Button-1>", lambda event: self.export_to_csv())
 
     def run(self):
         self.user_interface.mainloop()
 
     ### ----------------------- Main Functionality ----------------------- ###
     def perform_fuzzy_match(self):
-        self.data_model.perform_fuzzy_match(
-            self.user_interface.match_string_entry.get()
-        )
+        self.data_model.perform_fuzzy_match(self.user_interface.match_string_entry.get())
         self.display_match_results()
 
     def categorize_selected_responses(self):
@@ -90,9 +80,7 @@ class Controller:
             return
 
         if "Missing data" in categories:
-            self.user_interface.show_warning(
-                'You cannot categorize values into "Missing data".'
-            )
+            self.user_interface.show_warning('You cannot categorize values into "Missing data".')
             return
 
         if "nan" in responses or "missing data" in responses:
@@ -128,21 +116,14 @@ class Controller:
             return
 
         if self.data_model.currently_displayed_category == "Missing data":
-            self.user_interface.show_info(
-                'You cannot recategorize "NaN" or "Missing data" values.'
-            )
+            self.user_interface.show_info('You cannot recategorize "NaN" or "Missing data" values.')
             return
 
         if "Missing data" in categories:
-            self.user_interface.show_warning(
-                'You cannot categorize values into "Missing data".'
-            )
+            self.user_interface.show_warning('You cannot categorize values into "Missing data".')
             return
 
-        if (
-            self.user_interface.categorization_type.get() == "Single"
-            and len(categories) > 1
-        ):
+        if self.user_interface.categorization_type.get() == "Single" and len(categories) > 1:
             self.user_interface.show_warning(
                 "Only one category can be selected in Single Categorization mode.",
             )
@@ -172,10 +153,7 @@ class Controller:
             self.user_interface.show_warning("Please select one category to rename.")
             return
 
-        if (
-            "Uncategorized" in selected_categories
-            or "Missing data" in selected_categories
-        ):
+        if "Uncategorized" in selected_categories or "Missing data" in selected_categories:
             self.user_interface.show_warning(
                 'You may not rename the categories "Uncategorized" or "Missing data".',
             )
@@ -221,10 +199,7 @@ class Controller:
             self.user_interface.show_warning("Please select categories to delete.")
             return
 
-        if (
-            "Uncategorized" in selected_categories
-            or "Missing data" in selected_categories
-        ):
+        if "Uncategorized" in selected_categories or "Missing data" in selected_categories:
             self.user_interface.show_warning(
                 "You may not delete the categories 'Uncategorized' or 'Missing data'.",
             )
@@ -278,12 +253,8 @@ class Controller:
             self.user_interface.categorization_type_popup.destroy()
 
         # Bind widgets to commands
-        self.user_interface.confirm_button.bind(
-            "<Button-1>", lambda event: _on_confirm()
-        )
-        self.user_interface.categorization_type_popup.bind(
-            "<Return>", lambda event: _on_confirm()
-        )
+        self.user_interface.confirm_button.bind("<Button-1>", lambda event: _on_confirm())
+        self.user_interface.categorization_type_popup.bind("<Return>", lambda event: _on_confirm())
 
     def load_project(self):
         try:
@@ -328,9 +299,7 @@ class Controller:
             self.user_interface.show_error(f"Failed to append data: {e}")
 
     def file_import_on_append_data(self):
-        file_path = self.user_interface.show_open_file_dialog(
-            title="Select file to append"
-        )
+        file_path = self.user_interface.show_open_file_dialog(title="Select file to append")
 
         if not file_path:
             return False
@@ -354,9 +323,7 @@ class Controller:
                     "is_including_missing_data": self.user_interface.is_including_missing_data.get(),
                 }
                 self.data_model.save_project(file_path, user_interface_variables_to_add)
-                self.user_interface.show_info(
-                    "Project saved successfully to:\n\n" + file_path
-                )
+                self.user_interface.show_info("Project saved successfully to:\n\n" + file_path)
         except Exception as e:
             self.user_interface.show_error(f"Failed to save project: {e}")
 
@@ -370,9 +337,7 @@ class Controller:
                 self.data_model.export_data_to_csv(
                     file_path, self.user_interface.categorization_type.get()
                 )
-                self.user_interface.show_info(
-                    "Data exported successfully to:\n\n" + file_path
-                )
+                self.user_interface.show_info("Data exported successfully to:\n\n" + file_path)
         except Exception as e:
             self.user_interface.show_error(f"Failed to export data to csv: {e}")
 

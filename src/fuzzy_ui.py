@@ -27,9 +27,7 @@ class FuzzyUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.screen_coords = ScreenCoords()
-        self.screen_coords.update_coords(
-            self.winfo_screenwidth(), self.winfo_screenheight()
-        )
+        self.screen_coords.update_coords(self.winfo_screenwidth(), self.winfo_screenheight())
 
         self.title("Fuzzy Matcher")
 
@@ -89,9 +87,7 @@ class FuzzyUI(tk.Tk):
 
     def create_widgets(self) -> None:
         # Top left frame widgets (fuzzy matching entry, slider, buttons and lable)
-        self.match_string_label = tk.Label(
-            self.top_left_frame, text="Enter String to Match:"
-        )
+        self.match_string_label = tk.Label(self.top_left_frame, text="Enter String to Match:")
         self.match_string_entry = tk.Entry(self.top_left_frame)
         self.threshold_label = tk.Label(
             self.top_left_frame,
@@ -100,13 +96,9 @@ class FuzzyUI(tk.Tk):
         self.threshold_slider = tk.Scale(
             self.top_left_frame, from_=0, to=100, orient="horizontal", resolution=1
         )
-        self.threshold_slider.set(
-            60
-        )  # Setting default value to 60, gets decent results
+        self.threshold_slider.set(60)  # Setting default value to 60, gets decent results
         self.match_button = tk.Button(self.top_left_frame, text="Match")
-        self.categorize_button = tk.Button(
-            self.top_left_frame, text="Categorize Selected Results"
-        )
+        self.categorize_button = tk.Button(self.top_left_frame, text="Categorize Selected Results")
         self.categorization_label = tk.Label(
             self.top_left_frame, text="Categorization Type: Single"
         )
@@ -140,9 +132,7 @@ class FuzzyUI(tk.Tk):
         self.recategorize_selected_responses_button = tk.Button(
             self.top_middle_frame, text="Recategorize Selected Results"
         )
-        self.category_results_label = tk.Label(
-            self.top_middle_frame, text="Results for Category: "
-        )
+        self.category_results_label = tk.Label(self.top_middle_frame, text="Results for Category: ")
 
         # Middle middle frame widgets (category results treeview)
         self.category_results_tree = ttk.Treeview(
@@ -162,12 +152,8 @@ class FuzzyUI(tk.Tk):
         # Top right frame widgets (category buttons and entry)
         self.new_category_entry = tk.Entry(self.top_right_frame)
         self.add_category_button = tk.Button(self.top_right_frame, text="Add Category")
-        self.rename_category_button = tk.Button(
-            self.top_right_frame, text="Rename Category"
-        )
-        self.delete_categories_button = tk.Button(
-            self.top_right_frame, text="Delete Category"
-        )
+        self.rename_category_button = tk.Button(self.top_right_frame, text="Rename Category")
+        self.delete_categories_button = tk.Button(self.top_right_frame, text="Delete Category")
         self.delete_categories_button.bind()
         self.include_missing_data_checkbox = tk.Checkbutton(
             self.top_right_frame,
@@ -194,9 +180,7 @@ class FuzzyUI(tk.Tk):
 
         # Bottom right frame widgets (new project, load project, save project, export to csv)
         self.save_button = tk.Button(self.bottom_right_frame, text="Save Project")
-        self.export_csv_button = tk.Button(
-            self.bottom_right_frame, text="Export to CSV"
-        )
+        self.export_csv_button = tk.Button(self.bottom_right_frame, text="Export to CSV")
 
     def bind_widgets_to_frames(self) -> None:
         # Top left frame widgets
@@ -209,9 +193,7 @@ class FuzzyUI(tk.Tk):
         self.categorize_button.grid(row=3, column=1, sticky="ew", padx=10, pady=10)
 
         # Middle left frame widgets
-        self.match_results_tree.grid(
-            row=0, column=0, columnspan=2, sticky="nsew", padx=10, pady=10
-        )
+        self.match_results_tree.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
         self.results_scrollbar.grid(row=0, column=2, sticky="ns")
         self.match_results_tree.configure(yscrollcommand=self.results_scrollbar.set)
 
@@ -236,9 +218,7 @@ class FuzzyUI(tk.Tk):
             row=0, column=0, columnspan=2, sticky="nsew", padx=10, pady=10
         )
         self.category_results_scrollbar.grid(row=0, column=2, sticky="ns")
-        self.category_results_tree.configure(
-            yscrollcommand=self.category_results_scrollbar.set
-        )
+        self.category_results_tree.configure(yscrollcommand=self.category_results_scrollbar.set)
 
         # Bottm middle frame widgets
 
@@ -250,9 +230,7 @@ class FuzzyUI(tk.Tk):
         self.include_missing_data_checkbox.grid(row=1, column=3, sticky="e")
 
         # Middle right frame widgets
-        self.categories_tree.grid(
-            row=0, column=0, columnspan=4, sticky="nsew", padx=10, pady=10
-        )
+        self.categories_tree.grid(row=0, column=0, columnspan=4, sticky="nsew", padx=10, pady=10)
         self.categories_scrollbar.grid(row=0, column=4, sticky="ns")
         self.categories_tree.configure(yscrollcommand=self.categories_scrollbar.set)
 
@@ -333,13 +311,9 @@ class FuzzyUI(tk.Tk):
                             secondary_column_width * (num_columns - 1)
                         )
 
-                        treeview.column(
-                            treeview["columns"][0], width=first_column_width
-                        )
+                        treeview.column(treeview["columns"][0], width=first_column_width)
                         for col in treeview["columns"][1:]:
-                            treeview.column(
-                                col, minwidth=50, width=secondary_column_width
-                            )
+                            treeview.column(col, minwidth=50, width=secondary_column_width)
                     else:
                         # If there is only one column, it should take all the space
                         treeview.column(treeview["columns"][0], width=treeview_width)
@@ -370,9 +344,7 @@ class FuzzyUI(tk.Tk):
             self.categories_tree.delete(item)
 
         for category, count, percentage_str in formatted_categories_metrics:
-            self.categories_tree.insert(
-                "", "end", values=(category, count, percentage_str)
-            )
+            self.categories_tree.insert("", "end", values=(category, count, percentage_str))
 
         self.update_treeview_selections(selected_categories=selected_categories)
 
@@ -479,9 +451,7 @@ class FuzzyUI(tk.Tk):
             for item_id in self.categories_tree.selection()
         }
 
-    def update_treeview_selections(
-        self, selected_categories=None, selected_responses=None
-    ):
+    def update_treeview_selections(self, selected_categories=None, selected_responses=None):
         def reselect_treeview_items(treeview, values):
             for item in treeview.get_children():
                 if treeview.item(item)["values"][0] in values:

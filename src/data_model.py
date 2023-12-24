@@ -51,9 +51,7 @@ class DataModel:
         ].dropna(how="all")
 
         # Perform fuzzy matching on these uncategorized responses
-        self.fuzzy_match_results = self.fuzzy_matching(
-            uncategorized_df, string_to_match
-        )
+        self.fuzzy_match_results = self.fuzzy_matching(uncategorized_df, string_to_match)
         return True, "Successfully performed fuzzy match"
 
     def categorize_responses(
@@ -89,12 +87,7 @@ class DataModel:
 
     def categorize_missing_data(self):
         def is_missing(value):
-            return (
-                pd.isna(value)
-                or value is None
-                or value == "missing data"
-                or value == "nan"
-            )
+            return pd.isna(value) or value is None or value == "missing data" or value == "nan"
 
         all_missing_mask = self.df_preprocessed.map(is_missing).all(  # type: ignore
             axis=1
@@ -124,9 +117,7 @@ class DataModel:
         self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
         return True, "Category renamed successfully"
 
-    def delete_categories(
-        self, categories_to_delete: set[str], categorization_type: str
-    ):
+    def delete_categories(self, categories_to_delete: set[str], categorization_type: str):
         for category in categories_to_delete:
             if (
                 categorization_type == "Single"
@@ -136,9 +127,7 @@ class DataModel:
                 ].index
                 for response_index in responses_to_reclassify:
                     self.categorized_data.loc[response_index, "Uncategorized"] = 1
-                self.categorized_dict["Uncategorized"].update(
-                    self.categorized_dict[category]
-                )
+                self.categorized_dict["Uncategorized"].update(self.categorized_dict[category])
 
             del self.categorized_dict[category]
             self.categorized_data.drop(columns=category, inplace=True)
@@ -179,15 +168,11 @@ class DataModel:
         self.categorize_missing_data()
 
         self.currently_displayed_category = "Uncategorized"  # Default
-        self.fuzzy_match_results = pd.DataFrame(
-            columns=["response", "score"]
-        )  # Default
+        self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
     def file_import_on_load_project(self, file_path: str):
         new_data = self.file_manager.load_json(file_path)
-        success, message = self.validate_loaded_json(
-            new_data, self.expected_json_structure
-        )
+        success, message = self.validate_loaded_json(new_data, self.expected_json_structure)
         if not success:
             return False, message
 
@@ -219,25 +204,17 @@ class DataModel:
     def populate_data_structures_on_load_project(self):
         # Convert JSON back to data / set default variable values
         self.df = pd.read_json(StringIO(self.data_loaded["df"]))
-        self.df_preprocessed = pd.read_json(
-            StringIO(self.data_loaded["df_preprocessed"])
-        )
+        self.df_preprocessed = pd.read_json(StringIO(self.data_loaded["df_preprocessed"]))
         self.response_columns = self.data_loaded["response_columns"]
-        self.categorized_data = pd.read_json(
-            StringIO(self.data_loaded["categorized_data"])
-        )
+        self.categorized_data = pd.read_json(StringIO(self.data_loaded["categorized_data"]))
         self.response_counts = self.data_loaded["response_counts"]
         self.categorized_dict = {
             k: set(v) for k, v in self.data_loaded["categories_display"].items()
         }
         self.currently_displayed_category = "Uncategorized"  # Default
-        self.fuzzy_match_results = pd.DataFrame(
-            columns=["response", "score"]
-        )  # Default
+        self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
-        categorization_type = self.data_loaded[
-            "categorization_type"
-        ]  # Tkinter variable
+        categorization_type = self.data_loaded["categorization_type"]  # Tkinter variable
         is_including_missing_data = self.data_loaded[
             "is_including_missing_data"
         ]  # Tkinter variable
@@ -275,16 +252,12 @@ class DataModel:
         new_df_series = new_df_preprocessed.stack().reset_index(drop=True)
         df_series = self.df_preprocessed.stack().reset_index(drop=True)
         self.response_counts = df_series.value_counts().to_dict()
-        self.categorized_dict["Uncategorized"].update(
-            set(new_df_series) - {"nan", "missing data"}
-        )
+        self.categorized_dict["Uncategorized"].update(set(new_df_series) - {"nan", "missing data"})
 
         new_categorized_data = pd.concat(
             [self.df.iloc[old_data_size:, 0], new_df_preprocessed], axis=1
         )
-        self.categorized_data = pd.concat(
-            [self.categorized_data, new_categorized_data], axis=0
-        )
+        self.categorized_data = pd.concat([self.categorized_data, new_categorized_data], axis=0)
 
         self.categorized_data.loc[
             old_data_size:, "Uncategorized"
@@ -293,22 +266,16 @@ class DataModel:
         self.categorize_missing_data()
 
         self.currently_displayed_category = "Uncategorized"  # Default
-        self.fuzzy_match_results = pd.DataFrame(
-            columns=["response", "score"]
-        )  # Default
+        self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
-    def save_project(
-        self, file_path: str, user_interface_variables_to_add: dict[str, Any]
-    ):
+    def save_project(self, file_path: str, user_interface_variables_to_add: dict[str, Any]):
         data_to_save = {
             "df": self.df.to_json(),
             "df_preprocessed": self.df_preprocessed.to_json(),
             "response_columns": self.response_columns,
             "categorized_data": self.categorized_data.to_json(),
             "response_counts": self.response_counts,
-            "categories_display": {
-                k: list(v) for k, v in self.categorized_dict.items()
-            },
+            "categories_display": {k: list(v) for k, v in self.categorized_dict.items()},
         }
         data_to_save.update(user_interface_variables_to_add)
 
@@ -317,9 +284,7 @@ class DataModel:
             if pd.isna(o):
                 return None
 
-        self.file_manager.save_data_to_json(
-            file_path, data_to_save, handler=_none_handler
-        )
+        self.file_manager.save_data_to_json(file_path, data_to_save, handler=_none_handler)
 
     def export_data_to_csv(self, file_path, categorization_type):
         # Exported data needs only UUIDs and category binaries to be able to be imported into Q.
@@ -349,9 +314,7 @@ class DataModel:
             if not is_including_missing_data and category == "Missing data":
                 percentage_str = ""
             else:
-                percentage = self.calculate_percentage(
-                    responses, is_including_missing_data
-                )
+                percentage = self.calculate_percentage(responses, is_including_missing_data)
                 percentage_str = f"{percentage:.2f}%"
             formatted_categories_metrics.append((category, count, percentage_str))
 
@@ -360,26 +323,20 @@ class DataModel:
     def calculate_count(self, responses: set[str]) -> int:
         return sum(self.response_counts.get(response, 0) for response in responses)
 
-    def calculate_percentage(
-        self, responses: set[str], is_including_missing_data: bool
-    ) -> float:
+    def calculate_percentage(self, responses: set[str], is_including_missing_data: bool) -> float:
         count = self.calculate_count(responses)
 
         total_responses = sum(self.response_counts.values())
 
         if not is_including_missing_data:
-            missing_data_count = self.calculate_count(
-                self.categorized_dict["Missing data"]
-            )
+            missing_data_count = self.calculate_count(self.categorized_dict["Missing data"])
             total_responses = sum(self.response_counts.values()) - missing_data_count
 
         return (count / total_responses) * 100 if total_responses > 0 else 0
 
     def preprocess_text(self, text: Any) -> str:
         text = str(text).lower()
-        text = re.sub(
-            r"\s+", " ", text
-        )  # Convert one or more of any kind of space to single space
+        text = re.sub(r"\s+", " ", text)  # Convert one or more of any kind of space to single space
         text = re.sub(r"[^a-z0-9\s]", "", text)  # Remove special characters
         text = text.strip()
         return text
@@ -414,6 +371,4 @@ class DataModel:
             .reset_index()
         )
 
-        return aggregated_results.sort_values(
-            by=["score", "count"], ascending=[False, False]
-        )
+        return aggregated_results.sort_values(by=["score", "count"], ascending=[False, False])

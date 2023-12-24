@@ -9,16 +9,12 @@ class FileManager:
         try:
             if file_path.endswith(".csv"):
                 with open(file_path, "rb") as file:
-                    encoding = chardet.detect(file.read())[
-                        "encoding"
-                    ]  # Detect encoding
+                    encoding = chardet.detect(file.read())["encoding"]  # Detect encoding
                 return pd.read_csv(file_path, encoding=encoding)
             elif file_path.endswith(".xlsx"):
                 return pd.read_excel(file_path, engine="openpyxl")
             else:
-                raise ValueError(
-                    "Unsupported file format.\n\nFile must be of type .csv or .xlsx"
-                )
+                raise ValueError("Unsupported file format.\n\nFile must be of type .csv or .xlsx")
         except Exception as e:
             raise e
 
@@ -29,9 +25,7 @@ class FileManager:
                     data = json.load(f)
                 return data or {}
             else:
-                raise ValueError(
-                    "Unsupported file format.\n\nFile must be of type .json"
-                )
+                raise ValueError("Unsupported file format.\n\nFile must be of type .json")
         except Exception as e:
             raise e
 
@@ -43,9 +37,7 @@ class FileManager:
         except Exception as e:
             raise e
 
-    def save_data_to_json(
-        self, file_path: str, data_to_save: dict[str, Any], handler=None
-    ) -> None:
+    def save_data_to_json(self, file_path: str, data_to_save: dict[str, Any], handler=None) -> None:
         try:
             if not data_to_save:
                 return

@@ -62,7 +62,7 @@ def empty_json_file(tmpdir):
 @pytest.mark.parametrize("file_path", ["example_csv_file", "empty_csv_file"])
 def test_read_csv_to_dataframe(file_path, request):
     file_path = request.getfixturevalue(file_path)
-    df = file_manager.read_csv_to_dataframe(file_path)
+    df = file_manager.read_csv_or_xlsx_to_dataframe(file_path)
     assert isinstance(df, pd.DataFrame)
 
 
