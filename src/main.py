@@ -7,7 +7,7 @@ from file_manager import FileManager
 
 def setup_logging():
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format="%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s",
         filename="app.log",
         filemode="w",
