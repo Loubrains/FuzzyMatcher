@@ -14,6 +14,7 @@ class Controller:
         self.data_model = data_model
 
         self.setup_UI_bindings()
+
         logger.info("Controller initialized")
 
         self.user_interface.after(100, self.display_categories)
