@@ -10,6 +10,34 @@ from file_manager import FileManager
 logger = logging.getLogger(__name__)
 
 
+def log_class_attributes_for_debug(attributes):
+    log_messages = ["Class attributes:\n"]
+    for name, obj in attributes.items():
+        if isinstance(obj, pd.DataFrame):
+            log_message = f"{name}:\n{obj.head() if not obj.empty else 'Empty DataFrame'}\n"
+        elif name == "categorized_dict":
+            # Only show top-level keys and the count of their values
+            categorized_dict_summary = {k: len(v) for k, v in obj.items()}
+            log_message = f"{name} (normally dict[str, set[str]], just showing keys and counts here):\n{categorized_dict_summary}\n"
+        elif name == "expected_json_structure":
+            # We want to see all of these, formatted with each key on newlines
+            keys_summary = "\n".join([f"{k}: {v}" for k, v in obj.items()])
+            log_message = f"{name}:\n{{\n{keys_summary}\n}}\n"
+        elif isinstance(obj, dict):
+            # For other dictionaries, show the first few items
+            limit = 5
+            dict_head = dict(list(obj.items())[:limit])
+            log_message = (
+                f"{name} (first {limit}):\n{dict_head if dict_head else 'Empty Dictionary'}\n"
+            )
+        else:
+            log_message = f"{name}:\n{obj}\n"
+
+        log_messages.append(log_message)
+
+    logger.debug("\n".join(log_messages))
+
+
 class DataModel:
     def __init__(self, file_manager: FileManager) -> None:
         self.file_manager = file_manager
@@ -18,6 +46,7 @@ class DataModel:
         logger.info("Data model initialized")
 
     def initialize_data_structures(self):
+        logger.debug("Initializing data structures")
         # Empty variables which will be populated during new project/load project
         # categorized_data will contain a uuids, responses, and column for each category, with a 1 or 0 for each response
         self.df = pd.DataFrame()
@@ -45,6 +74,9 @@ class DataModel:
             "categorization_type": str,
             "is_including_missing_data": bool,
         }
+
+        # TODO: Put this in more places in the code
+        log_class_attributes_for_debug(vars(self))
 
     ### ----------------------- Main functionality ----------------------- ###
     def fuzzy_match_behaviour(self, string_to_match):
@@ -211,6 +243,7 @@ class DataModel:
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
+        log_class_attributes_for_debug(vars(self))
         logger.info("Data structures populated successfully")
 
     def file_import_on_load_project(self, file_path: str):
@@ -247,6 +280,7 @@ class DataModel:
             "is_including_missing_data"
         ]  # Tkinter variable
 
+        log_class_attributes_for_debug(vars(self))
         logger.info("Data structures populated successfully")
         return (
             categorization_type,
@@ -317,6 +351,7 @@ class DataModel:
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
+        log_class_attributes_for_debug(vars(self))
         logger.info("Data structures populated successfully")
 
     def save_project(self, file_path: str, user_interface_variables_to_add: dict[str, Any]):
