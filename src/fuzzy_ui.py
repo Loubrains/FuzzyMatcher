@@ -8,28 +8,12 @@ import pandas as pd
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
-class ScreenCoords:
-    def __init__(self):
-        self.WINDOW_SIZE_MULTIPLIER = 0.8
-        self.POPUP_WIDTH = "400"
-        self.POPUP_HEIGHT = "200"
-
-    def update_coords(self, screen_width, screen_height):
-        self.screen_width = screen_width
-        self.screen_height = screen_height
-        self.window_width = int(screen_width * self.WINDOW_SIZE_MULTIPLIER)
-        self.window_height = int(screen_height * self.WINDOW_SIZE_MULTIPLIER)
-        self.centre_x = int((screen_width - self.window_width) / 2)
-        self.centre_y = int((screen_height - self.window_height) / 2)
-
-
 class FuzzyUI(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.screen_coords = ScreenCoords()
-        self.screen_coords.update_coords(self.winfo_screenwidth(), self.winfo_screenheight())
-
         self.title("Fuzzy Matcher")
+        self.WINDOW_SIZE_MULTIPLIER = 0.8
+        self.update_coords(self.winfo_screenwidth(), self.winfo_screenheight())
 
         self.is_including_missing_data = tk.BooleanVar(value=False)
         self.categorization_type = tk.StringVar(value="Single")
@@ -45,14 +29,20 @@ class FuzzyUI(tk.Tk):
         self.resize_treeview_columns()
         self.resize_text_wraplength()
 
-        # Bind resizing functions to window size change
+        # Bind resizing functions to window resize
         self.bind("<Configure>", self.on_window_resize)
 
     ### ----------------------- Setup ----------------------- ###
+    def update_coords(self, screen_width, screen_height):
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+        self.window_width = int(screen_width * self.WINDOW_SIZE_MULTIPLIER)
+        self.window_height = int(screen_height * self.WINDOW_SIZE_MULTIPLIER)
+        self.centre_x = int((screen_width - self.window_width) / 2)
+        self.centre_y = int((screen_height - self.window_height) / 2)
+
     def initialize_window(self) -> None:
-        self.geometry(
-            f"{self.screen_coords.window_width}x{self.screen_coords.window_height}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
-        )
+        self.geometry(f"{self.window_width}x{self.window_height}+{self.centre_x}+{self.centre_y}")
         # self.state('zoomed')
 
     def configure_grid(self) -> None:
@@ -357,9 +347,9 @@ class FuzzyUI(tk.Tk):
         popup.title(title)
 
         # Center the popup on the main window
-        popup.geometry(
-            f"{self.screen_coords.POPUP_WIDTH}x{self.screen_coords.POPUP_HEIGHT}+{self.screen_coords.centre_x}+{self.screen_coords.centre_y}"
-        )
+        self.POPUP_WIDTH = "400"
+        self.POPUP_HEIGHT = "200"
+        popup.geometry(f"{self.POPUP_WIDTH}x{self.POPUP_HEIGHT}+{self.centre_x}+{self.centre_y}")
 
         # Keep the popup window on top
         # Ensure all events are directed to this window until closed
