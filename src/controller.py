@@ -1,5 +1,9 @@
+import logging
 from fuzzy_ui import FuzzyUI
 from data_model import DataModel
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 
 # Main application class
@@ -10,6 +14,7 @@ class Controller:
         self.data_model = data_model
 
         self.setup_UI_bindings()
+        logger.info("Controller initialized")
 
         self.user_interface.after(100, self.display_categories)
         self.user_interface.after(

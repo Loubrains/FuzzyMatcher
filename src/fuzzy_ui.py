@@ -1,8 +1,12 @@
+import logging
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
 import ctypes
 import pandas as pd
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 # Set DPI awareness
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -31,6 +35,8 @@ class FuzzyUI(tk.Tk):
 
         # Bind resizing functions to window resize
         self.bind("<Configure>", self.on_window_resize)
+
+        logger.info("UI initialized")
 
     ### ----------------------- Setup ----------------------- ###
     def update_coords(self, screen_width, screen_height):

@@ -1,22 +1,32 @@
+import logging
 import chardet
 import pandas as pd
 import json
 from typing import Any
 
+# Setup logging
+logger = logging.getLogger(__name__)
+
 
 class FileManager:
     def read_csv_or_xlsx_to_dataframe(self, file_path: str) -> pd.DataFrame:
         try:
+            logger.info("Reading file: %s", file_path)
             if file_path.endswith(".csv"):
                 with open(file_path, "rb") as file:
                     encoding = chardet.detect(file.read())["encoding"]  # Detect encoding
-                return pd.read_csv(file_path, encoding=encoding)
+                df = pd.read_csv(file_path, encoding=encoding)
             elif file_path.endswith(".xlsx"):
-                return pd.read_excel(file_path, engine="openpyxl")
+                df = pd.read_excel(file_path, engine="openpyxl")
             else:
                 raise ValueError("Unsupported file format.\n\nFile must be of type .csv or .xlsx")
+
+            logger.info("File read successfully")
+            return df
+
         except Exception as e:
-            raise e
+            logger.exception("Failed to read file: %s", e)
+            raise
 
     def load_json(self, file_path: str) -> dict[str, Any]:
         try:

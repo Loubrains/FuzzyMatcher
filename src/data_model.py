@@ -1,9 +1,13 @@
+import logging
 import re
 from thefuzz import fuzz
 import pandas as pd
 from io import StringIO
 from typing import Any
 from file_manager import FileManager
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 
 class DataModel:
@@ -39,6 +43,8 @@ class DataModel:
             "categorization_type": str,
             "is_including_missing_data": bool,
         }
+
+        logger.info("Data model initialized")
 
     ### ----------------------- Main functionality ----------------------- ###
     def perform_fuzzy_match(self, string_to_match):
