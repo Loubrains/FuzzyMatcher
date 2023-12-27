@@ -2,6 +2,7 @@ import logging
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
+import inspect
 import ctypes
 import pandas as pd
 
@@ -419,13 +420,13 @@ class FuzzyUI(tk.Tk):
         return messagebox.askyesno(title, message)
 
     def show_error(self, message: str) -> None:
-        messagebox.showerror("Error", message)
+        messagebox.showerror("Error", inspect.cleandoc(message))
 
     def show_info(self, message) -> None:
-        messagebox.showinfo("Info", message)
+        messagebox.showinfo("Info", inspect.cleandoc(message))
 
     def show_warning(self, message) -> None:
-        messagebox.showwarning("Warning", message)
+        messagebox.showwarning("Warning", inspect.cleandoc(message))
 
     ### ----------------------- Treeview Selections ----------------------- ###
     def selected_match_responses(self) -> set[str]:

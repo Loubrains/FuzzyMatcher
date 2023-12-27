@@ -25,13 +25,13 @@ class Controller:
 
     def setup_UI_bindings(self):
         self.user_interface.match_string_entry.bind(
-            "<Return>", lambda event: self.perform_fuzzy_match()
+            "<Return>", lambda event: self.fuzzy_match_behaviour()
         )
         self.user_interface.threshold_slider.bind(
             "<ButtonRelease-1>", lambda val: self.display_match_results()
         )
         self.user_interface.match_button.bind(
-            "<Button-1>", lambda event: self.perform_fuzzy_match()
+            "<Button-1>", lambda event: self.fuzzy_match_behaviour()
         )
         self.user_interface.categorize_button.bind(
             "<Button-1>", lambda event: self.categorize_selected_responses()
@@ -70,8 +70,8 @@ class Controller:
         self.user_interface.mainloop()
 
     ### ----------------------- Main Functionality ----------------------- ###
-    def perform_fuzzy_match(self):
-        self.data_model.perform_fuzzy_match(self.user_interface.match_string_entry.get())
+    def fuzzy_match_behaviour(self):
+        self.data_model.fuzzy_match_behaviour(self.user_interface.match_string_entry.get())
         self.display_match_results()
 
     def categorize_selected_responses(self):
@@ -102,7 +102,7 @@ class Controller:
 
         self.data_model.categorize_responses(responses, categories, categorization_type)
         self.display_categories()
-        self.perform_fuzzy_match()
+        self.fuzzy_match_behaviour()
         self.user_interface.update_treeview_selections(
             selected_categories=categories,
             selected_responses=responses,
