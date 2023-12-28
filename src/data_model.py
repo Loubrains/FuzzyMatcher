@@ -1,4 +1,5 @@
 import logging
+import logging_utils
 import re
 from thefuzz import fuzz
 import pandas as pd
@@ -8,34 +9,6 @@ from file_manager import FileManager
 
 # Setup logging
 logger = logging.getLogger(__name__)
-
-
-def log_class_attributes_for_debug(attributes):
-    log_messages = ["Class attributes:\n"]
-    for name, obj in attributes.items():
-        if isinstance(obj, pd.DataFrame):
-            log_message = f"{name}:\n{obj.head() if not obj.empty else 'Empty DataFrame'}\n"
-        elif name == "categorized_dict":
-            # Only show top-level keys and the count of their values
-            categorized_dict_summary = {k: len(v) for k, v in obj.items()}
-            log_message = f"{name} (normally dict[str, set[str]], just showing keys and counts here):\n{categorized_dict_summary}\n"
-        elif name == "expected_json_structure":
-            # We want to see all of these, formatted with each key on newlines
-            keys_summary = "\n".join([f"{k}: {v}" for k, v in obj.items()])
-            log_message = f"{name}:\n{{\n{keys_summary}\n}}\n"
-        elif isinstance(obj, dict):
-            # For other dictionaries, show the first few items
-            limit = 5
-            dict_head = dict(list(obj.items())[:limit])
-            log_message = (
-                f"{name} (first {limit}):\n{dict_head if dict_head else 'Empty Dictionary'}\n"
-            )
-        else:
-            log_message = f"{name}:\n{obj}\n"
-
-        log_messages.append(log_message)
-
-    logger.debug("\n".join(log_messages))
 
 
 class DataModel:
@@ -50,7 +23,7 @@ class DataModel:
         # Empty variables which will be populated during new project/load project
         # categorized_data will contain a uuids, responses, and column for each category, with a 1 or 0 for each response
         self.df = pd.DataFrame()
-        self.df_preprocessed = pd.DataFrame()
+        self.preprocessed_responses = pd.DataFrame()
         self.response_columns = []
         self.categorized_data = pd.DataFrame()
         self.response_counts = {}
@@ -66,7 +39,7 @@ class DataModel:
         # TODO: Need to update this to be more specific (e.g. dict[str, set[str]) and handle stringified json too
         self.expected_json_structure = {
             "df": str,
-            "df_preprocessed": str,
+            "preprocessed_responses": str,
             "response_columns": list,
             "categorized_data": str,
             "response_counts": dict,
@@ -75,20 +48,20 @@ class DataModel:
             "is_including_missing_data": bool,
         }
 
-        # TODO: Put this in more places in the code
-        log_class_attributes_for_debug(vars(self))
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
 
     ### ----------------------- Main functionality ----------------------- ###
     def fuzzy_match_behaviour(self, string_to_match):
         if self.categorized_data.empty or self.categorized_data is None:
             message = "There is no dataset in the current project to match against"
             logger.warning(message)
+            logger.debug(f"categorized_data:\n{self.categorized_data}")
             return False, message
 
         logger.info("Preparing to perform fuzzy match")
         uncategorized_responses = self.categorized_dict["Uncategorized"]
-        uncategorized_df = self.df_preprocessed[
-            self.df_preprocessed.isin(uncategorized_responses)
+        uncategorized_df = self.preprocessed_responses[
+            self.preprocessed_responses.isin(uncategorized_responses)
         ].dropna(how="all")
 
         # Perform fuzzy matching on these uncategorized responses
@@ -138,14 +111,13 @@ class DataModel:
         logger.info("Responses recategorized")
 
     def create_category(self, new_category: str):
-        if not new_category:
-            message = "Category name cannot be empty"
-            logger.warning(message)
-            return False, message
-
         if new_category in self.categorized_data.columns:
             message = "Category already exists"
             logger.warning(message)
+            logger.debug(
+                f"""new_category:\n{new_category}\n
+                categorized_data.columns:\n{self.categorized_data.columns}"""
+            )
             return False, message
 
         logger.info('Creating new category: "%s"', new_category)
@@ -160,11 +132,10 @@ class DataModel:
         if new_category in self.categorized_dict:
             message = "A category with this name already exists."
             logger.warning(message)
-            return False, message
-
-        if old_category == "Missing data":
-            message = 'You cannot rename "Missing data".'
-            logger.warning(message)
+            logger.debug(
+                f"""new_category:\n{new_category}\n
+                categorized_dict.keys:\n{self.categorized_dict.keys()}"""
+            )
             return False, message
 
         logger.info("Renaming category")
@@ -196,21 +167,23 @@ class DataModel:
     ### ----------------------- Project Management ----------------------- ###
     def file_import_on_new_project(self, file_path: str):
         logger.info("Importing data")
-        self.df = self.file_manager.read_csv_or_xlsx_to_dataframe(file_path)
+        new_data = self.file_manager.read_csv_or_xlsx_to_dataframe(file_path)
 
-        if self.df.empty:
+        if new_data.empty:
             message = "Imported dataset is empty"
             logger.error(message)
+            logger.debug(f"new_data:\n{new_data.head(5)}")
             return False, message
 
-        if self.df.shape[1] < 2:
+        if new_data.shape[1] < 2:
             logger.error("Imported dataset does not contain enough columns")
             return (
                 False,
                 """Imported dataset does not contain enough columns.\n\n
-            The dataset should contain uuids in the first column, and the subsequent columns should contian responses""",
+                The dataset should contain uuids in the first column, and the subsequent columns should contian responses""",
             )
 
+        self.df = new_data
         message = "Data imported successfully"
         logger.info(message)
         return True, message
@@ -218,24 +191,24 @@ class DataModel:
     def populate_data_structures_on_new_project(self):
         logger.info("Populating data structures")
 
-        self.df_preprocessed = pd.DataFrame(
+        self.preprocessed_responses = pd.DataFrame(
             self.df.iloc[:, 1:].map(
                 self.preprocess_text  # , na_action="ignore"
             )  # type: ignore
         )
 
         # categories_display is dict of categories containig the deduplicated set of all responses
-        df_series = self.df_preprocessed.stack().reset_index(drop=True)
+        df_series = self.preprocessed_responses.stack().reset_index(drop=True)
         self.categorized_dict = {
             "Uncategorized": set(df_series) - {"nan", "missing data"},
             "Missing data": {"nan", "missing data"},  # default
         }
         self.response_counts = df_series.value_counts().to_dict()
         uuids = self.df.iloc[:, 0]
-        self.response_columns = list(self.df_preprocessed.columns)
+        self.response_columns = list(self.preprocessed_responses.columns)
         # categorized_data carries all response columns and all categories until export where response columns are dropped
         # In categorized_data, each category is a column, with a 1 or 0 for each response
-        self.categorized_data = pd.concat([uuids, self.df_preprocessed], axis=1)
+        self.categorized_data = pd.concat([uuids, self.preprocessed_responses], axis=1)
         self.categorized_data["Uncategorized"] = 1  # Everything starts uncategorized
         self.categorized_data["Missing data"] = 0
         self.categorize_missing_data()
@@ -243,7 +216,7 @@ class DataModel:
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
-        log_class_attributes_for_debug(vars(self))
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
         logger.info("Data structures populated successfully")
 
     def file_import_on_load_project(self, file_path: str):
@@ -265,7 +238,9 @@ class DataModel:
 
         # Convert JSON back to data / set default variable values
         self.df = pd.read_json(StringIO(self.data_loaded["df"]))
-        self.df_preprocessed = pd.read_json(StringIO(self.data_loaded["df_preprocessed"]))
+        self.preprocessed_responses = pd.read_json(
+            StringIO(self.data_loaded["preprocessed_responses"])
+        )
         self.response_columns = self.data_loaded["response_columns"]
         self.categorized_data = pd.read_json(StringIO(self.data_loaded["categorized_data"]))
         self.response_counts = self.data_loaded["response_counts"]
@@ -280,7 +255,7 @@ class DataModel:
             "is_including_missing_data"
         ]  # Tkinter variable
 
-        log_class_attributes_for_debug(vars(self))
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
         logger.info("Data structures populated successfully")
         return (
             categorization_type,
@@ -325,20 +300,22 @@ class DataModel:
         logger.info("Populating data structures")
 
         self.df = pd.concat([self.df, self.data_to_append], ignore_index=True)
-        old_data_size = len(self.df_preprocessed)
-        new_df_preprocessed = pd.DataFrame(
+        old_data_size = len(self.preprocessed_responses)
+        new_preprocessed_responses = pd.DataFrame(
             self.df.iloc[old_data_size:, 1:].map(self.preprocess_text)  # type: ignore
         )
-        self.df_preprocessed = pd.concat([self.df_preprocessed, new_df_preprocessed])
+        self.preprocessed_responses = pd.concat(
+            [self.preprocessed_responses, new_preprocessed_responses]
+        )
 
         # categories_display is dict of categories to the deduplicated set of all responses
-        new_df_series = new_df_preprocessed.stack().reset_index(drop=True)
-        df_series = self.df_preprocessed.stack().reset_index(drop=True)
+        new_df_series = new_preprocessed_responses.stack().reset_index(drop=True)
+        df_series = self.preprocessed_responses.stack().reset_index(drop=True)
         self.response_counts = df_series.value_counts().to_dict()
         self.categorized_dict["Uncategorized"].update(set(new_df_series) - {"nan", "missing data"})
 
         new_categorized_data = pd.concat(
-            [self.df.iloc[old_data_size:, 0], new_df_preprocessed], axis=1
+            [self.df.iloc[old_data_size:, 0], new_preprocessed_responses], axis=1
         )
         self.categorized_data = pd.concat([self.categorized_data, new_categorized_data], axis=0)
 
@@ -351,7 +328,7 @@ class DataModel:
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
-        log_class_attributes_for_debug(vars(self))
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
         logger.info("Data structures populated successfully")
 
     def save_project(self, file_path: str, user_interface_variables_to_add: dict[str, Any]):
@@ -359,7 +336,7 @@ class DataModel:
 
         data_to_save = {
             "df": self.df.to_json(),
-            "df_preprocessed": self.df_preprocessed.to_json(),
+            "preprocessed_responses": self.preprocessed_responses.to_json(),
             "response_columns": self.response_columns,
             "categorized_data": self.categorized_data.to_json(),
             "response_counts": self.response_counts,
@@ -392,7 +369,7 @@ class DataModel:
         text = text.strip()
         return text
 
-    def fuzzy_match(self, df_preprocessed, match_string) -> pd.DataFrame:
+    def fuzzy_match(self, preprocessed_responses, match_string) -> pd.DataFrame:
         logger.info('Performing fuzzy match: "%s"', match_string)
 
         def _fuzzy_match(element):
@@ -402,7 +379,7 @@ class DataModel:
 
         # Get fuzzy matching scores and format result: {response: score}
         results = []
-        for row in df_preprocessed.itertuples(index=True, name=None):
+        for row in preprocessed_responses.itertuples(index=True, name=None):
             for response in row[1:]:
                 score = _fuzzy_match(response)
                 results.append({"response": response, "score": score})
@@ -431,37 +408,53 @@ class DataModel:
         def is_missing(value):
             return pd.isna(value) or value is None or value == "missing data" or value == "nan"
 
-        all_missing_mask = self.df_preprocessed.map(is_missing).all(  # type: ignore
+        all_missing_mask = self.preprocessed_responses.map(is_missing).all(  # type: ignore
             axis=1
         )  # Boolean mask where each row is True if all elements are missing
         self.categorized_data.loc[all_missing_mask, "Missing data"] = 1
         self.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
 
-    def validate_loaded_json(self, loaded_json_data, expected_data) -> tuple[bool, str]:
+    def validate_loaded_json(
+        self, loaded_json_data: dict[str, Any], expected_data: dict[str, Any]
+    ) -> tuple[bool, str]:
         # NOTE: self.expected_json_structure is passed in. This needs to be updated when the data structure changes.
-        logger.info("Validating loaded project data")
+        logger.debug("Validating loaded project data")
 
         if not loaded_json_data:
+            logger.debug(f"loaded_json_data:\n{loaded_json_data}")
             return False, "Loaded project data is empty"
 
         if unexpected_keys := set(loaded_json_data.keys()) - set(expected_data.keys()):
+            logger.debug(
+                f"""loaded_json_data.keys:\n{loaded_json_data.keys()}\n
+                expected_data.keys:\n{expected_data.keys()}"""
+            )
             return False, f"Unexpected variables loaded: {', '.join(unexpected_keys)}"
 
         for expected_key, expected_type in expected_data.items():
             if expected_key not in loaded_json_data:
+                logger.debug(
+                    f"""expected_key:\n{expected_key}\n
+                    loaded_json_data.keys:\n{loaded_json_data.keys()}"""
+                )
                 return False, f"Variable '{expected_key}' is missing from loaded project data"
 
             # skip the bool case (e.g. `is_including_missing_data`) since its value would be evaluated in the if statement
             if expected_type is not bool and not loaded_json_data[expected_key]:
+                logger.debug(f"{expected_key}:\n{loaded_json_data[expected_key]}")
                 return False, f"Variable '{expected_key}' is empty in loaded project data"
 
             if not isinstance(loaded_json_data[expected_key], expected_type):
+                logger.debug(
+                    f"""Expected {expected_key}:{expected_type}\n
+                    Received {expected_key}:{type(loaded_json_data[expected_key])}"""
+                )
                 return (
                     False,
                     f"Variable '{expected_key}' in loaded project data contains values that are not of expected type {expected_type.__name__}.",
                 )
 
-        logger.info("Project data validated successfully")
+        logger.debug("Project data validated successfully")
         return True, "Loaded JSON validated successfully"
 
     def get_responses_and_counts(self, category: str) -> list[tuple[str, int]]:

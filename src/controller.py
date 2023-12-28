@@ -1,4 +1,5 @@
 import logging
+import logging_utils
 from fuzzy_ui import FuzzyUI
 from data_model import DataModel
 
@@ -145,6 +146,13 @@ class Controller:
 
     def create_category(self):
         new_category = self.user_interface.new_category_entry.get()
+
+        if not new_category:
+            message = "Category name cannot be empty"
+            logger.warning(message)
+            logging_utils.format_and_log_data_for_debug(logger, {"new_category": new_category})
+            return False, message
+
         success, message = self.data_model.create_category(new_category)
 
         if success:

@@ -54,6 +54,7 @@ class FileManager:
 
             if export_df.empty:
                 logger.error("Dataframe is empty")
+                logger.debug(f"export_df:\n{export_df}")
                 return
 
             export_df.to_csv(file_path, index=False)
@@ -69,6 +70,7 @@ class FileManager:
 
             if not data_to_save:
                 logger.error("No data to save")
+                logger.debug(f"data_to_save:{data_to_save}")
                 return
 
             with open(file_path, "w") as f:
