@@ -28,7 +28,7 @@ class FileManager:
             return df
 
         except Exception:
-            logger.exception("Failed to read file")
+            logger.exception("")
             raise
 
     def load_json(self, file_path: str) -> dict[str, Any]:
@@ -44,7 +44,7 @@ class FileManager:
             return data
 
         except Exception:
-            logger.exception("Failed to load file")
+            logger.exception("")
             raise
 
     def export_dataframe_to_csv(self, file_path: str, export_df: pd.DataFrame) -> None:
@@ -62,7 +62,7 @@ class FileManager:
             logger.info("Data exported to csv successfully")
 
         except Exception:
-            logger.exception("Failed to export data")
+            logger.exception("")
             raise
 
     def save_data_to_json(self, file_path: str, data_to_save: dict[str, Any], handler=None) -> None:
@@ -83,5 +83,5 @@ class FileManager:
             logger.info("Data saved successfully")
 
         except Exception:
-            logger.exception("Failed to save data")
+            logger.exception("")
             raise

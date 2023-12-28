@@ -315,7 +315,7 @@ class FuzzyUI(tk.Tk):
                         treeview.column(treeview["columns"][0], width=treeview_width)
 
     ### ----------------------- Display Management ----------------------- ###
-    def display_match_results(self, processed_results: pd.DataFrame):
+    def display_fuzzy_match_results(self, processed_results: pd.DataFrame):
         for item in self.match_results_tree.get_children():
             self.match_results_tree.delete(item)
 
@@ -369,6 +369,7 @@ class FuzzyUI(tk.Tk):
 
     def create_rename_category_popup(self, old_category):
         self.rename_dialog_popup = self.create_popup("Rename Category")
+
         # Create widgets
         self.label = tk.Label(
             self.rename_dialog_popup, text=f"Enter a new name for '{old_category}':"
@@ -382,6 +383,9 @@ class FuzzyUI(tk.Tk):
         self.new_category_entry.pack()
         self.ok_button.pack(side="left", padx=20)
         self.cancel_button.pack(side="right", padx=20)
+
+        # Set focus to the string entry
+        self.new_category_entry.focus_set()
 
     def create_ask_categorization_type_popup(self):
         self.categorization_type_popup = self.create_popup("Select Categorization Type")
@@ -403,6 +407,15 @@ class FuzzyUI(tk.Tk):
             self.categorization_type_popup,
             text="Confirm",
         )
+
+        # Functions to execute upon confirm/Enter
+        def _on_confirm():
+            self.set_categorization_type_label()
+            self.categorization_type_popup.destroy()
+
+        # Bind widgets to commands
+        self.confirm_button.bind("<Button-1>", lambda event: _on_confirm())
+        self.categorization_type_popup.bind("<Return>", lambda event: _on_confirm())
 
         # Add the buttons to the window
         single_categorization_rb.pack()
