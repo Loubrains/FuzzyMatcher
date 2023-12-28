@@ -51,14 +51,14 @@ class DataModel:
         logging_utils.format_and_log_data_for_debug(logger, vars(self))
 
     ### ----------------------- Main functionality ----------------------- ###
-    def fuzzy_match_behaviour(self, string_to_match):
+    def fuzzy_match_behaviour(self, string_to_match: str):
         if self.categorized_data.empty or self.categorized_data is None:
             message = "There is no dataset in the current project to match against"
             logger.warning(message)
             logger.debug(f"categorized_data:\n{self.categorized_data}")
             return False, message
 
-        logger.info("Preparing to perform fuzzy match")
+        logger.info(f'Preparing to perform fuzzy match: "{string_to_match}"')
         uncategorized_responses = self.categorized_dict["Uncategorized"]
         uncategorized_df = self.preprocessed_responses[
             self.preprocessed_responses.isin(uncategorized_responses)
@@ -73,7 +73,6 @@ class DataModel:
         self, responses: set[str], categories: set[str], categorization_type: str
     ):
         # TODO: Abstract out parts of this method and the 'recategorize' method to single method(s)
-
         logger.info("Categorizing responses")
 
         # Boolean mask for rows in categorized_data containing selected responses
@@ -86,6 +85,10 @@ class DataModel:
             self.categorized_data.loc[mask, "Uncategorized"] = 0
             self.categorized_dict["Uncategorized"] -= responses
 
+            # Additional code to remove the responses from fuzzy_match_results
+            fuzzy_mask = self.fuzzy_match_results["response"].isin(responses)
+            self.fuzzy_match_results = self.fuzzy_match_results[~fuzzy_mask].reset_index(drop=True)
+
         for category in categories:
             self.categorized_data.loc[mask, category] = 1
             self.categorized_dict[category].update(responses)
@@ -93,6 +96,7 @@ class DataModel:
         logger.info("Responses categorized")
 
     def recategorize_responses(self, responses: set[str], categories: set[str]):
+        # TODO: Abstract out parts of this method and the 'categorize' method to single method(s)
         logger.info("Recategorizing responses")
 
         # Boolean mask for rows in categorized_data containing selected responses
@@ -164,7 +168,7 @@ class DataModel:
 
     ### ----------------------- Project Management ----------------------- ###
     def file_import_on_new_project(self, file_path: str):
-        logger.info("Importing data")
+        logger.info("Calling file handler to import data")
         new_data = self.file_manager.read_csv_or_xlsx_to_dataframe(file_path)
 
         if new_data.empty:
@@ -183,7 +187,7 @@ class DataModel:
             )
 
         self.raw_data = new_data
-        message = "Data imported successfully"
+        message = "Data passed checks"
         logger.info(message)
         return True, message
 
@@ -219,7 +223,7 @@ class DataModel:
         logger.info("Data structures populated successfully")
 
     def file_import_on_load_project(self, file_path: str):
-        logger.info("Importing project data")
+        logger.info("Calling file handler to import project data")
         new_data = self.file_manager.load_json(file_path)
         success, message = self.validate_loaded_json(new_data, self.expected_json_structure)
 
@@ -228,7 +232,7 @@ class DataModel:
             return False, message
 
         self.data_loaded = new_data
-        message = "Project data loaded successfully"
+        message = "Project data passed checks"
         logger.info(message)
         return True, message
 
@@ -256,7 +260,7 @@ class DataModel:
         # Return Tkinter variables back to the UI class
         return (categorization_type, is_including_missing_data)
 
-    def file_import_on_append_data(self, file_path):
+    def file_import_on_append_data(self, file_path: str):
         if self.raw_data.empty:
             logger.warning("There is no dataset in the current project to append to")
             logger.error(f"raw_data:\n{self.raw_data}")
@@ -266,7 +270,7 @@ class DataModel:
                 Click "Start New Project" or "Load project"''',
             )
 
-        logger.info("Importing data to append")
+        logger.info("Calling file handler to import data to append")
         new_data = self.file_manager.read_csv_or_xlsx_to_dataframe(file_path)
 
         if new_data.empty:
@@ -292,7 +296,7 @@ class DataModel:
             )
 
         self.data_to_append = new_data
-        message = "Data imported successfully"
+        message = "Data passed checks"
         logger.info(message)
         return True, message
 
@@ -349,9 +353,10 @@ class DataModel:
             if pd.isna(o):
                 return None
 
+        logger.info("Calling file handler to save project data")
         self.file_manager.save_data_to_json(file_path, data_to_save, handler=_none_handler)
 
-    def export_data_to_csv(self, file_path, categorization_type):
+    def export_data_to_csv(self, file_path: str, categorization_type: str):
         logger.info("Preparing to export categorized data to csv")
 
         # Exported data needs only UUIDs and category binaries to be able to be imported into Q.
@@ -359,6 +364,7 @@ class DataModel:
         if categorization_type == "Multi":
             self.export_df.drop("Uncategorized", axis=1, inplace=True)
 
+        logger.info("Calling file handler  export categorized data to csv")
         self.file_manager.export_dataframe_to_csv(file_path, self.export_df)
 
     ### ----------------------- Helper functions ----------------------- ###
@@ -411,8 +417,13 @@ class DataModel:
         # Boolean mask where each row is True if all elements are missing
         all_missing_mask = self.preprocessed_responses.map(is_missing).all(axis=1)  # type: ignore
 
+        logger.debug(
+            f"""Categorizing missing data\n
+            categorized_data (before):\n{self.categorized_data.head()}\n"""
+        )
         self.categorized_data.loc[all_missing_mask, "Missing data"] = 1
         self.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
+        logger.debug(f"categorized_data (after):\n{self.categorized_data.head()}\n" "")
 
     def validate_loaded_json(
         self, loaded_json_data: dict[str, Any], expected_data: dict[str, Any]

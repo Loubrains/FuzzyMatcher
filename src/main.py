@@ -18,7 +18,7 @@ def setup_logging():
 
 
 def main():
-    logging.info("Application starting")
+    logging.info("Application initializing")
     file_manager = FileManager()
     data_model = DataModel(file_manager)
     user_interface = FuzzyUI()

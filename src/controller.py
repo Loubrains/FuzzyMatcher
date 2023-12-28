@@ -68,14 +68,18 @@ class Controller:
         self.user_interface.export_csv_button.bind("<Button-1>", lambda event: self.export_to_csv())
 
     def run(self):
+        logger.info("Starting the app mainloop")
         self.user_interface.mainloop()
 
     ### ----------------------- Main Functionality ----------------------- ###
     def fuzzy_match_behaviour(self):
-        self.data_model.fuzzy_match_behaviour(self.user_interface.match_string_entry.get())
+        string_to_match = self.user_interface.match_string_entry.get()
+        logger.info(f'Calling model to fuzzy match: "{string_to_match}"')
+        self.data_model.fuzzy_match_behaviour(string_to_match)
         self.display_match_results()
 
     def categorize_selected_responses(self):
+        logger.info("Getting selected categories and responses")
         responses = self.user_interface.selected_match_responses()
         categories = self.user_interface.selected_categories()
         categorization_type = self.user_interface.categorization_type.get()
@@ -84,31 +88,40 @@ class Controller:
             self.user_interface.show_warning(
                 "Please select both a category and responses to categorize."
             )
+            logger.warning("Both a category and response must be selected to categorize")
+            logger.debug(f"selected categories:{categories}, selected responses:{responses}")
             return
 
         if "Missing data" in categories:
             self.user_interface.show_warning('You cannot categorize values into "Missing data".')
+            logger.warning('Values cannot be categorized into "Missing data"')
+            logger.debug(f"selected categories:{categories}, selected responses:{responses}")
             return
 
         if "nan" in responses or "missing data" in responses:
             self.user_interface.show_warning(
                 'You cannot recategorize "NaN" or "Missing data" values',
             )
+            logger.warning('"NaN" or "Missing data" values cannot be recategorized')
+            logger.debug(f"selected responses:{responses}")
+            # No return, continue and remove missing data values in data model
 
         if categorization_type == "Single" and len(categories) > 1:
             self.user_interface.show_warning(
                 "Only one category can be selected in Single Categorization mode.",
             )
+            logger.warning("Only one category can be selected in Single Categorization mode.")
+            logger.debug(f"selected categories:{categories}")
             return
 
+        logger.info("Calling model to categorize selected responses into selected categories")
         self.data_model.categorize_responses(responses, categories, categorization_type)
-        self.display_categories()
-        self.fuzzy_match_behaviour()
+
+        self.refresh_treeviews()
         self.user_interface.update_treeview_selections(
             selected_categories=categories,
             selected_responses=responses,
         )
-        self.display_category_results()
 
     def recategorize_selected_responses(self):
         responses, categories = (
