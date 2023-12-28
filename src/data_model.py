@@ -22,7 +22,7 @@ class DataModel:
         logger.debug("Initializing data structures")
         # Empty variables which will be populated during new project/load project
         # categorized_data will contain a uuids, responses, and column for each category, with a 1 or 0 for each response
-        self.df = pd.DataFrame()
+        self.raw_data = pd.DataFrame()
         self.preprocessed_responses = pd.DataFrame()
         self.response_columns = []
         self.categorized_data = pd.DataFrame()
@@ -183,7 +183,7 @@ class DataModel:
                 The dataset should contain uuids in the first column, and the subsequent columns should contian responses""",
             )
 
-        self.df = new_data
+        self.raw_data = new_data
         message = "Data imported successfully"
         logger.info(message)
         return True, message
@@ -192,19 +192,19 @@ class DataModel:
         logger.info("Populating data structures")
 
         self.preprocessed_responses = pd.DataFrame(
-            self.df.iloc[:, 1:].map(
+            self.raw_data.iloc[:, 1:].map(
                 self.preprocess_text  # , na_action="ignore"
             )  # type: ignore
         )
 
-        # categories_display is dict of categories containig the deduplicated set of all responses
+        # categorized_dict is dict of categories containig the deduplicated set of all responses
         df_series = self.preprocessed_responses.stack().reset_index(drop=True)
         self.categorized_dict = {
             "Uncategorized": set(df_series) - {"nan", "missing data"},
             "Missing data": {"nan", "missing data"},  # default
         }
         self.response_counts = df_series.value_counts().to_dict()
-        uuids = self.df.iloc[:, 0]
+        uuids = self.raw_data.iloc[:, 0]
         self.response_columns = list(self.preprocessed_responses.columns)
         # categorized_data carries all response columns and all categories until export where response columns are dropped
         # In categorized_data, each category is a column, with a 1 or 0 for each response
@@ -237,7 +237,7 @@ class DataModel:
         logger.info("Populating data structures")
 
         # Convert JSON back to data / set default variable values
-        self.df = pd.read_json(StringIO(self.data_loaded["df"]))
+        self.raw_data = pd.read_json(StringIO(self.data_loaded["df"]))
         self.preprocessed_responses = pd.read_json(
             StringIO(self.data_loaded["preprocessed_responses"])
         )
@@ -250,21 +250,19 @@ class DataModel:
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
-        categorization_type = self.data_loaded["categorization_type"]  # Tkinter variable
-        is_including_missing_data = self.data_loaded[
-            "is_including_missing_data"
-        ]  # Tkinter variable
+        # Tkinter variables
+        categorization_type = self.data_loaded["categorization_type"]
+        is_including_missing_data = self.data_loaded["is_including_missing_data"]
 
         logging_utils.format_and_log_data_for_debug(logger, vars(self))
         logger.info("Data structures populated successfully")
-        return (
-            categorization_type,
-            is_including_missing_data,
-        )  # Return Tkinter variables back to the UI class
+        # Return Tkinter variables back to the UI class
+        return (categorization_type, is_including_missing_data)
 
     def file_import_on_append_data(self, file_path):
-        if self.df.empty:
+        if self.raw_data.empty:
             logger.warning("There is no dataset in the current project to append to")
+            logger.error(f"raw_data:\n{self.raw_data}")
             return (
                 False,
                 '''There is no dataset in the current project to append to.\n\n
@@ -277,12 +275,17 @@ class DataModel:
         if new_data.empty:
             message = "Imported dataset is empty"
             logger.error(message)
+            logger.debug(f"new_data:\n{new_data}")
             return False, message
 
-        # using self.df as it should have the same columns as self.categorized_data without the category columns.
-        if new_data.shape[1] != self.df.shape[1]:
+        # using self.raw_data as it should have the same columns as self.categorized_data without the category columns.
+        if new_data.shape[1] != self.raw_data.shape[1]:
             logger.error(
                 "Imported dataset does not have the same number of columns as the dataset in the current project"
+            )
+            logger.debug(
+                f"""new_data:\n{new_data.head()}\n
+                raw_data:\n{self.raw_data.head()}"""
             )
             return (
                 False,
@@ -299,10 +302,10 @@ class DataModel:
     def populate_data_structures_on_append_data(self):
         logger.info("Populating data structures")
 
-        self.df = pd.concat([self.df, self.data_to_append], ignore_index=True)
+        self.raw_data = pd.concat([self.raw_data, self.data_to_append], ignore_index=True)
         old_data_size = len(self.preprocessed_responses)
         new_preprocessed_responses = pd.DataFrame(
-            self.df.iloc[old_data_size:, 1:].map(self.preprocess_text)  # type: ignore
+            self.raw_data.iloc[old_data_size:, 1:].map(self.preprocess_text)  # type: ignore
         )
         self.preprocessed_responses = pd.concat(
             [self.preprocessed_responses, new_preprocessed_responses]
@@ -315,7 +318,7 @@ class DataModel:
         self.categorized_dict["Uncategorized"].update(set(new_df_series) - {"nan", "missing data"})
 
         new_categorized_data = pd.concat(
-            [self.df.iloc[old_data_size:, 0], new_preprocessed_responses], axis=1
+            [self.raw_data.iloc[old_data_size:, 0], new_preprocessed_responses], axis=1
         )
         self.categorized_data = pd.concat([self.categorized_data, new_categorized_data], axis=0)
 
@@ -335,7 +338,7 @@ class DataModel:
         logger.info("Preparing to save project data")
 
         data_to_save = {
-            "df": self.df.to_json(),
+            "df": self.raw_data.to_json(),
             "preprocessed_responses": self.preprocessed_responses.to_json(),
             "response_columns": self.response_columns,
             "categorized_data": self.categorized_data.to_json(),
@@ -369,10 +372,10 @@ class DataModel:
         text = text.strip()
         return text
 
-    def fuzzy_match(self, preprocessed_responses, match_string) -> pd.DataFrame:
+    def fuzzy_match(self, preprocessed_responses: pd.DataFrame, match_string: str) -> pd.DataFrame:
         logger.info('Performing fuzzy match: "%s"', match_string)
 
-        def _fuzzy_match(element):
+        def _fuzzy_match(element) -> int:
             return fuzz.WRatio(
                 match_string, str(element)
             )  # Weighted ratio of several fuzzy matching protocols
@@ -405,12 +408,12 @@ class DataModel:
         return aggregated_results.sort_values(by=["score", "count"], ascending=[False, False])
 
     def categorize_missing_data(self) -> None:
-        def is_missing(value):
+        def is_missing(value) -> bool:
             return pd.isna(value) or value is None or value == "missing data" or value == "nan"
 
-        all_missing_mask = self.preprocessed_responses.map(is_missing).all(  # type: ignore
-            axis=1
-        )  # Boolean mask where each row is True if all elements are missing
+        # Boolean mask where each row is True if all elements are missing
+        all_missing_mask = self.preprocessed_responses.map(is_missing).all(axis=1)  # type: ignore
+
         self.categorized_data.loc[all_missing_mask, "Missing data"] = 1
         self.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
 
@@ -462,9 +465,9 @@ class DataModel:
             (response, self.response_counts.get(response, 0))
             for response in self.categorized_dict[category]
         ]
-        return sorted(
-            responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0])
-        )  # Sort first by score and then alphabetically
+
+        # Sort first by score and then alphabetically
+        return sorted(responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0]))
 
     def format_categories_metrics(
         self, is_including_missing_data: bool
