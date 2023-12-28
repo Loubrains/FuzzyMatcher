@@ -38,12 +38,12 @@ class DataModel:
         # NOTE: Update this when the data structure changes.
         # TODO: Need to update this to be more specific (e.g. dict[str, set[str]) and handle stringified json too
         self.expected_json_structure = {
-            "df": str,
+            "raw_data": str,
             "preprocessed_responses": str,
             "response_columns": list,
             "categorized_data": str,
             "response_counts": dict,
-            "categories_display": dict,
+            "categorized_dict": dict,
             "categorization_type": str,
             "is_including_missing_data": bool,
         }
@@ -111,16 +111,14 @@ class DataModel:
         logger.info("Responses recategorized")
 
     def create_category(self, new_category: str):
+        logger.info('Creating new category: "%s"', new_category)
+
         if new_category in self.categorized_data.columns:
             message = "Category already exists"
             logger.warning(message)
-            logger.debug(
-                f"""new_category:\n{new_category}\n
-                categorized_data.columns:\n{self.categorized_data.columns}"""
-            )
+            logger.debug(f"categorized_data.columns:\n{self.categorized_data.columns}")
             return False, message
 
-        logger.info('Creating new category: "%s"', new_category)
         self.categorized_data[new_category] = 0
         self.categorized_dict[new_category] = set()
 
@@ -129,16 +127,16 @@ class DataModel:
         return True, message
 
     def rename_category(self, old_category: str, new_category: str):
+        logger.info(
+            f'Renaming category. old_category: "{old_category}", new_category: "{new_category}"'
+        )
+
         if new_category in self.categorized_dict:
             message = "A category with this name already exists."
             logger.warning(message)
-            logger.debug(
-                f"""new_category:\n{new_category}\n
-                categorized_dict.keys:\n{self.categorized_dict.keys()}"""
-            )
+            logger.debug(f"categorized_dict.keys:\n{self.categorized_dict.keys()}")
             return False, message
 
-        logger.info("Renaming category")
         self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
         self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
 
@@ -172,11 +170,12 @@ class DataModel:
         if new_data.empty:
             message = "Imported dataset is empty"
             logger.error(message)
-            logger.debug(f"new_data:\n{new_data.head(5)}")
+            logger.debug(f"new_data:\n{new_data.head()}")
             return False, message
 
         if new_data.shape[1] < 2:
             logger.error("Imported dataset does not contain enough columns")
+            logger.debug(f"new_data:\n{new_data.head()}")
             return (
                 False,
                 """Imported dataset does not contain enough columns.\n\n
@@ -237,16 +236,14 @@ class DataModel:
         logger.info("Populating data structures")
 
         # Convert JSON back to data / set default variable values
-        self.raw_data = pd.read_json(StringIO(self.data_loaded["df"]))
+        self.raw_data = pd.read_json(StringIO(self.data_loaded["raw_data"]))
         self.preprocessed_responses = pd.read_json(
             StringIO(self.data_loaded["preprocessed_responses"])
         )
         self.response_columns = self.data_loaded["response_columns"]
         self.categorized_data = pd.read_json(StringIO(self.data_loaded["categorized_data"]))
         self.response_counts = self.data_loaded["response_counts"]
-        self.categorized_dict = {
-            k: set(v) for k, v in self.data_loaded["categories_display"].items()
-        }
+        self.categorized_dict = {k: set(v) for k, v in self.data_loaded["categorized_dict"].items()}
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
@@ -338,12 +335,12 @@ class DataModel:
         logger.info("Preparing to save project data")
 
         data_to_save = {
-            "df": self.raw_data.to_json(),
+            "raw_data": self.raw_data.to_json(),
             "preprocessed_responses": self.preprocessed_responses.to_json(),
             "response_columns": self.response_columns,
             "categorized_data": self.categorized_data.to_json(),
             "response_counts": self.response_counts,
-            "categories_display": {k: list(v) for k, v in self.categorized_dict.items()},
+            "categorized_dict": {k: list(v) for k, v in self.categorized_dict.items()},
         }
         data_to_save.update(user_interface_variables_to_add)
 
@@ -421,7 +418,7 @@ class DataModel:
         self, loaded_json_data: dict[str, Any], expected_data: dict[str, Any]
     ) -> tuple[bool, str]:
         # NOTE: self.expected_json_structure is passed in. This needs to be updated when the data structure changes.
-        logger.debug("Validating loaded project data")
+        logger.debug("Validating project data")
 
         if not loaded_json_data:
             logger.debug(f"loaded_json_data:\n{loaded_json_data}")

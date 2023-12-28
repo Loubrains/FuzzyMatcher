@@ -12,7 +12,7 @@ def setup_logging():
         filename="app.log",
         filemode="w",
     )
-    logging.getLogger("chardet").setLevel(logging.INFO)
+    logging.getLogger("chardet").setLevel(logging.WARNING)
 
     logging.info("Logging initialized")
 

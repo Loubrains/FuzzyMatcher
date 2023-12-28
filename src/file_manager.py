@@ -33,11 +33,10 @@ class FileManager:
 
     def load_json(self, file_path: str) -> dict[str, Any]:
         try:
-            logger.info('Loading json file: "%s"', file_path)
-
             if not file_path.endswith(".json"):
                 raise ValueError("Unsupported file format.\n\nFile must be of type .json")
 
+            logger.info('Loading json file: "%s"', file_path)
             with open(file_path, "r") as f:
                 data = json.load(f) or {}  # Return empty dict if empty json
 
@@ -50,13 +49,15 @@ class FileManager:
 
     def export_dataframe_to_csv(self, file_path: str, export_df: pd.DataFrame) -> None:
         try:
-            logger.info('Exporting data to csv: "%s"', file_path)
-
             if export_df.empty:
                 logger.error("Dataframe is empty")
                 logger.debug(f"export_df:\n{export_df}")
                 return
 
+            if not file_path.endswith(".csv"):
+                raise ValueError("Unsupported file format.\n\nFile must be of type .csv")
+
+            logger.info('Exporting data to csv: "%s"', file_path)
             export_df.to_csv(file_path, index=False)
             logger.info("Data exported to csv successfully")
 
@@ -72,6 +73,9 @@ class FileManager:
                 logger.error("No data to save")
                 logger.debug(f"data_to_save:{data_to_save}")
                 return
+
+            if not file_path.endswith(".json"):
+                raise ValueError("Unsupported file format.\n\nFile must be of type .json")
 
             with open(file_path, "w") as f:
                 json.dump(data_to_save, f, default=handler)
