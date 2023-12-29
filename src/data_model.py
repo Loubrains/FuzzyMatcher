@@ -5,18 +5,17 @@ from thefuzz import fuzz
 import pandas as pd
 from io import StringIO
 from typing import Any
-from file_manager import FileManager
+from file_handler import FileHandler
 
 # Setup logging
 logger = logging.getLogger(__name__)
 
 
 class DataModel:
-    def __init__(self, file_manager: FileManager) -> None:
-        self.file_manager = file_manager
+    def __init__(self, file_handler: FileHandler) -> None:
+        logger.info("Initializing data model")
+        self.file_handler = file_handler
         self.initialize_data_structures()  # Empty/default variables.
-
-        logger.info("Data model initialized")
 
     def initialize_data_structures(self):
         logger.debug("Initializing data structures")
@@ -169,7 +168,7 @@ class DataModel:
     ### ----------------------- Project Management ----------------------- ###
     def file_import_on_new_project(self, file_path: str):
         logger.info("Calling file handler to import data")
-        new_data = self.file_manager.read_csv_or_xlsx_to_dataframe(file_path)
+        new_data = self.file_handler.read_csv_or_xlsx_to_dataframe(file_path)
 
         if new_data.empty:
             message = "Imported dataset is empty"
@@ -224,7 +223,7 @@ class DataModel:
 
     def file_import_on_load_project(self, file_path: str):
         logger.info("Calling file handler to import project data")
-        new_data = self.file_manager.load_json(file_path)
+        new_data = self.file_handler.load_json(file_path)
         success, message = self.validate_loaded_json(new_data, self.expected_json_structure)
 
         if not success:
@@ -271,7 +270,7 @@ class DataModel:
             )
 
         logger.info("Calling file handler to import data to append")
-        new_data = self.file_manager.read_csv_or_xlsx_to_dataframe(file_path)
+        new_data = self.file_handler.read_csv_or_xlsx_to_dataframe(file_path)
 
         if new_data.empty:
             message = "Imported dataset is empty"
@@ -354,7 +353,7 @@ class DataModel:
                 return None
 
         logger.info("Calling file handler to save project data")
-        self.file_manager.save_data_to_json(file_path, data_to_save, handler=_none_handler)
+        self.file_handler.save_data_to_json(file_path, data_to_save, handler=_none_handler)
 
     def export_data_to_csv(self, file_path: str, categorization_type: str):
         logger.info("Preparing to export categorized data to csv")
@@ -365,7 +364,7 @@ class DataModel:
             self.export_df.drop("Uncategorized", axis=1, inplace=True)
 
         logger.info("Calling file handler  export categorized data to csv")
-        self.file_manager.export_dataframe_to_csv(file_path, self.export_df)
+        self.file_handler.export_dataframe_to_csv(file_path, self.export_df)
 
     ### ----------------------- Helper functions ----------------------- ###
     def preprocess_text(self, text: Any) -> str:

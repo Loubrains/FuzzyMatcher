@@ -8,7 +8,10 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-class FileManager:
+class FileHandler:
+    def __init__(self) -> None:
+        logger.info("Initializing file handler")
+
     def read_csv_or_xlsx_to_dataframe(self, file_path: str) -> pd.DataFrame:
         try:
             logger.info('Reading csv or xlsx file: "%s"', file_path)

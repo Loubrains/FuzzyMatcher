@@ -2,7 +2,7 @@ import logging
 from controller import Controller
 from fuzzy_ui import FuzzyUI
 from data_model import DataModel
-from file_manager import FileManager
+from file_handler import FileHandler
 
 
 def setup_logging():
@@ -18,9 +18,9 @@ def setup_logging():
 
 
 def main():
-    logging.info("Application initializing")
-    file_manager = FileManager()
-    data_model = DataModel(file_manager)
+    logging.info("Application starting")
+    file_handler = FileHandler()
+    data_model = DataModel(file_handler)
     user_interface = FuzzyUI()
     controller = Controller(user_interface, data_model)
     controller.run()

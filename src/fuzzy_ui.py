@@ -15,7 +15,10 @@ ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 class FuzzyUI(tk.Tk):
     def __init__(self):
+        logger.info("Initializing UI")
+
         super().__init__()
+
         self.title("Fuzzy Matcher")
         self.WINDOW_SIZE_MULTIPLIER = 0.8
         self.update_coords(self.winfo_screenwidth(), self.winfo_screenheight())
@@ -36,8 +39,6 @@ class FuzzyUI(tk.Tk):
 
         # Bind resizing functions to window resize
         self.bind("<Configure>", self.on_window_resize)
-
-        logger.info("UI initialized")
 
     ### ----------------------- Setup ----------------------- ###
     def update_coords(self, screen_width, screen_height):
@@ -316,6 +317,7 @@ class FuzzyUI(tk.Tk):
 
     ### ----------------------- Display Management ----------------------- ###
     def display_fuzzy_match_results(self, processed_results: pd.DataFrame):
+        logger.info("Displaying fuzzy match results")
         for item in self.match_results_tree.get_children():
             self.match_results_tree.delete(item)
 
@@ -325,6 +327,7 @@ class FuzzyUI(tk.Tk):
             )
 
     def display_category_results(self, category: str, responses_and_counts):
+        logger.info("Displaying category results")
         for item in self.category_results_tree.get_children():
             self.category_results_tree.delete(item)
 
@@ -334,6 +337,7 @@ class FuzzyUI(tk.Tk):
         self.category_results_label.config(text=f"Results for Category: {category}")
 
     def display_categories(self, formatted_categories_metrics):
+        logger.info("Displaying categories and metrics")
         selected_categories = self.selected_categories()
 
         for item in self.categories_tree.get_children():
@@ -345,6 +349,7 @@ class FuzzyUI(tk.Tk):
         self.update_treeview_selections(selected_categories=selected_categories)
 
     def set_categorization_type_label(self):
+        logger.info("Setting categorization type label")
         chosen_type = self.categorization_type.get()
         self.categorization_label.config(text="Categorization Type: " + chosen_type)
 
@@ -368,6 +373,7 @@ class FuzzyUI(tk.Tk):
         return popup
 
     def create_rename_category_popup(self, old_category):
+        logger.info("Creating rename category popup")
         self.rename_dialog_popup = self.create_popup("Rename Category")
 
         # Create widgets
@@ -388,6 +394,7 @@ class FuzzyUI(tk.Tk):
         self.new_category_entry.focus_set()
 
     def create_ask_categorization_type_popup(self):
+        logger.info("Creating categorization type popup")
         self.categorization_type_popup = self.create_popup("Select Categorization Type")
 
         # Create buttons that assign value to self.categoriztation_type
@@ -424,21 +431,27 @@ class FuzzyUI(tk.Tk):
 
     ### ----------------------- Dialog Boxes ----------------------- ###
     def show_open_file_dialog(self, *args, **kwargs) -> str:
+        logger.info("Displaying open file dialog")
         return filedialog.askopenfilename(*args, **kwargs)
 
     def show_save_file_dialog(self, *args, **kwargs) -> str:
+        logger.info("Displaying save file dialog")
         return filedialog.asksaveasfilename(*args, **kwargs)
 
     def show_askyesno(self, title: str, message: str) -> bool:
+        logger.info("Displaying yes/no dialog")
         return messagebox.askyesno(title, message)
 
     def show_error(self, message: str) -> None:
+        logger.info("Displaying error message")
         messagebox.showerror("Error", inspect.cleandoc(message))
 
     def show_info(self, message) -> None:
+        logger.info("Displaying info message")
         messagebox.showinfo("Info", inspect.cleandoc(message))
 
     def show_warning(self, message) -> None:
+        logger.info("Displaying warning message")
         messagebox.showwarning("Warning", inspect.cleandoc(message))
 
     ### ----------------------- Treeview Selections ----------------------- ###
@@ -467,6 +480,7 @@ class FuzzyUI(tk.Tk):
                     treeview.selection_add(item)
 
         # Re-select categories and if multi-categorization re-select match results
+        logger.info("Updating treeview selections")
         if selected_categories is not None:
             reselect_treeview_items(self.categories_tree, selected_categories)
         if self.categorization_type.get() == "Multi" and selected_responses is not None:

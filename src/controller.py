@@ -10,13 +10,12 @@ logger = logging.getLogger(__name__)
 # Main application class
 class Controller:
     def __init__(self, user_interface: FuzzyUI, data_model: DataModel):
-        super().__init__()
+        logger.info("Initializing controller")
+
         self.user_interface = user_interface
         self.data_model = data_model
 
         self.setup_UI_bindings()
-
-        logger.info("Controller initialized")
 
         self.user_interface.after(100, self.display_categories)
         self.user_interface.after(
@@ -75,7 +74,7 @@ class Controller:
     def fuzzy_match_behaviour(self):
         logger.info("Getting string entry")
         string_to_match = self.user_interface.match_string_entry.get()
-        logger.info(f'Calling model to fuzzy match: "{string_to_match}"')
+        logger.info(f'Calling data model to fuzzy match: "{string_to_match}"')
         self.data_model.fuzzy_match_behaviour(string_to_match)
         self.display_fuzzy_match_results()
 
@@ -115,7 +114,7 @@ class Controller:
             )
             return
 
-        logger.info("Calling model to categorize selected responses into selected categories")
+        logger.info("Calling data model to categorize selected responses into selected categories")
         self.data_model.categorize_responses(responses, categories, categorization_type)
 
         self.refresh_treeviews()
@@ -161,7 +160,9 @@ class Controller:
             )
             return
 
-        logger.info("Calling model to recategorize selected responses into selected categories")
+        logger.info(
+            "Calling data model to recategorize selected responses into selected categories"
+        )
         self.data_model.recategorize_responses(responses, categories)
 
         self.refresh_treeviews()
@@ -180,7 +181,7 @@ class Controller:
             logging_utils.format_and_log_data_for_debug(logger, {"new_category": new_category})
             return False, message
 
-        logger.info(f'Calling model to create new category: "{new_category}"')
+        logger.info(f'Calling data model to create new category: "{new_category}"')
         success, message = self.data_model.create_category(new_category)
 
         if success:
@@ -235,7 +236,7 @@ class Controller:
             return
 
         logger.info(
-            f"Calling model to rename category. Old category: {old_category}, new category: {new_category}"
+            f"Calling data model to rename category. Old category: {old_category}, new category: {new_category}"
         )
         success, message = self.data_model.rename_category(old_category, new_category)
 
@@ -289,6 +290,7 @@ class Controller:
                 self.user_interface.show_info("Data imported successfully")
                 self.ask_categorization_type()
                 logger.info("New project setup successfully")
+
         except Exception as e:
             logger.exception("")
             self.user_interface.show_error(f"Failed to initialize new project: {e}")
@@ -304,7 +306,7 @@ class Controller:
             logger.info("No file path selected")
             return False
 
-        logger.info("Calling model to import file")
+        logger.info("Calling data model to import file")
         success, message = self.data_model.file_import_on_new_project(file_path)
 
         if not success:
@@ -315,7 +317,7 @@ class Controller:
         return True
 
     def populate_data_structures_on_new_project(self):
-        logger.info("Calling model to populate data structures")
+        logger.info("Calling data model to populate data structures")
         self.data_model.populate_data_structures_on_new_project()
         logger.info("Resetting UI variables")
         self.user_interface.is_including_missing_data.set(False)
@@ -349,7 +351,7 @@ class Controller:
             logger.info("No file path selected")
             return False
 
-        logger.info("Calling model to import file")
+        logger.info("Calling data model to import file")
         success, message = self.data_model.file_import_on_load_project(file_path)
 
         if not success:
@@ -360,7 +362,7 @@ class Controller:
         return True
 
     def populate_data_structures_on_load_project(self):
-        logger.info("Calling model to popuate data structures")
+        logger.info("Calling data model to popuate data structures")
         (
             categorization_type,
             is_including_missing_data,
@@ -390,7 +392,7 @@ class Controller:
             logger.info("No file path selected")
             return False
 
-        logger.info("Calling model to import file")
+        logger.info("Calling data model to import file")
         success, message = self.data_model.file_import_on_append_data(file_path)
 
         if not success:
@@ -414,7 +416,7 @@ class Controller:
                     "is_including_missing_data": self.user_interface.is_including_missing_data.get(),
                 }
 
-                logger.info("Calling model to save project")
+                logger.info("Calling data model to save project")
                 self.data_model.save_project(file_path, user_interface_variables_to_add)
                 logger.info("Project saved successfully")
                 self.user_interface.show_info("Project saved successfully to:\n\n" + file_path)
@@ -435,7 +437,7 @@ class Controller:
                 filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
                 title="Save As",
             ):
-                logger.info("Calling model to export data")
+                logger.info("Calling data model to export data")
                 self.data_model.export_data_to_csv(
                     file_path, self.user_interface.categorization_type.get()
                 )
@@ -458,9 +460,9 @@ class Controller:
     def display_fuzzy_match_results(self):
         logger.info("Calling UI to get fuzzy threshold")
         threshold = self.user_interface.threshold_slider.get()
-        logger.info("Calling model to process and return fuzzy match results")
+        logger.info("Calling data model to process and return fuzzy match results")
         processed_results = self.data_model.process_fuzzy_match_results(threshold)
-        logger.info("Calling UI to display match results")
+        logger.info("Calling UI to display fuzzy match results")
         self.user_interface.display_fuzzy_match_results(processed_results)
 
     def on_display_selected_category_results(self):
@@ -481,14 +483,14 @@ class Controller:
 
         # Assign new currently displayed category
         logger.info(
-            f"Calling model to set new currently displayed category: {selected_categories.pop()}"
+            f"Calling data model to set new currently displayed category: {selected_categories.pop()}"
         )
         self.data_model.currently_displayed_category = selected_categories.pop()
 
         self.display_category_results()
 
     def display_category_results(self):
-        logger.info("Calling model to get currently displayed category and data")
+        logger.info("Calling data model to get currently displayed category and data")
         category = self.data_model.currently_displayed_category
         responses_and_counts = self.data_model.get_responses_and_counts(category)
         logger.info("Calling UI to display category results")
@@ -497,7 +499,7 @@ class Controller:
     def display_categories(self):
         logger.info("Calling UI to get is_including_missing_data bool")
         is_including_missing_data = self.user_interface.is_including_missing_data.get()
-        logger.info("Calling model to format category metrics")
+        logger.info("Calling data model to format category metrics")
         formatted_categories_metrics = self.data_model.format_categories_metrics(
             is_including_missing_data
         )

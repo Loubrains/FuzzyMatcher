@@ -2,9 +2,9 @@ import pytest
 import pandas as pd
 import os
 import json
-from src.file_manager import FileManager
+from src.file_handler import FileHandler
 
-file_manager = FileManager()
+file_handler = FileHandler()
 
 
 ### ----------------------- Fixtures ----------------------- ###
@@ -62,7 +62,7 @@ def empty_json_file(tmpdir):
 @pytest.mark.parametrize("file_path", ["example_csv_file", "empty_csv_file"])
 def test_read_csv_to_dataframe(file_path, request):
     file_path = request.getfixturevalue(file_path)
-    df = file_manager.read_csv_or_xlsx_to_dataframe(file_path)
+    df = file_handler.read_csv_or_xlsx_to_dataframe(file_path)
     assert isinstance(df, pd.DataFrame)
 
 
@@ -73,14 +73,14 @@ def test_read_csv_to_dataframe(file_path, request):
 def test_export_dataframe_to_csv(file_path, dataframe, request, tmpdir):
     file_path = os.path.join(tmpdir, request.getfixturevalue(file_path))
     dataframe = request.getfixturevalue(dataframe)
-    file_manager.export_dataframe_to_csv(str(file_path), dataframe)
+    file_handler.export_dataframe_to_csv(str(file_path), dataframe)
     assert os.path.exists(file_path)
 
 
 @pytest.mark.parametrize("file_path", ["example_json_file", "empty_json_file"])
 def test_load_json(file_path, request):
     file_path = request.getfixturevalue(file_path)
-    data = file_manager.load_json(file_path)
+    data = file_handler.load_json(file_path)
     assert isinstance(data, dict)
 
 
@@ -91,7 +91,7 @@ def test_load_json(file_path, request):
 def test_save_example_to_json(file_path, example_dict, request, tmpdir):
     file_path = os.path.join(tmpdir, request.getfixturevalue(file_path))
     example_dict = request.getfixturevalue(example_dict)
-    file_manager.save_data_to_json(str(file_path), example_dict)
+    file_handler.save_data_to_json(str(file_path), example_dict)
     with open(file_path, "r") as f:
         data = json.load(f)
     assert data == example_dict
