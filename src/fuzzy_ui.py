@@ -23,6 +23,7 @@ class FuzzyUI(tk.Tk):
         self.WINDOW_SIZE_MULTIPLIER = 0.8
         self.update_coords(self.winfo_screenwidth(), self.winfo_screenheight())
 
+        # UI variables
         self.is_including_missing_data = tk.BooleanVar(value=False)
         self.categorization_type = tk.StringVar(value="Single")
 
@@ -31,7 +32,7 @@ class FuzzyUI(tk.Tk):
         self.configure_grid()
         self.configure_frames()
         self.create_widgets()
-        self.bind_widgets_to_frames()
+        self.position_widgets_in_frames()
         self.configure_sub_grids()
         self.configure_style()
         self.resize_treeview_columns()
@@ -63,84 +64,94 @@ class FuzzyUI(tk.Tk):
         # Weights set such that all columns and only middle row can expand/contract
 
     def configure_frames(self) -> None:
-        self.top_left_frame = tk.Frame(self)
-        self.middle_left_frame = tk.Frame(self)
-        self.bottom_left_frame = tk.Frame(self)
-        self.top_middle_frame = tk.Frame(self)
-        self.middle_middle_frame = tk.Frame(self)
-        self.bottom_middle_frame = tk.Frame(self)
-        self.top_right_frame = tk.Frame(self)
-        self.middle_right_frame = tk.Frame(self)
-        self.bottom_right_frame = tk.Frame(self)
+        self.frames = {}
 
-        self.top_left_frame.grid(row=0, column=0, sticky="sew", padx=10, pady=10)
-        self.middle_left_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
-        self.bottom_left_frame.grid(row=2, column=0, sticky="new", padx=10, pady=10)
-        self.top_middle_frame.grid(row=0, column=1, sticky="sew", padx=10, pady=10)
-        self.middle_middle_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
-        self.bottom_middle_frame.grid(row=2, column=1, sticky="new", padx=10, pady=10)
-        self.top_right_frame.grid(row=0, column=2, sticky="sew", padx=10, pady=10)
-        self.middle_right_frame.grid(row=1, column=2, sticky="nsew", padx=10, pady=10)
-        self.bottom_right_frame.grid(row=2, column=2, sticky="new", padx=10, pady=10)
+        positions = [
+            "top_left",
+            "middle_left",
+            "bottom_left",
+            "top_middle",
+            "middle_middle",
+            "bottom_middle",
+            "top_right",
+            "middle_right",
+            "bottom_right",
+        ]
+
+        for position in positions:
+            self.frames[position] = tk.Frame(self)
+
+        self.frames["top_left"].grid(row=0, column=0, sticky="sew", padx=10, pady=10)
+        self.frames["middle_left"].grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+        self.frames["bottom_left"].grid(row=2, column=0, sticky="new", padx=10, pady=10)
+        self.frames["top_middle"].grid(row=0, column=1, sticky="sew", padx=10, pady=10)
+        self.frames["middle_middle"].grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
+        self.frames["bottom_middle"].grid(row=2, column=1, sticky="new", padx=10, pady=10)
+        self.frames["top_right"].grid(row=0, column=2, sticky="sew", padx=10, pady=10)
+        self.frames["middle_right"].grid(row=1, column=2, sticky="nsew", padx=10, pady=10)
+        self.frames["bottom_right"].grid(row=2, column=2, sticky="new", padx=10, pady=10)
 
     def create_widgets(self) -> None:
         # Top left frame widgets (fuzzy matching entry, slider, buttons and lable)
-        self.match_string_label = tk.Label(self.top_left_frame, text="Enter String to Match:")
-        self.match_string_entry = tk.Entry(self.top_left_frame)
+        self.match_string_label = tk.Label(self.frames["top_left"], text="Enter String to Match:")
+        self.match_string_entry = tk.Entry(self.frames["top_left"])
         self.threshold_label = tk.Label(
-            self.top_left_frame,
+            self.frames["top_left"],
             text="Set Fuzz Threshold (100 is precise, 0 is imprecise):",
         )
         self.threshold_slider = tk.Scale(
-            self.top_left_frame, from_=0, to=100, orient="horizontal", resolution=1
+            self.frames["top_left"], from_=0, to=100, orient="horizontal", resolution=1
         )
         self.threshold_slider.set(60)  # Setting default value to 60, gets decent results
-        self.match_button = tk.Button(self.top_left_frame, text="Match")
-        self.categorize_button = tk.Button(self.top_left_frame, text="Categorize Selected Results")
+        self.match_button = tk.Button(self.frames["top_left"], text="Match")
+        self.categorize_button = tk.Button(
+            self.frames["top_left"], text="Categorize Selected Results"
+        )
         self.categorization_label = tk.Label(
-            self.top_left_frame, text="Categorization Type: Single"
+            self.frames["top_left"], text="Categorization Type: Single"
         )
 
         # Middle left frame widgets (fuzzy matching treeview)
         self.match_results_tree = ttk.Treeview(
-            self.middle_left_frame,
+            self.frames["middle_left"],
             columns=("Response", "Score", "Count"),
             show="headings",
         )
-        self.match_results_tree.heading("Response", text="Response")
-        self.match_results_tree.heading("Score", text="Score")
-        self.match_results_tree.heading("Count", text="Count")
-        self.match_results_tree.column("Score", anchor="center")
-        self.match_results_tree.column("Count", anchor="center")
+        for col in ["Response", "Score", "Count"]:
+            self.match_results_tree.heading(col, text=col)
+            if col != "Response":
+                self.match_results_tree.column(col, anchor="center")
         self.results_scrollbar = tk.Scrollbar(
-            self.middle_left_frame,
+            self.frames["middle_left"],
             orient="vertical",
             command=self.match_results_tree.yview,
         )
 
         # Bottom left frame widgets (new project, load project, append data)
-        self.new_project_button = tk.Button(self.bottom_left_frame, text="New Project")
-        self.load_button = tk.Button(self.bottom_left_frame, text="Load Project")
-        self.append_data_button = tk.Button(self.bottom_left_frame, text="Append Data")
+        self.new_project_button = tk.Button(self.frames["bottom_left"], text="New Project")
+        self.load_button = tk.Button(self.frames["bottom_left"], text="Load Project")
+        self.append_data_button = tk.Button(self.frames["bottom_left"], text="Append Data")
 
         # Top middle frame widgets (category results buttons and labels)
         self.display_category_results_for_selected_category_button = tk.Button(
-            self.top_middle_frame, text="Display Category Results"
+            self.frames["top_middle"], text="Display Category Results"
         )
         self.recategorize_selected_responses_button = tk.Button(
-            self.top_middle_frame, text="Recategorize Selected Results"
+            self.frames["top_middle"], text="Recategorize Selected Results"
         )
-        self.category_results_label = tk.Label(self.top_middle_frame, text="Results for Category: ")
+        self.category_results_label = tk.Label(
+            self.frames["top_middle"], text="Results for Category: "
+        )
 
         # Middle middle frame widgets (category results treeview)
         self.category_results_tree = ttk.Treeview(
-            self.middle_middle_frame, columns=("Response", "Count"), show="headings"
+            self.frames["middle_middle"], columns=("Response", "Count"), show="headings"
         )
         self.category_results_tree.heading("Response", text="Response")
         self.category_results_tree.heading("Count", text="Count")
         self.category_results_tree.column("Count", anchor="center")
         self.category_results_scrollbar = tk.Scrollbar(
-            self.middle_middle_frame,
+            self.frames["middle_middle"],
             orient="vertical",
             command=self.category_results_tree.yview,
         )
@@ -148,20 +159,20 @@ class FuzzyUI(tk.Tk):
         # Bottom middle frame widgets (None)
 
         # Top right frame widgets (category buttons and entry)
-        self.new_category_entry = tk.Entry(self.top_right_frame)
-        self.add_category_button = tk.Button(self.top_right_frame, text="Add Category")
-        self.rename_category_button = tk.Button(self.top_right_frame, text="Rename Category")
-        self.delete_categories_button = tk.Button(self.top_right_frame, text="Delete Category")
+        self.new_category_entry = tk.Entry(self.frames["top_right"])
+        self.add_category_button = tk.Button(self.frames["top_right"], text="Add Category")
+        self.rename_category_button = tk.Button(self.frames["top_right"], text="Rename Category")
+        self.delete_categories_button = tk.Button(self.frames["top_right"], text="Delete Category")
         self.delete_categories_button.bind()
         self.include_missing_data_checkbox = tk.Checkbutton(
-            self.top_right_frame,
+            self.frames["top_right"],
             text="Base to total",
             variable=self.is_including_missing_data,
         )
 
         # Middle right frame widgets (categories treeview)
         self.categories_tree = ttk.Treeview(
-            self.middle_right_frame,
+            self.frames["middle_right"],
             columns=("Category", "Count", "Percentage"),
             show="headings",
         )
@@ -171,16 +182,16 @@ class FuzzyUI(tk.Tk):
         self.categories_tree.column("Count", anchor="center")
         self.categories_tree.column("Percentage", anchor="center")
         self.categories_scrollbar = tk.Scrollbar(
-            self.middle_right_frame,
+            self.frames["middle_right"],
             orient="vertical",
             command=self.categories_tree.yview,
         )
 
         # Bottom right frame widgets (new project, load project, save project, export to csv)
-        self.save_button = tk.Button(self.bottom_right_frame, text="Save Project")
-        self.export_csv_button = tk.Button(self.bottom_right_frame, text="Export to CSV")
+        self.save_button = tk.Button(self.frames["bottom_right"], text="Save Project")
+        self.export_csv_button = tk.Button(self.frames["bottom_right"], text="Export to CSV")
 
-    def bind_widgets_to_frames(self) -> None:
+    def position_widgets_in_frames(self) -> None:
         # Top left frame widgets
         self.match_string_label.grid(row=0, column=0, sticky="ew", padx=5)
         self.match_string_entry.grid(row=1, column=0, sticky="ew", padx=5)
@@ -237,41 +248,24 @@ class FuzzyUI(tk.Tk):
         self.export_csv_button.grid(row=1, column=0, sticky="e", padx=10, pady=10)
 
     def configure_sub_grids(self) -> None:
-        # TODO: Use loops to reduce boilerplate
-
         # Allow all buttons and treviews to expand/contract horizontally together
-        self.top_left_frame.grid_columnconfigure(0, weight=1)
-        self.top_left_frame.grid_columnconfigure(1, weight=1)
-        self.middle_left_frame.grid_columnconfigure(0, weight=1)
-        self.middle_left_frame.grid_columnconfigure(1, weight=1)
-        self.bottom_left_frame.grid_columnconfigure(1, weight=1)
-        self.top_middle_frame.grid_columnconfigure(0, weight=1)
-        self.top_middle_frame.grid_columnconfigure(1, weight=1)
-        self.middle_middle_frame.grid_columnconfigure(0, weight=1)
-        self.middle_middle_frame.grid_columnconfigure(1, weight=1)
-        self.bottom_middle_frame.grid_columnconfigure(0, weight=1)
-        self.top_right_frame.grid_columnconfigure(0, weight=1)
-        self.top_right_frame.grid_columnconfigure(1, weight=1)
-        self.top_right_frame.grid_columnconfigure(2, weight=1)
-        self.top_right_frame.grid_columnconfigure(3, weight=1)
-        self.middle_right_frame.grid_columnconfigure(0, weight=1)
-        self.middle_right_frame.grid_columnconfigure(1, weight=1)
-        self.middle_right_frame.grid_columnconfigure(2, weight=1)
-        self.middle_right_frame.grid_columnconfigure(3, weight=1)
-        self.bottom_right_frame.grid_columnconfigure(0, weight=1)
+        for frame in self.frames.values():
+            for col in range(frame.grid_size()[0]):
+                frame.grid_columnconfigure(col, weight=1)
 
-        # Allow the treeviews to expand vertically
-        self.middle_left_frame.grid_rowconfigure(0, weight=1)
-        self.middle_middle_frame.grid_rowconfigure(0, weight=1)
-        self.middle_right_frame.grid_rowconfigure(0, weight=1)
+        for frame in [
+            self.frames["middle_left"],
+            self.frames["middle_middle"],
+            self.frames["middle_right"],
+        ]:
+            # Don't allow the scrollbars to expand horizontally
+            last_column = frame.grid_size()[0] - 1
+            frame.grid_columnconfigure(last_column, weight=0)
+            # Allow the treeviews to expand vertically
+            frame.grid_rowconfigure(0, weight=1)
 
-        # Allow the bottom left frame buttons to group together
-        self.bottom_left_frame.grid_columnconfigure(0, weight=0)
-
-        # Don't allow the scrollbar to expand horizontally
-        self.middle_left_frame.grid_columnconfigure(2, weight=0)
-        self.middle_middle_frame.grid_columnconfigure(2, weight=0)
-        self.middle_right_frame.grid_columnconfigure(4, weight=0)
+        # Allow the bottom left frame buttons to group together on the left
+        self.frames["bottom_left"].grid_columnconfigure(0, weight=0)
 
     def configure_style(self) -> None:
         # Configure Treeview style for larger row height and centered column text
