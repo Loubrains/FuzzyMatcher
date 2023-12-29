@@ -4,7 +4,7 @@ import re
 from thefuzz import fuzz
 import pandas as pd
 from io import StringIO
-from typing import Any
+from typing import Any, Tuple
 from file_handler import FileHandler
 
 # Setup logging
@@ -21,6 +21,7 @@ class DataModel:
         logger.debug("Initializing data structures")
         # Empty variables which will be populated during new project/load project
         # categorized_data will contain a uuids, responses, and column for each category, with a 1 or 0 for each response
+        # categorized_dict will be a dict of categories containig the deduplicated set of all responses
         self.raw_data = pd.DataFrame()
         self.preprocessed_responses = pd.DataFrame()
         self.response_columns = []
@@ -30,12 +31,12 @@ class DataModel:
             "Uncategorized": set(),
             "Missing data": {"nan", "missing data"},
         }
-        self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])
-        self.currently_displayed_category = "Uncategorized"
+        self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # default
+        self.currently_displayed_category = "Uncategorized"  # default
 
         # For validation on load project.
         # NOTE: Update this when the data structure changes.
-        # TODO: Need to update this to be more specific (e.g. dict[str, set[str]) and handle stringified json too
+        # TODO: Need to update this and validate_loaded_json() to use more specific typing (e.g. dict[str, set[str]) and handle stringified json too
         self.expected_json_structure = {
             "raw_data": str,
             "preprocessed_responses": str,
@@ -50,7 +51,7 @@ class DataModel:
         logging_utils.format_and_log_data_for_debug(logger, vars(self))
 
     ### ----------------------- Main functionality ----------------------- ###
-    def fuzzy_match_behaviour(self, string_to_match: str):
+    def fuzzy_match_logic(self, string_to_match: str):
         if self.categorized_data.empty or self.categorized_data is None:
             message = "There is no dataset in the current project to match against"
             logger.warning(message)
@@ -71,46 +72,25 @@ class DataModel:
     def categorize_responses(
         self, responses: set[str], categories: set[str], categorization_type: str
     ):
-        # TODO: Abstract out parts of this method and the 'recategorize' method to single method(s)
         logger.info("Categorizing responses")
 
-        # Boolean mask for rows in categorized_data containing selected responses
-        mask = pd.Series([False] * len(self.categorized_data))
-
-        for column in self.categorized_data[self.response_columns]:
-            mask |= self.categorized_data[column].isin(responses)
+        mask = self.create_bool_mask_for_responses_in_data(responses)
 
         if categorization_type == "Single":
-            self.categorized_data.loc[mask, "Uncategorized"] = 0
-            self.categorized_dict["Uncategorized"] -= responses
-
-            # Additional code to remove the responses from fuzzy_match_results
+            self.remove_responses_from_category(responses, "Uncategorized", mask)
+            # Additionally, remove the responses from fuzzy_match_results
             fuzzy_mask = self.fuzzy_match_results["response"].isin(responses)
             self.fuzzy_match_results = self.fuzzy_match_results[~fuzzy_mask].reset_index(drop=True)
 
-        for category in categories:
-            self.categorized_data.loc[mask, category] = 1
-            self.categorized_dict[category].update(responses)
+        self.add_responses_to_categories(responses, categories, mask)
 
         logger.info("Responses categorized")
 
     def recategorize_responses(self, responses: set[str], categories: set[str]):
-        # TODO: Abstract out parts of this method and the 'categorize' method to single method(s)
         logger.info("Recategorizing responses")
-
-        # Boolean mask for rows in categorized_data containing selected responses
-        mask = pd.Series([False] * len(self.categorized_data))
-
-        for column in self.categorized_data[self.response_columns]:
-            mask |= self.categorized_data[column].isin(responses)
-
-        self.categorized_data.loc[mask, self.currently_displayed_category] = 0
-        self.categorized_dict[self.currently_displayed_category] -= responses
-
-        for category in categories:
-            self.categorized_data.loc[mask, category] = 1
-            self.categorized_dict[category].update(responses)
-
+        mask = self.create_bool_mask_for_responses_in_data(responses)
+        self.remove_responses_from_category(responses, self.currently_displayed_category, mask)
+        self.add_responses_to_categories(responses, categories, mask)
         logger.info("Responses recategorized")
 
     def create_category(self, new_category: str):
@@ -199,7 +179,6 @@ class DataModel:
             )  # type: ignore
         )
 
-        # categorized_dict is dict of categories containig the deduplicated set of all responses
         df_series = self.preprocessed_responses.stack().reset_index(drop=True)
         self.categorized_dict = {
             "Uncategorized": set(df_series) - {"nan", "missing data"},
@@ -367,13 +346,6 @@ class DataModel:
         self.file_handler.export_dataframe_to_csv(file_path, self.export_df)
 
     ### ----------------------- Helper functions ----------------------- ###
-    def preprocess_text(self, text: Any) -> str:
-        text = str(text).lower()
-        text = re.sub(r"\s+", " ", text)  # Convert one or more of any kind of space to single space
-        text = re.sub(r"[^a-z0-9\s]", "", text)  # Remove special characters
-        text = text.strip()
-        return text
-
     def fuzzy_match(self, preprocessed_responses: pd.DataFrame, match_string: str) -> pd.DataFrame:
         logger.info('Performing fuzzy match: "%s"', match_string)
 
@@ -409,6 +381,33 @@ class DataModel:
 
         return aggregated_results.sort_values(by=["score", "count"], ascending=[False, False])
 
+    def create_bool_mask_for_responses_in_data(self, responses: set[str]) -> pd.Series:
+        # Boolean mask for rows in categorized_data containing selected responses
+        mask = pd.Series([False] * len(self.categorized_data))
+
+        for column in self.categorized_data[self.response_columns]:
+            mask |= self.categorized_data[column].isin(responses)
+
+        return mask
+
+    def remove_responses_from_category(self, responses: set[str], category: str, mask: pd.Series):
+        self.categorized_data.loc[mask, category] = 0
+        self.categorized_dict[category] -= responses
+
+    def add_responses_to_categories(
+        self, responses: set[str], categories: set[str], mask: pd.Series
+    ):
+        for category in categories:
+            self.categorized_data.loc[mask, category] = 1
+            self.categorized_dict[category].update(responses)
+
+    def preprocess_text(self, text: Any) -> str:
+        text = str(text).lower()
+        text = re.sub(r"\s+", " ", text)  # Convert one or more of any kind of space to single space
+        text = re.sub(r"[^a-z0-9\s]", "", text)  # Remove special characters
+        text = text.strip()
+        return text
+
     def categorize_missing_data(self) -> None:
         def is_missing(value) -> bool:
             return pd.isna(value) or value is None or value == "missing data" or value == "nan"
@@ -426,7 +425,7 @@ class DataModel:
 
     def validate_loaded_json(
         self, loaded_json_data: dict[str, Any], expected_data: dict[str, Any]
-    ) -> tuple[bool, str]:
+    ) -> Tuple[bool, str]:
         # NOTE: self.expected_json_structure is passed in. This needs to be updated when the data structure changes.
         logger.debug("Validating project data")
 
@@ -467,7 +466,7 @@ class DataModel:
         logger.debug("Project data validated successfully")
         return True, "Loaded JSON validated successfully"
 
-    def get_responses_and_counts(self, category: str) -> list[tuple[str, int]]:
+    def get_responses_and_counts(self, category: str) -> list[Tuple[str, int]]:
         responses_and_counts = [
             (response, self.response_counts.get(response, 0))
             for response in self.categorized_dict[category]
@@ -478,7 +477,7 @@ class DataModel:
 
     def format_categories_metrics(
         self, is_including_missing_data: bool
-    ) -> list[tuple[str, int, str]]:
+    ) -> list[Tuple[str, int, str]]:
         formatted_categories_metrics = []
 
         for category, responses in self.categorized_dict.items():

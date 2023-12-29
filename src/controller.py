@@ -1,5 +1,6 @@
 import logging
 import logging_utils
+from typing import Callable, Tuple
 from fuzzy_ui import FuzzyUI
 from data_model import DataModel
 
@@ -25,14 +26,12 @@ class Controller:
 
     def setup_UI_bindings(self):
         self.user_interface.match_string_entry.bind(
-            "<Return>", lambda event: self.fuzzy_match_behaviour()
+            "<Return>", lambda event: self.fuzzy_match_logic()
         )
         self.user_interface.threshold_slider.bind(
             "<ButtonRelease-1>", lambda val: self.display_fuzzy_match_results()
         )
-        self.user_interface.match_button.bind(
-            "<Button-1>", lambda event: self.fuzzy_match_behaviour()
-        )
+        self.user_interface.match_button.bind("<Button-1>", lambda event: self.fuzzy_match_logic())
         self.user_interface.categorize_button.bind(
             "<Button-1>", lambda event: self.categorize_selected_responses()
         )
@@ -61,21 +60,23 @@ class Controller:
         self.user_interface.new_project_button.bind("<Button-1>", lambda event: self.new_project())
         self.user_interface.load_button.bind("<Button-1>", lambda event: self.load_project())
         self.user_interface.append_data_button.bind(
-            "<Button-1>", lambda event: self.append_data_behaviour()
+            "<Button-1>", lambda event: self.append_data_logic()
         )
         self.user_interface.save_button.bind("<Button-1>", lambda event: self.save_project())
-        self.user_interface.export_csv_button.bind("<Button-1>", lambda event: self.export_to_csv())
+        self.user_interface.export_csv_button.bind(
+            "<Button-1>", lambda event: self.export_data_to_csv()
+        )
 
     def run(self):
         logger.info("Starting the app mainloop")
         self.user_interface.mainloop()
 
     ### ----------------------- Main Functionality ----------------------- ###
-    def fuzzy_match_behaviour(self):
+    def fuzzy_match_logic(self):
         logger.info("Getting string entry")
         string_to_match = self.user_interface.match_string_entry.get()
         logger.info(f'Calling data model to fuzzy match: "{string_to_match}"')
-        self.data_model.fuzzy_match_behaviour(string_to_match)
+        self.data_model.fuzzy_match_logic(string_to_match)
         self.display_fuzzy_match_results()
 
     def categorize_selected_responses(self):
@@ -278,13 +279,17 @@ class Controller:
             self.display_categories()
             self.display_category_results()
         else:
-            self.info("Category deletion aborted")
+            logger.info("Category deletion aborted")
 
     ### ----------------------- Project Management ----------------------- ###
     def new_project(self):
         logger.info("Starting new project")
         try:
-            if self.file_import_on_new_project():
+            if self.file_import_logic(
+                file_types=[("CSV files", "*.csv"), ("XLSX files", "*.xlsx"), ("All files", "*.*")],
+                title="Please select a file containing your dataset",
+                data_model_method=self.data_model.file_import_on_new_project,
+            ):
                 self.populate_data_structures_on_new_project()
                 self.refresh_treeviews()
                 self.user_interface.show_info("Data imported successfully")
@@ -294,27 +299,6 @@ class Controller:
         except Exception as e:
             logger.exception("")
             self.user_interface.show_error(f"Failed to initialize new project: {e}")
-
-    def file_import_on_new_project(self):
-        # TODO: Abstract out repeated file path/checking/logging stuff
-        logger.info("Calling UI to get file_path")
-        file_path = self.user_interface.show_open_file_dialog(
-            title="Please select a file containing your dataset"
-        )
-
-        if not file_path:
-            logger.info("No file path selected")
-            return False
-
-        logger.info("Calling data model to import file")
-        success, message = self.data_model.file_import_on_new_project(file_path)
-
-        if not success:
-            logger.error(message)
-            self.user_interface.show_error(message)
-            return False
-
-        return True
 
     def populate_data_structures_on_new_project(self):
         logger.info("Calling data model to populate data structures")
@@ -329,7 +313,11 @@ class Controller:
     def load_project(self):
         logger.info("Starting load project")
         try:
-            if self.file_import_on_load_project():
+            if self.file_import_logic(
+                file_types=[("JSON files", "*.json"), ("All files", "*.*")],
+                title="Load Project",
+                data_model_method=self.data_model.file_import_on_load_project,
+            ):
                 self.populate_data_structures_on_load_project()
                 self.user_interface.set_categorization_type_label()
                 self.refresh_treeviews()
@@ -339,27 +327,6 @@ class Controller:
         except Exception as e:
             logger.exception("")
             self.user_interface.show_error(f"Failed to load project: {e}")
-
-    def file_import_on_load_project(self):
-        logger.info("Calling UI to get file path")
-        file_path = self.user_interface.show_open_file_dialog(
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            title="Load Project",
-        )
-
-        if not file_path:
-            logger.info("No file path selected")
-            return False
-
-        logger.info("Calling data model to import file")
-        success, message = self.data_model.file_import_on_load_project(file_path)
-
-        if not success:
-            logger.error(message)
-            self.user_interface.show_error(message)
-            return False
-
-        return True
 
     def populate_data_structures_on_load_project(self):
         logger.info("Calling data model to popuate data structures")
@@ -372,10 +339,14 @@ class Controller:
         self.user_interface.categorization_type.set(categorization_type)
         self.user_interface.is_including_missing_data.set(is_including_missing_data)
 
-    def append_data_behaviour(self):
+    def append_data_logic(self):
         logger.info("Starting append data")
         try:
-            if self.file_import_on_append_data():
+            if self.file_import_logic(
+                file_types=[("CSV files", "*.csv"), ("XLSX files", "*.xlsx"), ("All files", "*.*")],
+                title="Select file containing data to append",
+                data_model_method=self.data_model.file_import_on_append_data,
+            ):
                 self.data_model.populate_data_structures_on_append_data()
                 self.refresh_treeviews()
                 logger.info("Data appended successfully")
@@ -384,16 +355,21 @@ class Controller:
             logger.exception("")
             self.user_interface.show_error(f"Failed to append data: {e}")
 
-    def file_import_on_append_data(self):
+    def file_import_logic(
+        self, file_types: list[Tuple[str, str]], title: str, data_model_method: Callable
+    ) -> bool:
         logger.info("Calling UI to get file path")
-        file_path = self.user_interface.show_open_file_dialog(title="Select file to append")
+        file_path = self.user_interface.show_open_file_dialog(
+            filetypes=file_types,
+            title=title,
+        )
 
         if not file_path:
             logger.info("No file path selected")
             return False
 
         logger.info("Calling data model to import file")
-        success, message = self.data_model.file_import_on_append_data(file_path)
+        success, message = data_model_method(file_path)
 
         if not success:
             logger.error(message)
@@ -403,6 +379,7 @@ class Controller:
         return True
 
     def save_project(self):
+        # TODO: Possible abstract out this and export_data_to_csv into a single method?
         logger.info("Starting save project")
         try:
             logger.info("Calling UI to get file path")
@@ -428,7 +405,7 @@ class Controller:
             logger.exception("")
             self.user_interface.show_error(f"Failed to save project: {e}")
 
-    def export_to_csv(self):
+    def export_data_to_csv(self):
         logger.info("Starting data export")
         try:
             logger.info("Calling UI to get file path")
@@ -437,10 +414,9 @@ class Controller:
                 filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
                 title="Save As",
             ):
+                categorization_type = self.user_interface.categorization_type.get()
                 logger.info("Calling data model to export data")
-                self.data_model.export_data_to_csv(
-                    file_path, self.user_interface.categorization_type.get()
-                )
+                self.data_model.export_data_to_csv(file_path, categorization_type)
                 logger.info("Data exported successfully")
                 self.user_interface.show_info("Data exported successfully to:\n\n" + file_path)
 
@@ -482,10 +458,11 @@ class Controller:
             return
 
         # Assign new currently displayed category
+        new_current_category = selected_categories.pop()
         logger.info(
-            f"Calling data model to set new currently displayed category: {selected_categories.pop()}"
+            f"Calling data model to set new currently displayed category: {new_current_category}"
         )
-        self.data_model.currently_displayed_category = selected_categories.pop()
+        self.data_model.currently_displayed_category = new_current_category
 
         self.display_category_results()
 
