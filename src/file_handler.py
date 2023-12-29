@@ -55,7 +55,7 @@ class FileHandler:
             if export_df.empty:
                 logger.error("Dataframe is empty")
                 logger.debug(f"export_df:\n{export_df}")
-                return
+                raise pd.errors.EmptyDataError("Dataframe is empty")
 
             if not file_path.endswith(".csv"):
                 raise ValueError("Unsupported file format.\n\nFile must be of type .csv")
@@ -73,9 +73,9 @@ class FileHandler:
             logger.info('Saving data to json: "%s"', file_path)
 
             if not data_to_save:
-                logger.error("No data to save")
+                logger.error("Project data is empty")
                 logger.debug(f"data_to_save:{data_to_save}")
-                return
+                raise ValueError("Project data is empty")
 
             if not file_path.endswith(".json"):
                 raise ValueError("Unsupported file format.\n\nFile must be of type .json")
