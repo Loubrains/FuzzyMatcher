@@ -1,3 +1,6 @@
+#
+# TODO: need to handle missing data better, not just as "nan", so that people writing "nan" don't get miscoded
+
 import logging
 import logging_utils
 import re
@@ -402,9 +405,14 @@ class DataModel:
             self.categorized_dict[category].update(responses)
 
     def preprocess_text(self, text: Any) -> str:
+        if text is None:
+            return "nan"
+
         text = str(text).lower()
-        text = re.sub(r"\s+", " ", text)  # Convert one or more of any kind of space to single space
-        text = re.sub(r"[^a-z0-9\s]", "", text)  # Remove special characters
+        # Convert one or more of any kind of space to single space
+        text = re.sub(r"\s+", " ", text)
+        # Remove special characters
+        text = re.sub(r"[^a-z0-9\s]", "", text)
         text = text.strip()
         return text
 
