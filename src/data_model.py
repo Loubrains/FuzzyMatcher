@@ -1,3 +1,6 @@
+#
+# TODO: repeat out category columns for each response column and categorize each response column seperately
+
 import logging
 import logging_utils
 import re
@@ -5,6 +8,7 @@ from thefuzz import fuzz
 import pandas as pd
 from io import StringIO
 from typing import Any, Tuple
+from pandas._libs.missing import NAType
 from file_handler import FileHandler
 
 # Setup logging
@@ -27,10 +31,7 @@ class DataModel:
         self.response_columns = []
         self.categorized_data = pd.DataFrame()
         self.response_counts = {}
-        self.categorized_dict = {
-            "Uncategorized": set(),
-            "Missing data": {"nan", "missing data"},
-        }
+        self.categorized_dict = {"Uncategorized": set()}
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # default
         self.currently_displayed_category = "Uncategorized"  # default
 
@@ -174,25 +175,21 @@ class DataModel:
         logger.info("Populating data structures")
 
         self.preprocessed_responses = pd.DataFrame(
-            self.raw_data.iloc[:, 1:].map(
-                self.preprocess_text  # , na_action="ignore"
-            )  # type: ignore
-        )
+            self.raw_data.iloc[:, 1:].map(self.preprocess_text)  # , na_action="ignore"
+        )  # type: ignore
 
-        df_series = self.preprocessed_responses.stack().reset_index(drop=True)
-        self.categorized_dict = {
-            "Uncategorized": set(df_series) - {"nan", "missing data"},
-            "Missing data": {"nan", "missing data"},  # default
-        }
-        self.response_counts = df_series.value_counts().to_dict()
+        self.stacked_responses = self.preprocessed_responses.stack(dropna=False).reset_index(
+            drop=True
+        )
+        self.categorized_dict = {"Uncategorized": set(self.stacked_responses.dropna())}  # default
+        self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
         uuids = self.raw_data.iloc[:, 0]
         self.response_columns = list(self.preprocessed_responses.columns)
         # categorized_data carries all response columns and all categories until export where response columns are dropped
         # In categorized_data, each category is a column, with a 1 or 0 for each response
         self.categorized_data = pd.concat([uuids, self.preprocessed_responses], axis=1)
         self.categorized_data["Uncategorized"] = 1  # Everything starts uncategorized
-        self.categorized_data["Missing data"] = 0
-        self.categorize_missing_data()
+        self.handle_missing_data()
 
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
@@ -217,14 +214,22 @@ class DataModel:
     def populate_data_structures_on_load_project(self):
         logger.info("Populating data structures")
 
+        def _replace_none_with_pd_na(df):
+            return df.map(lambda x: pd.NA if x is None else x)
+
         # Convert JSON back to data / set default variable values
-        self.raw_data = pd.read_json(StringIO(self.data_loaded["raw_data"]))
-        self.preprocessed_responses = pd.read_json(
-            StringIO(self.data_loaded["preprocessed_responses"])
+        self.raw_data = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded["raw_data"]))
         )
-        self.response_columns = self.data_loaded["response_columns"]
-        self.categorized_data = pd.read_json(StringIO(self.data_loaded["categorized_data"]))
-        self.response_counts = self.data_loaded["response_counts"]
+        self.preprocessed_responses = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded["preprocessed_responses"]))
+        )
+        self.response_counts = {
+            k if k != "null" else pd.NA: v for k, v in self.data_loaded["response_counts"].items()
+        }
+        self.categorized_data = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded["categorized_data"]))
+        )
         self.categorized_dict = {k: set(v) for k, v in self.data_loaded["categorized_dict"].items()}
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
@@ -290,22 +295,24 @@ class DataModel:
             [self.preprocessed_responses, new_preprocessed_responses]
         )
 
-        # categories_display is dict of categories to the deduplicated set of all responses
-        new_df_series = new_preprocessed_responses.stack().reset_index(drop=True)
-        df_series = self.preprocessed_responses.stack().reset_index(drop=True)
-        self.response_counts = df_series.value_counts().to_dict()
-        self.categorized_dict["Uncategorized"].update(set(new_df_series) - {"nan", "missing data"})
+        new_stacked_responses = new_preprocessed_responses.stack(dropna=False).reset_index(
+            drop=True
+        )
+        self.stacked_responses = self.preprocessed_responses.stack(dropna=False).reset_index(
+            drop=True
+        )
+        self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
+        # categorized_dict is dict of categories to the deduplicated set of all responses
+        self.categorized_dict["Uncategorized"].update(set(new_stacked_responses.dropna()))
 
         new_categorized_data = pd.concat(
             [self.raw_data.iloc[old_data_size:, 0], new_preprocessed_responses], axis=1
         )
         self.categorized_data = pd.concat([self.categorized_data, new_categorized_data], axis=0)
 
-        self.categorized_data.loc[
-            old_data_size:, "Uncategorized"
-        ] = 1  # Everything new starts uncategorized
-        self.categorized_data.loc[old_data_size:, "Missing data"] = 0
-        self.categorize_missing_data()
+        # Everything new starts uncategorized
+        self.categorized_data.loc[old_data_size:, "Uncategorized"] = 1
+        self.handle_missing_data()
 
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
@@ -321,7 +328,9 @@ class DataModel:
             "preprocessed_responses": self.preprocessed_responses.to_json(),
             "response_columns": self.response_columns,
             "categorized_data": self.categorized_data.to_json(),
-            "response_counts": self.response_counts,
+            "response_counts": {
+                k if k is not pd.NA else None: v for k, v in self.response_counts.items()
+            },
             "categorized_dict": {k: list(v) for k, v in self.categorized_dict.items()},
         }
         data_to_save.update(user_interface_variables_to_add)
@@ -401,26 +410,31 @@ class DataModel:
             self.categorized_data.loc[mask, category] = 1
             self.categorized_dict[category].update(responses)
 
-    def preprocess_text(self, text: Any) -> str:
+    def preprocess_text(self, text: Any) -> str | NAType:
+        if pd.isna(text):
+            return pd.NA
+
         text = str(text).lower()
-        text = re.sub(r"\s+", " ", text)  # Convert one or more of any kind of space to single space
-        text = re.sub(r"[^a-z0-9\s]", "", text)  # Remove special characters
+        # Convert one or more of any kind of space to single space
+        text = re.sub(r"\s+", " ", text)
+        # Remove special characters
+        text = re.sub(r"[^a-z0-9\s]", "", text)
         text = text.strip()
         return text
 
-    def categorize_missing_data(self) -> None:
-        def is_missing(value) -> bool:
-            return pd.isna(value) or value is None or value == "missing data" or value == "nan"
+    def handle_missing_data(self) -> None:
+        def _is_missing(value) -> bool:
+            return pd.isna(value)
 
         # Boolean mask where each row is True if all elements are missing
-        all_missing_mask = self.preprocessed_responses.map(is_missing).all(axis=1)  # type: ignore
+        all_missing_mask = self.preprocessed_responses.map(_is_missing).all(axis=1)  # type: ignore
 
         logger.debug(
-            f"""Categorizing missing data\n
+            f"""Handling missing data\n
             categorized_data (before):\n{self.categorized_data.head()}\n"""
         )
-        self.categorized_data.loc[all_missing_mask, "Missing data"] = 1
-        self.categorized_data.loc[all_missing_mask, "Uncategorized"] = 0
+        for category in self.categorized_dict:
+            self.categorized_data.loc[all_missing_mask, category] = pd.NA
         logger.debug(f"categorized_data (after):\n{self.categorized_data.head()}\n" "")
 
     def validate_loaded_json(
@@ -468,12 +482,12 @@ class DataModel:
 
     def get_responses_and_counts(self, category: str) -> list[Tuple[str, int]]:
         responses_and_counts = [
-            (response, self.response_counts.get(response, 0))
+            (str(response), self.sum_response_counts({response}))
             for response in self.categorized_dict[category]
         ]
 
         # Sort first by score and then alphabetically
-        return sorted(responses_and_counts, key=lambda x: (pd.isna(x[0]), -x[1], x[0]))
+        return sorted(responses_and_counts, key=lambda x: (-x[1], x[0]))
 
     def format_categories_metrics(
         self, is_including_missing_data: bool
@@ -481,26 +495,23 @@ class DataModel:
         formatted_categories_metrics = []
 
         for category, responses in self.categorized_dict.items():
-            count = self.calculate_count(responses)
-            if not is_including_missing_data and category == "Missing data":
-                percentage_str = ""
-            else:
-                percentage = self.calculate_percentage(responses, is_including_missing_data)
-                percentage_str = f"{percentage:.2f}%"
+            count = self.sum_response_counts(responses)
+            percentage = self.calculate_percentage(responses, is_including_missing_data)
+            percentage_str = f"{percentage:.2f}%"
             formatted_categories_metrics.append((category, count, percentage_str))
 
         return formatted_categories_metrics
 
-    def calculate_count(self, responses: set[str]) -> int:
+    def sum_response_counts(self, responses: set) -> int:
         return sum(self.response_counts.get(response, 0) for response in responses)
 
-    def calculate_percentage(self, responses: set[str], is_including_missing_data: bool) -> float:
-        count = self.calculate_count(responses)
+    def calculate_percentage(self, responses: set, is_including_missing_data: bool) -> float:
+        count = self.sum_response_counts(responses)
 
-        total_responses = sum(self.response_counts.values())
-
-        if not is_including_missing_data:
-            missing_data_count = self.calculate_count(self.categorized_dict["Missing data"])
+        if is_including_missing_data:
+            total_responses = sum(self.response_counts.values())
+        else:
+            missing_data_count = self.sum_response_counts({pd.NA})
             total_responses = sum(self.response_counts.values()) - missing_data_count
 
         return (count / total_responses) * 100 if total_responses > 0 else 0

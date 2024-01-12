@@ -5,6 +5,7 @@ This is a desktop app that allows the user to import a dataset, perform fuzzy ma
 The context for this is specifically for speeding up the categorization of open-ended text responses for questionnaires. This effectively replaces the broken/slow fuzzy matching functionality in Q Research Software.
 
 ## Prerequisites
+
 Before running the application, ensure you have Python installed on your system. If not, download and install the latest version from [Python's official website](https://www.python.org/downloads/).
 
 It's also recommended to have the latest version of pip. Update pip using the following command in your command line tool:
@@ -30,21 +31,23 @@ python src/main.py
 ```
 
 # Using the Application
+
 1. Start New Project or Append Data: Import your dataset.
 2. Fuzzy Match: Input a string to match and adjust the fuzziness threshold as needed.
 3. Create Category, Rename Category, Delete Category
-4. Categorize Results: categorize the selected fuzzy match results into the selected category/categories.
+4. Categorize Results or Recategorize Results: categorize the selected fuzzy match results into the selected category/categories.
 5. Export Data: Once categorization is complete, export the data for further use.
 6. Save Project and Load Project: save the app's current state so you can return to it later.
 
 **NOTE:**
+
 - **'New Project' or 'Append Data'**:
-    - Accepts only `.csv` or `.xlsx` files.
-    - Assumes the first column contains UUIDs.
-    - Assumes subsequent columns contain open-ended text responses.
+  - Accepts only `.csv` or `.xlsx` files.
+  - Assumes the first column contains UUIDs.
+  - Assumes subsequent columns contain open-ended text responses.
 - **Loading a Project:**
-    - Accepts only `.json` files.
-    - These files must have been previously saved from this app.
+  - Accepts only `.json` files.
+  - These files must have been previously saved from this app.
 
 # To do
 
@@ -59,10 +62,8 @@ python src/main.py
 ### Future:
 
 - Explore the possibility of an auto mode for automated matching and categorization.
-- Write user documentation and guides.
-- Implement an environment setup script
-- Implement unit tests and loggin
-- Establish a routine for updating dependencies and consider containerization with Docker.
+- Write documentation for maintenance.
+- Implement better exception handling, write more unit tests and more in-depth debug logging
 
 ## Author
 
