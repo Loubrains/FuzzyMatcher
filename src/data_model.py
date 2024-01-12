@@ -288,13 +288,14 @@ class DataModel:
             [self.preprocessed_responses, new_preprocessed_responses]
         )
 
-        # categorized_dict is dict of categories to the deduplicated set of all responses
         new_stacked_responses = new_preprocessed_responses.stack(dropna=False).reset_index(
             drop=True
         )
-        self.response_counts = self.stacked_responses.value_counts(
-            dropna=False
-        ).to_dict()  # feel like I've brainfarted here, why have I duplicated this? Why am I not updating it?
+        self.stacked_responses = self.preprocessed_responses.stack(dropna=False).reset_index(
+            drop=True
+        )
+        self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
+        # categorized_dict is dict of categories to the deduplicated set of all responses
         self.categorized_dict["Uncategorized"].update(set(new_stacked_responses.dropna()))
 
         new_categorized_data = pd.concat(
