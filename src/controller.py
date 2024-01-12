@@ -353,7 +353,7 @@ class Controller:
         return True
 
     def save_project(self):
-        # TODO: Possible abstract out this and export_data_to_csv into a single method?
+        # TODO: Possibly abstract out this and export_data_to_csv into a single method?
         logger.info("Starting save project")
         try:
             logger.info("Calling UI to get file path")
