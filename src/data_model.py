@@ -1,5 +1,6 @@
 #
 # TODO: need to handle missing data better, not just as "nan", so that people writing "nan" don't get miscoded
+# TODO: split out categorization by each response column
 
 import logging
 import logging_utils
@@ -8,6 +9,7 @@ from thefuzz import fuzz
 import pandas as pd
 from io import StringIO
 from typing import Any, Tuple
+from pandas._libs.missing import NAType
 from file_handler import FileHandler
 
 # Setup logging
@@ -32,7 +34,7 @@ class DataModel:
         self.response_counts = {}
         self.categorized_dict = {
             "Uncategorized": set(),
-            "Missing data": {"nan", "missing data"},
+            "Missing data": {"nan"},
         }
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # default
         self.currently_displayed_category = "Uncategorized"  # default
@@ -184,8 +186,8 @@ class DataModel:
 
         df_series = self.preprocessed_responses.stack().reset_index(drop=True)
         self.categorized_dict = {
-            "Uncategorized": set(df_series) - {"nan", "missing data"},
-            "Missing data": {"nan", "missing data"},  # default
+            "Uncategorized": set(df_series) - {"nan"},
+            "Missing data": {"nan"},  # default
         }
         self.response_counts = df_series.value_counts().to_dict()
         uuids = self.raw_data.iloc[:, 0]
@@ -297,7 +299,7 @@ class DataModel:
         new_df_series = new_preprocessed_responses.stack().reset_index(drop=True)
         df_series = self.preprocessed_responses.stack().reset_index(drop=True)
         self.response_counts = df_series.value_counts().to_dict()
-        self.categorized_dict["Uncategorized"].update(set(new_df_series) - {"nan", "missing data"})
+        self.categorized_dict["Uncategorized"].update(set(new_df_series) - {"nan"})
 
         new_categorized_data = pd.concat(
             [self.raw_data.iloc[old_data_size:, 0], new_preprocessed_responses], axis=1
@@ -404,8 +406,8 @@ class DataModel:
             self.categorized_data.loc[mask, category] = 1
             self.categorized_dict[category].update(responses)
 
-    def preprocess_text(self, text: Any) -> str:
-        if text is None:
+    def preprocess_text(self, text: Any) -> str | NAType:
+        if pd.isna(text):
             return "nan"
 
         text = str(text).lower()
@@ -417,11 +419,11 @@ class DataModel:
         return text
 
     def categorize_missing_data(self) -> None:
-        def is_missing(value) -> bool:
-            return pd.isna(value) or value is None or value == "missing data" or value == "nan"
+        def _is_missing(value) -> bool:
+            return value == "nan"
 
         # Boolean mask where each row is True if all elements are missing
-        all_missing_mask = self.preprocessed_responses.map(is_missing).all(axis=1)  # type: ignore
+        all_missing_mask = self.preprocessed_responses.map(_is_missing).all(axis=1)  # type: ignore
 
         logger.debug(
             f"""Categorizing missing data\n
