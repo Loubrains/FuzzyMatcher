@@ -93,20 +93,6 @@ class Controller:
             )
             return
 
-        if "Missing data" in categories:
-            logger.warning('Values cannot be categorized into "Missing data"')
-            logger.debug(f"selected categories:{categories}, selected responses:{responses}")
-            self.user_interface.show_warning('You cannot categorize values into "Missing data".')
-            return
-
-        if "nan" in responses or "missing data" in responses:
-            logger.warning('"NaN" or "Missing data" values cannot be recategorized')
-            logger.debug(f"selected responses:{responses}")
-            self.user_interface.show_warning(
-                'You cannot recategorize "NaN" or "Missing data" values',
-            )
-            # No return, continue and remove missing data values in data model
-
         if categorization_type == "Single" and len(categories) > 1:
             logger.warning("Only one category can be selected in Single Categorization mode.")
             logger.debug(f"selected categories:{categories}")
@@ -139,18 +125,6 @@ class Controller:
             self.user_interface.show_warning(
                 "Please select both a category and responses in the category results display to categorize.",
             )
-            return
-
-        if self.data_model.currently_displayed_category == "Missing data":
-            logger.warning('"NaN" or "Missing data" values cannot be recategorized')
-            logger.debug(f"selected categories:{categories}, selected responses:{responses}")
-            self.user_interface.show_info('You cannot recategorize "NaN" or "Missing data" values.')
-            return
-
-        if "Missing data" in categories:
-            logger.warning('"NaN" or "Missing data" values cannot be recategorized')
-            logger.debug(f"selected responses:{responses}")
-            self.user_interface.show_warning('You cannot categorize values into "Missing data".')
             return
 
         if self.user_interface.categorization_type.get() == "Single" and len(categories) > 1:
@@ -200,11 +174,11 @@ class Controller:
             self.user_interface.show_warning("Please select one category to rename.")
             return
 
-        if "Uncategorized" in selected_categories or "Missing data" in selected_categories:
-            logger.warning('Categories "Uncategorized" or "Missing data" cannot be renamed')
+        if "Uncategorized" in selected_categories:
+            logger.warning('Category "Uncategorized" cannot be renamed')
             logger.debug(f"selected_categories: {selected_categories}")
             self.user_interface.show_warning(
-                'You may not rename the categories "Uncategorized" or "Missing data".',
+                'You may not rename the category "Uncategorized".',
             )
             return
 
@@ -258,11 +232,11 @@ class Controller:
             self.user_interface.show_warning("Please select categories to delete.")
             return
 
-        if "Uncategorized" in selected_categories or "Missing data" in selected_categories:
-            logger.warning('Categories "Uncategorized" or "Missing data" cannot be deleted')
+        if "Uncategorized" in selected_categories:
+            logger.warning('Category "Uncategorized" cannot be deleted')
             logger.debug(f"selected_categories: {selected_categories}")
             self.user_interface.show_warning(
-                "You may not delete the categories 'Uncategorized' or 'Missing data'.",
+                'You may not delete the category "Uncategorized".',
             )
             return
 
