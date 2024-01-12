@@ -1,6 +1,5 @@
 #
-# TODO: need to handle missing data better, not just as "nan", so that people writing "nan" don't get miscoded
-# TODO: split out categorization by each response column
+# TODO: repeat out category columns for each response column and categorize each response column seperately
 
 import logging
 import logging_utils
@@ -215,14 +214,22 @@ class DataModel:
     def populate_data_structures_on_load_project(self):
         logger.info("Populating data structures")
 
+        def _replace_none_with_pd_na(df):
+            return df.map(lambda x: pd.NA if x is None else x)
+
         # Convert JSON back to data / set default variable values
-        self.raw_data = pd.read_json(StringIO(self.data_loaded["raw_data"]))
-        self.preprocessed_responses = pd.read_json(
-            StringIO(self.data_loaded["preprocessed_responses"])
+        self.raw_data = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded["raw_data"]))
         )
-        self.response_columns = self.data_loaded["response_columns"]
-        self.categorized_data = pd.read_json(StringIO(self.data_loaded["categorized_data"]))
-        self.response_counts = self.data_loaded["response_counts"]
+        self.preprocessed_responses = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded["preprocessed_responses"]))
+        )
+        self.response_counts = {
+            k if k != "null" else pd.NA: v for k, v in self.data_loaded["response_counts"].items()
+        }
+        self.categorized_data = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded["categorized_data"]))
+        )
         self.categorized_dict = {k: set(v) for k, v in self.data_loaded["categorized_dict"].items()}
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
@@ -321,7 +328,9 @@ class DataModel:
             "preprocessed_responses": self.preprocessed_responses.to_json(),
             "response_columns": self.response_columns,
             "categorized_data": self.categorized_data.to_json(),
-            "response_counts": self.response_counts,
+            "response_counts": {
+                k if k is not pd.NA else None: v for k, v in self.response_counts.items()
+            },
             "categorized_dict": {k: list(v) for k, v in self.categorized_dict.items()},
         }
         data_to_save.update(user_interface_variables_to_add)
