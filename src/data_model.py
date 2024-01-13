@@ -1,5 +1,5 @@
 #
-# TODO: repeat out category columns for each response column and categorize each response column seperately
+# TODO: test changes made: repeated out category columns for each response column and process them seperately
 
 import logging
 import logging_utils
@@ -158,8 +158,8 @@ class DataModel:
                         self.categorized_data.loc[response, f"Uncategorized_{response_column}"] = 1
                     self.categorized_dict["Uncategorized"].update(self.categorized_dict[category])
 
-                del self.categorized_dict[category]
                 self.categorized_data.drop(columns=f"{category}_{response_column}", inplace=True)
+            del self.categorized_dict[category]
 
         logger.info("Categories deleted successfully")
 
@@ -326,7 +326,7 @@ class DataModel:
 
         new_categorized_data = pd.concat(
             [self.raw_data.iloc[old_data_size:, 0], new_preprocessed_responses], axis=1
-        )
+        )  # Why isn't this axis=0?
         self.categorized_data = pd.concat([self.categorized_data, new_categorized_data], axis=0)
 
         for response_column in self.response_columns:
