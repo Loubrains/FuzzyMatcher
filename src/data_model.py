@@ -53,6 +53,7 @@ class DataModel:
 
     ### ----------------------- Main functionality ----------------------- ###
     def fuzzy_match_logic(self, string_to_match: str):
+        # NOTE: This check is probably not needed?
         if self.categorized_data.empty or self.categorized_data is None:
             message = "There is no dataset in the current project to match against"
             logger.warning(message)
@@ -74,36 +75,47 @@ class DataModel:
         self, responses: set[str], categories: set[str], categorization_type: str
     ):
         logger.info("Categorizing responses")
+        for response_column in self.response_columns:
+            mask = self.categorized_data[response_column].isin(responses)
 
-        mask = self.create_bool_mask_for_responses_in_data(responses)
+            if categorization_type == "Single":
+                self.remove_responses_from_category(
+                    responses, "Uncategorized", response_column, mask
+                )
 
+            for category in categories:
+                self.add_responses_to_category(responses, category, response_column, mask)
+
+        # Additionally, remove the responses from fuzzy_match_results
         if categorization_type == "Single":
-            self.remove_responses_from_category(responses, "Uncategorized", mask)
-            # Additionally, remove the responses from fuzzy_match_results
             fuzzy_mask = self.fuzzy_match_results["response"].isin(responses)
             self.fuzzy_match_results = self.fuzzy_match_results[~fuzzy_mask].reset_index(drop=True)
-
-        self.add_responses_to_categories(responses, categories, mask)
 
         logger.info("Responses categorized")
 
     def recategorize_responses(self, responses: set[str], categories: set[str]):
         logger.info("Recategorizing responses")
-        mask = self.create_bool_mask_for_responses_in_data(responses)
-        self.remove_responses_from_category(responses, self.currently_displayed_category, mask)
-        self.add_responses_to_categories(responses, categories, mask)
+        for response_column in self.response_columns:
+            mask = self.categorized_data[response_column].isin(responses)
+            self.remove_responses_from_category(
+                responses, self.currently_displayed_category, response_column, mask
+            )
+            for category in categories:
+                self.add_responses_to_category(responses, category, response_column, mask)
         logger.info("Responses recategorized")
 
     def create_category(self, new_category: str):
         logger.info('Creating new category: "%s"', new_category)
 
-        if new_category in self.categorized_data.columns:
+        if new_category in self.categorized_dict.keys():
             message = "Category already exists"
             logger.warning(message)
-            logger.debug(f"categorized_data.columns:\n{self.categorized_data.columns}")
+            logger.debug(f"categorized_dict.keys:\n{self.categorized_dict.keys()}")
             return False, message
 
-        self.categorized_data[new_category] = 0
+        for response_column in self.response_columns:
+            col_name = f"{new_category}_{response_column}"
+            self.categorized_data[col_name] = 0
         self.categorized_dict[new_category] = set()
 
         message = "Category created successfully"
@@ -115,13 +127,17 @@ class DataModel:
             f'Renaming category. old_category: "{old_category}", new_category: "{new_category}"'
         )
 
-        if new_category in self.categorized_dict:
+        if new_category in self.categorized_dict.keys():
             message = "A category with this name already exists."
             logger.warning(message)
             logger.debug(f"categorized_dict.keys:\n{self.categorized_dict.keys()}")
             return False, message
 
-        self.categorized_data.rename(columns={old_category: new_category}, inplace=True)
+        for response_column in self.response_columns:
+            self.categorized_data.rename(
+                columns={f"{old_category}_{response_column}": f"{new_category}_{response_column}"},
+                inplace=True,
+            )
         self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
 
         message = "Category renamed successfully"
@@ -132,17 +148,18 @@ class DataModel:
         logger.info("Deleting categories: %s", categories_to_delete)
 
         for category in categories_to_delete:
-            # In single mode, return the responses from this category to 'Uncategorized'
-            if categorization_type == "Single":
-                responses_to_recategorize = self.categorized_data[
-                    self.categorized_data[category] == 1
-                ].index
-                for response_index in responses_to_recategorize:
-                    self.categorized_data.loc[response_index, "Uncategorized"] = 1
-                self.categorized_dict["Uncategorized"].update(self.categorized_dict[category])
+            for response_column in self.response_columns:
+                # In single mode, return the responses from this category to 'Uncategorized'
+                if categorization_type == "Single":
+                    responses_to_recategorize = self.categorized_data[
+                        self.categorized_data[f"{category}_{response_column}"] == 1
+                    ].index
+                    for response in responses_to_recategorize:
+                        self.categorized_data.loc[response, f"Uncategorized_{response_column}"] = 1
+                    self.categorized_dict["Uncategorized"].update(self.categorized_dict[category])
 
-            del self.categorized_dict[category]
-            self.categorized_data.drop(columns=category, inplace=True)
+                del self.categorized_dict[category]
+                self.categorized_data.drop(columns=f"{category}_{response_column}", inplace=True)
 
         logger.info("Categories deleted successfully")
 
@@ -185,10 +202,12 @@ class DataModel:
         self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
         uuids = self.raw_data.iloc[:, 0]
         self.response_columns = list(self.preprocessed_responses.columns)
-        # categorized_data carries all response columns and all categories until export where response columns are dropped
-        # In categorized_data, each category is a column, with a 1 or 0 for each response
+        # categorized_data has a column for uuids, all response columns, and will have a column for each category, which are repeated out for each response column
+        # In categorized_data, the category columns associated with a response column contain values 1 or 0 for whether that response is in that category, or pd.NA if response is pd.NA
         self.categorized_data = pd.concat([uuids, self.preprocessed_responses], axis=1)
-        self.categorized_data["Uncategorized"] = 1  # Everything starts uncategorized
+        for response_column in self.response_columns:
+            # Everything starts uncategorized
+            self.categorized_data[f"Uncategorized_{response_column}"] = 1
         self.handle_missing_data()
 
         self.currently_displayed_category = "Uncategorized"  # Default
@@ -310,8 +329,9 @@ class DataModel:
         )
         self.categorized_data = pd.concat([self.categorized_data, new_categorized_data], axis=0)
 
-        # Everything new starts uncategorized
-        self.categorized_data.loc[old_data_size:, "Uncategorized"] = 1
+        for response_column in self.response_columns:
+            # Everything starts uncategorized
+            self.categorized_data.loc[old_data_size:, f"Uncategorized_{response_column}"] = 1
         self.handle_missing_data()
 
         self.currently_displayed_category = "Uncategorized"  # Default
@@ -390,25 +410,17 @@ class DataModel:
 
         return aggregated_results.sort_values(by=["score", "count"], ascending=[False, False])
 
-    def create_bool_mask_for_responses_in_data(self, responses: set[str]) -> pd.Series:
-        # Boolean mask for rows in categorized_data containing selected responses
-        mask = pd.Series([False] * len(self.categorized_data))
-
-        for column in self.categorized_data[self.response_columns]:
-            mask |= self.categorized_data[column].isin(responses)
-
-        return mask
-
-    def remove_responses_from_category(self, responses: set[str], category: str, mask: pd.Series):
-        self.categorized_data.loc[mask, category] = 0
+    def remove_responses_from_category(
+        self, responses: set[str], category: str, response_column: str, mask: pd.Series
+    ):
+        self.categorized_data.loc[mask, f"{category}_{response_column}"] = 0
         self.categorized_dict[category] -= responses
 
-    def add_responses_to_categories(
-        self, responses: set[str], categories: set[str], mask: pd.Series
+    def add_responses_to_category(
+        self, responses: set[str], category: str, response_column: str, mask: pd.Series
     ):
-        for category in categories:
-            self.categorized_data.loc[mask, category] = 1
-            self.categorized_dict[category].update(responses)
+        self.categorized_data.loc[mask, f"{category}_{response_column}"] = 1
+        self.categorized_dict[category].update(responses)
 
     def preprocess_text(self, text: Any) -> str | NAType:
         if pd.isna(text):
@@ -426,16 +438,19 @@ class DataModel:
         def _is_missing(value) -> bool:
             return pd.isna(value)
 
-        # Boolean mask where each row is True if all elements are missing
-        all_missing_mask = self.preprocessed_responses.map(_is_missing).all(axis=1)  # type: ignore
-
         logger.debug(
             f"""Handling missing data\n
             categorized_data (before):\n{self.categorized_data.head()}\n"""
         )
-        for category in self.categorized_dict:
-            self.categorized_data.loc[all_missing_mask, category] = pd.NA
-        logger.debug(f"categorized_data (after):\n{self.categorized_data.head()}\n" "")
+
+        for response_column in self.response_columns:
+            # Boolean mask where each row is True if all elements are missing
+            missing_data_mask = self.preprocessed_responses[response_column].map(_is_missing)  # type: ignore
+
+            for category in self.categorized_dict:
+                col_name = f"{category}_{response_column}"
+                self.categorized_data.loc[missing_data_mask, col_name] = pd.NA
+            logger.debug(f"categorized_data (after):\n{self.categorized_data.head()}\n" "")
 
     def validate_loaded_json(
         self, loaded_json_data: dict[str, Any], expected_data: dict[str, Any]
