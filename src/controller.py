@@ -321,7 +321,9 @@ class Controller:
                 title="Select file containing data to append",
                 data_model_method=self.data_model.file_import_on_append_data,
             ):
-                self.data_model.populate_data_structures_on_append_data()
+                self.data_model.populate_data_structures_on_append_data(
+                    self.user_interface.categorization_type.get()
+                )
                 self.refresh_treeviews()
                 logger.info("Data appended successfully")
                 self.user_interface.show_info("Data appended successfully")
