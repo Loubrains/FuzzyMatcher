@@ -1,6 +1,3 @@
-#
-# TODO: group category columns by their associated response column.
-
 import logging
 import logging_utils
 import re
@@ -113,11 +110,22 @@ class DataModel:
             logger.debug(f"categorized_dict.keys:\n{self.categorized_dict.keys()}")
             return False, message
 
-        for response_column in self.response_columns:
-            col_name = f"{new_category}_{response_column}"
-            self.categorized_data[col_name] = 0
-
         self.categorized_dict[new_category] = set()
+        number_of_categories = len(self.categorized_dict.keys())
+
+        # Start insert after uuid column + response columns
+        insert_index_start = 1 + len(self.response_columns)
+        number_of_categories = len(self.categorized_dict.keys())
+        # Bring index behind uncategorized column(s)/in front of previous new category column(s)
+        offset = number_of_categories - 2
+
+        for i, response_column in enumerate(self.response_columns):
+            col_name = f"{new_category}_{response_column}"
+            # keep category columns grouped by response column
+            # New categories come after previous ones, but before uncategorized
+            insert_index = insert_index_start + i * number_of_categories + offset
+            # Give all rows a value of 0 to start
+            self.categorized_data.insert(insert_index, col_name, 0)
 
         self.handle_missing_data()
 
