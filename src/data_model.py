@@ -1,5 +1,5 @@
 #
-# TODO: test changes made: repeated out category columns for each response column and process them seperately
+# TODO: group category columns by their associated response column.
 
 import logging
 import logging_utils
@@ -116,7 +116,10 @@ class DataModel:
         for response_column in self.response_columns:
             col_name = f"{new_category}_{response_column}"
             self.categorized_data[col_name] = 0
+
         self.categorized_dict[new_category] = set()
+
+        self.handle_missing_data()
 
         message = "Category created successfully"
         logger.info(message)
@@ -302,11 +305,12 @@ class DataModel:
         logger.info(message)
         return True, message
 
-    def populate_data_structures_on_append_data(self):
+    def populate_data_structures_on_append_data(self, categorization_type):
         logger.info("Populating data structures")
 
         self.raw_data = pd.concat([self.raw_data, self.data_to_append], ignore_index=True)
         old_data_size = len(self.preprocessed_responses)
+
         new_preprocessed_responses = pd.DataFrame(
             self.raw_data.iloc[old_data_size:, 1:].map(self.preprocess_text)  # type: ignore
         )
@@ -321,17 +325,45 @@ class DataModel:
             drop=True
         )
         self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
-        # categorized_dict is dict of categories to the deduplicated set of all responses
-        self.categorized_dict["Uncategorized"].update(set(new_stacked_responses.dropna()))
 
+        ### Categorize new responses
+        # This section is probably more bulky and inefficient than it needs to be
+        old_categorized_responses_set = set().union(
+            *[
+                responses
+                for category, responses in self.categorized_dict.items()
+                if category != "Uncategorized"
+            ]
+        )
+        # using categrized_dict values here since we've already changed self.preprocessed_responses
+        new_responses_set = set(new_stacked_responses.dropna())
+        new_uncategorized_responses_set = new_responses_set - old_categorized_responses_set
+        new_already_categorized_responses_set = new_responses_set.intersection(
+            old_categorized_responses_set
+        )
+
+        self.categorized_dict["Uncategorized"].update(new_uncategorized_responses_set)
         new_categorized_data = pd.concat(
             [self.raw_data.iloc[old_data_size:, 0], new_preprocessed_responses], axis=1
         )  # Why isn't this axis=0?
         self.categorized_data = pd.concat([self.categorized_data, new_categorized_data], axis=0)
 
+        # Everything starts uncategorized (this removes NAs but we handle it again after)
         for response_column in self.response_columns:
-            # Everything starts uncategorized
-            self.categorized_data.loc[old_data_size:, f"Uncategorized_{response_column}"] = 1
+            for category in self.categorized_dict.keys():
+                self.categorized_data.loc[old_data_size:, f"Uncategorized_{response_column}"] = 1
+                self.categorized_data.loc[old_data_size:, f"{category}_{response_column}"] = 0
+
+        for new_response in new_already_categorized_responses_set:
+            categories_for_response = {
+                category
+                for category, responses in self.categorized_dict.items()
+                if new_response in responses
+            }
+            self.categorize_responses(
+                {str(new_response)}, categories_for_response, categorization_type
+            )
+
         self.handle_missing_data()
 
         self.currently_displayed_category = "Uncategorized"  # Default
