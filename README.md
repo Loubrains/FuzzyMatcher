@@ -4,40 +4,50 @@ This is a desktop app that allows the user to import a dataset, perform fuzzy ma
 
 The context for this is specifically for speeding up the categorization of open-ended text responses for questionnaires. This effectively replaces the broken/slow fuzzy matching functionality in Q Research Software.
 
-## Prerequisites
+# Prerequisites
 
-Before running the application, ensure you have Python installed on your system. If not, download and install the latest version from [Python's official website](https://www.python.org/downloads/).
+**Python**: Ensure Python is installed on your system. Download and install the latest version from [Python's official website](https://www.python.org/downloads/). During installation, ensure you select the option to 'Add Python to PATH'.
 
-It's also recommended to have the latest version of pip. Update pip using the following command in your command line tool:
+**Pip**: It's recommended to use the latest version of pip. Update pip using the following command in your command line tool _(such as Windows PowerShell)_:
 
-```sh
+```powershell
 python -m pip install --upgrade pip
 ```
 
-## Installing Required Packages
+# Installation
 
-In your command line tool, navigate to the project directory. Run the following command to install the required packages:
+1. Make a copy of the project folder on your local system.
 
-```sh
+2. In your command line tool, navigate to the copied project root directory:
+
+```powershell
+cd 'C:\Users\[user]\path\to\project'
+```
+
+3. Run the following command to install the required packages:
+
+```powershell
 pip install -r requirements.txt
 ```
 
-## Running the Application
+# Running the Application
 
 Once all packages are installed and updated, you can run the application by executing `main.py` from the `src` directory:
 
-```sh
+```powershell
 python src/main.py
 ```
 
 # Using the Application
 
-1. Start New Project or Append Data: Import your dataset.
-2. Fuzzy Match: Input a string to match and adjust the fuzziness threshold as needed.
-3. Create Category, Rename Category, Delete Category
-4. Categorize Results or Recategorize Results: categorize the selected fuzzy match results into the selected category/categories.
-5. Export Data: Once categorization is complete, export the data for further use.
-6. Save Project and Load Project: save the app's current state so you can return to it later.
+1. `Start New Project` or `Append Data`: Import your dataset.
+2. `Fuzzy Match`: Perform the match against the inputted string. Adjust the `Fuzzy threshold` as needed.
+3. `Create Category`, `Rename Category`, and `Delete Category`: Self explanatory.
+4. `Categorize Results`: Categorize the selected fuzzy match results into the selected category/categories.
+5. `Display category results`: Displays the responses contained within the selected category
+6. `Recategorize Results`: Recategorize the responses from the category results into the selected category/categories.
+7. `Export Data`: Once categorization is complete, export the data to CSV for further use.
+8. `Save Project` and `Load Project`: Save the app's current state so you can return to it later.
 
 **NOTE:**
 
@@ -51,18 +61,11 @@ python src/main.py
 
 # To do
 
-### Functionality:
-
 - Implement the ability to switch back to multi from single categorization mode - spit warning "can't go back"
 - Enable sorting results by different dimensions.
 - Enable passing in a list of category names
-- Consider handling various formats of missing data (e.g., from Q, Excel, SPSS).
-- Address UI enhancement ideas, such as a box that always shows 'Uncategorized' responses, tooltips and button sizing.
-
-### Future:
-
+- Enhance UI, such as creating a box that always shows 'Uncategorized' responses, as well as tooltips and button sizing.
 - Explore the possibility of an auto mode for automated matching and categorization.
-- Write documentation for maintenance.
 - Implement better exception handling, write more unit tests and more in-depth debug logging
 
 ## Author
