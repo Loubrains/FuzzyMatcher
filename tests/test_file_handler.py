@@ -58,8 +58,7 @@ def empty_json_file(tmpdir):
 
 @pytest.fixture
 def incorrect_format_file(tmpdir):
-    path = os.path.join(tmpdir, "data.txt")  # Incorrect file format
-    # Create a dummy text file
+    path = os.path.join(tmpdir, "data.txt")
     with open(path, "w") as f:
         f.write("Some content")
     return str(path)
