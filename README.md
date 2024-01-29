@@ -68,7 +68,7 @@ python src/main.py
 - Explore the possibility of an auto mode for automated matching and categorization.
 - Implement better exception handling, write more unit tests and more in-depth debug logging
 
-## Author
+# Author
 
 Louie Atkins-Turkish  
 Data Analyst at Tapestry Research  
