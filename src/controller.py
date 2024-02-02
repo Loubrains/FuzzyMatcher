@@ -1,3 +1,32 @@
+"""
+Controller Module for Fuzzy Matcher Application
+
+This module contains the Controller class, which serves as the central coordinator for the Fuzzy Matcher application. 
+It bridges the user interface (UI) and the data model, managing user interactions, delegating data processing tasks 
+to the data model, and updating the UI. The Controller class responds to user actions, triggers the appropriate 
+logic in the data model, and ensures that the UI reflects the current state of the application.
+
+Classes:
+    Controller: The main application class responsible for controlling interactions between the UI and the data model.
+
+The Controller class handles various functionalities including initiating new projects, loading and saving projects, 
+handling file import and export, managing categorization tasks, and refreshing UI components. It is designed to 
+respond to user inputs, process data as per business logic, and maintain the overall workflow of the application.
+
+Key functionalities include:
+- Setting up UI bindings and initiating the application loop.
+- Handling the fuzzy match logic based on user inputs.
+- Categorizing and recategorizing responses based on user selections.
+- Creating, renaming, and deleting categories.
+- Managing project-related operations such as creating a new project, loading an existing project, appending data, 
+  saving projects, and exporting data to CSV files.
+- Refreshing and updating different components of the UI based on data model changes.
+- Displaying results of fuzzy matching, categories, and category-specific responses in the UI.
+
+The module relies on the integration of the UI (FuzzyUI) and data model (DataModel) components to function 
+effectively, ensuring a seamless and responsive user experience in the Fuzzy Matcher application.
+"""
+
 import logging
 import logging_utils
 from typing import Callable, Tuple
@@ -10,7 +39,49 @@ logger = logging.getLogger(__name__)
 
 # Main application class
 class Controller:
+    """
+    The main controller class that acts as an intermediary between the user interface (UI) and the data model.
+    It handles user interactions, delegates data processing tasks to the data model, and updates the UI.
+
+    Attributes:
+        user_interface (FuzzyUI): An instance of the FuzzyUI class to manage the user interface.
+        data_model (DataModel): An instance of the DataModel class to manage and process the data.
+
+    Methods:
+        setup_UI_bindings: Binds UI components to their respective handler functions.
+        run: Starts the main loop of the application.
+        fuzzy_match_logic: Handles the logic for initiating a fuzzy match based on user input.
+        categorize_selected_responses: Categorizes user-selected responses into selected categories.
+        recategorize_selected_responses: Recategorizes user-selected responses into new categories.
+        create_category: Handles the creation of a new category based on user input.
+        rename_category: Handles the renaming of an existing category based on user input.
+        on_rename_category_entry: Finalizes the renaming of a category and updates the UI and data model.
+        delete_categories: Handles the deletion of user-selected categories.
+        new_project: Initiates the process of starting a new project.
+        populate_data_structures_on_new_project: Populates data structures for a new project.
+        ask_categorization_type: Prompts the user to select a categorization type for the new project.
+        load_project: Initiates the process of loading an existing project.
+        populate_data_structures_on_load_project: Populates data structures when loading a project.
+        append_data_logic: Initiates the process of appending data to the current project.
+        file_import_logic: Handles the logic for importing files for new, load, or append data operations.
+        save_project: Handles the process of saving the current project to a file.
+        export_data_to_csv: Handles the process of exporting the current project's data to a CSV file.
+        refresh_treeviews: Refreshes the display of fuzzy match results, categories, and category results in the UI.
+        display_fuzzy_match_results: Displays the results of fuzzy matching in the UI.
+        on_display_selected_category_results: Handles the selection and display of category results in the UI.
+        display_category_results: Displays the results of a specific category in the UI.
+        display_categories: Displays the list of categories and related metrics in the UI.
+    """
+
     def __init__(self, user_interface: FuzzyUI, data_model: DataModel):
+        """
+        Sets up UI bindings, and triggers initial UI display functions.
+
+        Args:
+            user_interface (FuzzyUI): An instance of the FuzzyUI class to manage the user interface.
+            data_model (DataModel): An instance of the DataModel class to manage and process the data.
+        """
+
         logger.info("Initializing controller")
 
         self.user_interface = user_interface
@@ -25,6 +96,10 @@ class Controller:
         )
 
     def setup_UI_bindings(self):
+        """
+        Binds UI components to their respective handler functions. This method connects UI actions (like button clicks) to the logic defined in the controller.
+        """
+
         self.user_interface.match_string_entry.bind(
             "<Return>", lambda event: self.fuzzy_match_logic()
         )
@@ -68,11 +143,19 @@ class Controller:
         )
 
     def run(self):
+        """
+        Starts the main loop of the application. This method should be called to start the user interface and make the application responsive to user interactions.
+        """
+
         logger.info("Starting the app mainloop")
         self.user_interface.mainloop()
 
     ### ----------------------- Main Functionality ----------------------- ###
     def fuzzy_match_logic(self):
+        """
+        Retrieves the string entered by the user and initiates the fuzzy matching process in the data model. Updates the UI with the fuzzy match results.
+        """
+
         logger.info("Getting string entry")
         string_to_match = self.user_interface.match_string_entry.get()
         logger.info(f'Calling data model to fuzzy match: "{string_to_match}"')
@@ -80,6 +163,10 @@ class Controller:
         self.display_fuzzy_match_results()
 
     def categorize_selected_responses(self):
+        """
+        Retrieves user-selected responses and categories, and initiates the process of categorizing the responses in the data model. Updates the UI accordingly.
+        """
+
         logger.info("Getting selected categories and responses")
         responses = self.user_interface.selected_match_responses()
         categories = self.user_interface.selected_categories()
@@ -111,6 +198,10 @@ class Controller:
         )
 
     def recategorize_selected_responses(self):
+        """
+        Retrieves user-selected responses and new categories from the category results display, and initiates the process of recategorizing the responses in the data model. Updates the UI accordingly.
+        """
+
         logger.info("Getting selected categories and responses")
         responses, categories = (
             self.user_interface.selected_category_responses(),
@@ -147,6 +238,10 @@ class Controller:
         )
 
     def create_category(self):
+        """
+        Retrieves the new category name entered by the user and initiates the process of creating a new category in the data model. Updates the UI accordingly.
+        """
+
         logger.info("Getting new category entry")
         new_category = self.user_interface.new_category_entry.get()
 
@@ -165,6 +260,10 @@ class Controller:
             self.user_interface.show_error(message)
 
     def rename_category(self):
+        """
+        Retrieves the selected category from the UI, prompts the user to enter a new category name, and initiates the process of renaming the category in the data model. Updates the UI accordingly.
+        """
+
         logger.info("Getting selected categories")
         selected_categories = self.user_interface.selected_categories()
 
@@ -200,6 +299,10 @@ class Controller:
         )
 
     def on_rename_category_entry(self):
+        """
+        Retrieves the new category name entered by the user and finalizes the renaming of the category in the data model. Closes the rename category popup and updates the UI accordingly.
+        """
+
         old_category = self.user_interface.selected_categories().pop()
         logger.info("Getting new category entry")
         new_category = self.user_interface.new_category_entry.get()
@@ -223,6 +326,10 @@ class Controller:
             self.user_interface.show_error(message)
 
     def delete_categories(self):
+        """
+        Retrieves user-selected categories and initiates the process of deleting those categories in the data model. Updates the UI accordingly after confirming the deletion with the user.
+        """
+
         logger.info("Getting selected categories")
         selected_categories = self.user_interface.selected_categories()
 
@@ -257,6 +364,10 @@ class Controller:
 
     ### ----------------------- Project Management ----------------------- ###
     def new_project(self):
+        """
+        Initiates the process of starting a new project by prompting the user to select a data file. Populates the data structures for the new project and updates the UI accordingly.
+        """
+
         logger.info("Starting new project")
         try:
             if self.file_import_logic(
@@ -275,16 +386,28 @@ class Controller:
             self.user_interface.show_error(f"Failed to initialize new project: {e}")
 
     def populate_data_structures_on_new_project(self):
+        """
+        Populates data structures in the data model for a new project and resets relevant UI variables.
+        """
+
         logger.info("Calling data model to populate data structures")
         self.data_model.populate_data_structures_on_new_project()
         logger.info("Resetting UI variables")
         self.user_interface.is_including_missing_data.set(False)
 
     def ask_categorization_type(self):
+        """
+        Prompts the user to select the categorization type (Single or Multi) for the new project.
+        """
+
         logger.info("Calling UI to create popup for categorization type")
         self.user_interface.create_ask_categorization_type_popup()
 
     def load_project(self):
+        """
+        Initiates the process of loading an existing project by prompting the user to select a project file. Populates the data structures for the loaded project and updates the UI accordingly.
+        """
+
         logger.info("Starting load project")
         try:
             if self.file_import_logic(
@@ -303,6 +426,10 @@ class Controller:
             self.user_interface.show_error(f"Failed to load project: {e}")
 
     def populate_data_structures_on_load_project(self):
+        """
+        Populates data structures in the data model when loading a project and sets relevant UI variables based on the loaded project data.
+        """
+
         logger.info("Calling data model to popuate data structures")
         (
             categorization_type,
@@ -314,6 +441,10 @@ class Controller:
         self.user_interface.is_including_missing_data.set(is_including_missing_data)
 
     def append_data_logic(self):
+        """
+        Initiates the process of appending data to the current project by prompting the user to select a data file. Populates the data structures for the appended data and updates the UI accordingly.
+        """
+
         logger.info("Starting append data")
         try:
             if self.file_import_logic(
@@ -334,6 +465,18 @@ class Controller:
     def file_import_logic(
         self, file_types: list[Tuple[str, str]], title: str, data_model_method: Callable
     ) -> bool:
+        """
+        Handles the logic for importing files for new, load, or append data operations. Prompts the user to select a file and calls the appropriate method in the data model.
+
+        Args:
+            file_types (list[Tuple[str, str]]): A list of file types to be accepted in the file dialog.
+            title (str): The title of the file dialog window.
+            data_model_method (Callable): The method to be called in the data model after file selection.
+
+        Returns:
+            bool: True if the file import operation was successful, False otherwise.
+        """
+
         logger.info("Calling UI to get file path")
         file_path = self.user_interface.show_open_file_dialog(
             filetypes=file_types,
@@ -355,6 +498,10 @@ class Controller:
         return True
 
     def save_project(self):
+        """
+        Initiates the process of saving the current project to a file by prompting the user to select a file location. Calls the data model to save the project data.
+        """
+
         # TODO: Possibly abstract out this and export_data_to_csv into a single method?
         logger.info("Starting save project")
         try:
@@ -382,6 +529,10 @@ class Controller:
             self.user_interface.show_error(f"Failed to save project: {e}")
 
     def export_data_to_csv(self):
+        """
+        Initiates the process of exporting the current project's data to a CSV file by prompting the user to select a file location. Calls the data model to export the data.
+        """
+
         logger.info("Starting data export")
         try:
             logger.info("Calling UI to get file path")
@@ -405,11 +556,19 @@ class Controller:
 
     ### ----------------------- UI management ----------------------- ###
     def refresh_treeviews(self):
+        """
+        Refreshes the display of fuzzy match results, category results, and categories in the UI.
+        """
+
         self.display_fuzzy_match_results()
         self.display_category_results()
         self.display_categories()
 
     def display_fuzzy_match_results(self):
+        """
+        Retrieves the fuzzy match threshold from the UI, processes the fuzzy match results in the data model, and updates the UI with the results.
+        """
+
         logger.info("Calling UI to get fuzzy threshold")
         threshold = self.user_interface.threshold_slider.get()
         logger.info("Calling data model to process and return fuzzy match results")
@@ -418,6 +577,10 @@ class Controller:
         self.user_interface.display_fuzzy_match_results(processed_results)
 
     def on_display_selected_category_results(self):
+        """
+        Handles the selection of a category from the UI and initiates the process of displaying the results for the selected category. Updates the UI with the results of the selected category.
+        """
+
         logger.info("Calling UI to get selected categories")
         selected_categories = self.user_interface.selected_categories()
 
@@ -443,6 +606,10 @@ class Controller:
         self.display_category_results()
 
     def display_category_results(self):
+        """
+        Retrieves the currently selected category and its associated data from the data model, and displays the category results in the UI.
+        """
+
         logger.info("Calling data model to get currently displayed category and data")
         category = self.data_model.currently_displayed_category
         responses_and_counts = self.data_model.get_responses_and_counts(category)
@@ -450,6 +617,10 @@ class Controller:
         self.user_interface.display_category_results(category, responses_and_counts)
 
     def display_categories(self):
+        """
+        Retrieves and formats the categories and their metrics from the data model, and displays the list of categories and related metrics in the UI.
+        """
+
         logger.info("Calling UI to get is_including_missing_data bool")
         is_including_missing_data = self.user_interface.is_including_missing_data.get()
         logger.info("Calling data model to format category metrics")

@@ -1,3 +1,26 @@
+"""
+DataModel Module for Fuzzy Matcher Application
+
+This module contains the DataModel class, which is responsible for managing and processing the data involved in the fuzzy matching and categorization processes of the Fuzzy Matcher application. The class handles the intricate details of data manipulation, processing, and storage, ensuring that the data is in the correct format and structure for the application's operations.
+
+The DataModel class is designed to interact with the file system for importing and exporting data, perform fuzzy matching on the responses, categorize and recategorize responses into categories, and maintain the integrity of the data throughout these processes. It also provides functionalities to create, rename, and delete categories based on user interactions.
+
+Key Functionalities:
+- Initializing and managing the data structures used for the application's data.
+- Performing fuzzy matching of responses against a user-provided string and processing the match results.
+- Categorizing responses into user-defined categories and recategorizing them as needed.
+- Managing categories by allowing creation, renaming, and deletion of categories.
+- Handling file operations including importing data for new or existing projects, appending data, saving projects, and exporting data to CSV files.
+- Preprocessing text data for fuzzy matching and managing missing data within the application's data structures.
+- Validating the structure of loaded JSON data to ensure compatibility with the application's data model.
+- Calculating and formatting metrics for categories for display purposes.
+
+The DataModel class acts as the backbone of the application's data management and processing, ensuring that the data is accurately represented and manipulated according to the application's logic and user actions.
+
+Classes:
+    DataModel: The main class for managing and processing data within the Fuzzy Matcher application.
+"""
+
 import logging
 import logging_utils
 import re
@@ -13,12 +36,67 @@ logger = logging.getLogger(__name__)
 
 
 class DataModel:
+    """
+    A class responsible for managing and processing the data for fuzzy matching and categorization of responses.
+
+    Attributes:
+        file_handler (FileHandler): An instance of FileHandler for handling file operations.
+        raw_data (pd.DataFrame): DataFrame containing the raw imported data.
+        preprocessed_responses (pd.DataFrame): DataFrame with preprocessed response data.
+        response_columns (list): List of response columns.
+        categorized_data (pd.DataFrame): DataFrame containing categorized responses.
+        response_counts (dict): Dictionary holding counts of responses.
+        categorized_dict (dict): Dictionary holding categorized responses.
+        fuzzy_match_results (pd.DataFrame): DataFrame holding results of fuzzy matching.
+        currently_displayed_category (str): The category currently being displayed.
+
+    Methods:
+        initialize_data_structures: Initializes and resets data structures used in the model.
+        fuzzy_match_logic: Handles the logic for performing fuzzy matching on the data.
+        categorize_responses: Categorizes selected responses into selected categories.
+        recategorize_responses: Recategorizes selected responses into selected categories.
+        create_category: Creates a new category for categorizing responses.
+        rename_category: Renames an existing category.
+        delete_categories: Deletes selected categories and handles associated data cleanup.
+        file_import_on_new_project: Handles importing data for a new project.
+        populate_data_structures_on_new_project: Populates data structures for a new project.
+        file_import_on_load_project: Handles importing data for loading an existing project.
+        populate_data_structures_on_load_project: Populates data structures when loading a project.
+        file_import_on_append_data: Handles importing data to append to the current project.
+        populate_data_structures_on_append_data: Populates data structures when appending data.
+        save_project: Saves the current project's data to a file.
+        export_data_to_csv: Exports categorized data to a CSV file.
+        fuzzy_match: Performs fuzzy matching on preprocessed responses.
+        process_fuzzy_match_results: Processes and filters the fuzzy match results.
+        remove_responses_from_category: Removes specified responses from a category.
+        add_responses_to_category: Adds specified responses to a category.
+        preprocess_text: Preprocesses text data (e.g., response text).
+        handle_missing_data: Handles missing data in the model's data structures.
+        validate_loaded_json: Validates the structure of loaded JSON data.
+        get_responses_and_counts: Retrieves responses and their counts for a specific category.
+        format_categories_metrics: Formats metrics for categories to be displayed.
+        sum_response_counts: Sums the response counts for a set of responses.
+        calculate_percentage: Calculates the percentage of responses for a category.
+    """
+
     def __init__(self, file_handler: FileHandler) -> None:
+        """
+        Initializes the DataModel object, setting up the file handler and data structures.
+
+        Args:
+            file_handler (FileHandler): An instance of FileHandler for handling file operations.
+        """
+
         logger.info("Initializing data model")
         self.file_handler = file_handler
         self.initialize_data_structures()  # Empty/default variables.
 
     def initialize_data_structures(self):
+        """
+        Initializes and resets data structures used in the model. This includes data frames for raw data, preprocessed responses, categorized data,
+        dictionaries for response counts and categorized responses, and other necessary data structures for managing the data model.
+        """
+
         logger.debug("Initializing data structures")
         # Empty variables which will be populated during new project/load project
         # categorized_data will contain a uuids, responses, and column for each category, with a 1 or 0 for each response
@@ -50,6 +128,16 @@ class DataModel:
 
     ### ----------------------- Main functionality ----------------------- ###
     def fuzzy_match_logic(self, string_to_match: str):
+        """
+        Handles the logic for performing fuzzy matching on the data against a provided string.
+
+        Args:
+            string_to_match (str): The string to be matched fuzzily against the data.
+
+        Returns:
+            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+        """
+
         # NOTE: This check is probably not needed?
         if self.categorized_data.empty or self.categorized_data is None:
             message = "There is no dataset in the current project to match against"
@@ -71,6 +159,15 @@ class DataModel:
     def categorize_responses(
         self, responses: set[str], categories: set[str], categorization_type: str
     ):
+        """
+        Categorizes selected responses into selected categories based on the provided categorization type.
+
+        Args:
+            responses (set[str]): A set of responses to be categorized.
+            categories (set[str]): A set of categories into which the responses will be categorized.
+            categorization_type (str): The type of categorization to be performed ('Single' or 'Multi').
+        """
+
         logger.info("Categorizing responses")
         for response_column in self.response_columns:
             mask = self.categorized_data[response_column].isin(responses)
@@ -91,6 +188,14 @@ class DataModel:
         logger.info("Responses categorized")
 
     def recategorize_responses(self, responses: set[str], categories: set[str]):
+        """
+        Recategorizes selected responses into selected categories. This is typically used to change the categories of already categorized responses.
+
+        Args:
+            responses (set[str]): A set of responses to be recategorized.
+            categories (set[str]): A set of new categories into which the responses will be categorized.
+        """
+
         logger.info("Recategorizing responses")
         for response_column in self.response_columns:
             mask = self.categorized_data[response_column].isin(responses)
@@ -102,6 +207,16 @@ class DataModel:
         logger.info("Responses recategorized")
 
     def create_category(self, new_category: str):
+        """
+        Creates a new category for categorizing responses.
+
+        Args:
+            new_category (str): The name of the new category to be created.
+
+        Returns:
+            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+        """
+
         logger.info('Creating new category: "%s"', new_category)
 
         if new_category in self.categorized_dict.keys():
@@ -134,6 +249,17 @@ class DataModel:
         return True, message
 
     def rename_category(self, old_category: str, new_category: str):
+        """
+        Renames an existing category to a new name.
+
+        Args:
+            old_category (str): The current name of the category to be renamed.
+            new_category (str): The new name for the category.
+
+        Returns:
+            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+        """
+
         logger.info(
             f'Renaming category. old_category: "{old_category}", new_category: "{new_category}"'
         )
@@ -156,6 +282,14 @@ class DataModel:
         return True, message
 
     def delete_categories(self, categories_to_delete: set[str], categorization_type: str):
+        """
+        Deletes selected categories and handles associated data cleanup based on the categorization type.
+
+        Args:
+            categories_to_delete (set[str]): A set of categories to be deleted.
+            categorization_type (str): The type of categorization that determines how to handle associated responses ('Single' or 'Multi').
+        """
+
         logger.info("Deleting categories: %s", categories_to_delete)
 
         for category in categories_to_delete:
@@ -176,6 +310,16 @@ class DataModel:
 
     ### ----------------------- Project Management ----------------------- ###
     def file_import_on_new_project(self, file_path: str):
+        """
+        Handles importing data for a new project from a file.
+
+        Args:
+            file_path (str): The path to the file from which data is to be imported.
+
+        Returns:
+            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+        """
+
         logger.info("Calling file handler to import data")
         new_data = self.file_handler.read_csv_or_xlsx_to_dataframe(file_path)
 
@@ -200,6 +344,10 @@ class DataModel:
         return True, message
 
     def populate_data_structures_on_new_project(self):
+        """
+        Populates data structures for a new project after data has been successfully imported.
+        """
+
         logger.info("Populating data structures")
 
         self.preprocessed_responses = pd.DataFrame(
@@ -228,6 +376,16 @@ class DataModel:
         logger.info("Data structures populated successfully")
 
     def file_import_on_load_project(self, file_path: str):
+        """
+        Handles importing data for loading an existing project from a file.
+
+        Args:
+            file_path (str): The path to the project file to be loaded.
+
+        Returns:
+            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+        """
+
         logger.info("Calling file handler to import project data")
         new_data = self.file_handler.load_json(file_path)
         success, message = self.validate_loaded_json(new_data, self.expected_json_structure)
@@ -242,6 +400,13 @@ class DataModel:
         return True, message
 
     def populate_data_structures_on_load_project(self):
+        """
+        Populates data structures when loading a project from a file. This involves converting the loaded data back into the appropriate data structures used by the DataModel.
+
+        Returns:
+            Tuple[str, bool]: A tuple containing the categorization type and the boolean status of including missing data.
+        """
+
         logger.info("Populating data structures")
 
         def _replace_none_with_pd_na(df):
@@ -274,6 +439,16 @@ class DataModel:
         return (categorization_type, is_including_missing_data)
 
     def file_import_on_append_data(self, file_path: str):
+        """
+        Handles importing data to append to the current project's dataset.
+
+        Args:
+            file_path (str): The path to the file from which data is to be appended.
+
+        Returns:
+            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+        """
+
         if self.raw_data.empty:
             logger.warning("There is no dataset in the current project to append to")
             logger.error(f"raw_data:\n{self.raw_data}")
@@ -314,6 +489,13 @@ class DataModel:
         return True, message
 
     def populate_data_structures_on_append_data(self, categorization_type):
+        """
+        Populates data structures when appending new data to the current project, considering the current categorization type.
+
+        Args:
+            categorization_type (str): The categorization type ('Single' or 'Multi') which affects how new data is appended and categorized.
+        """
+
         logger.info("Populating data structures")
 
         self.raw_data = pd.concat([self.raw_data, self.data_to_append], ignore_index=True)
@@ -381,6 +563,14 @@ class DataModel:
         logger.info("Data structures populated successfully")
 
     def save_project(self, file_path: str, user_interface_variables_to_add: dict[str, Any]):
+        """
+        Saves the current project's data to a file, including additional variables from the user interface.
+
+        Args:
+            file_path (str): The path where the project file will be saved.
+            user_interface_variables_to_add (dict[str, Any]): Additional variables from the user interface to be included in the saved project data.
+        """
+
         logger.info("Preparing to save project data")
 
         data_to_save = {
@@ -404,6 +594,14 @@ class DataModel:
         self.file_handler.save_data_to_json(file_path, data_to_save, handler=_none_handler)
 
     def export_data_to_csv(self, file_path: str, categorization_type: str):
+        """
+        Exports categorized data to a CSV file, considering the current categorization type.
+
+        Args:
+            file_path (str): The path where the exported CSV file will be saved.
+            categorization_type (str): The categorization type ('Single' or 'Multi') which affects how data is exported.
+        """
+
         logger.info("Preparing to export categorized data to csv")
 
         # Exported data needs only UUIDs and category binaries to be able to be imported into Q.
@@ -416,6 +614,17 @@ class DataModel:
 
     ### ----------------------- Helper functions ----------------------- ###
     def fuzzy_match(self, preprocessed_responses: pd.DataFrame, match_string: str) -> pd.DataFrame:
+        """
+        Performs fuzzy matching on preprocessed responses against a provided match string, returning a DataFrame with the results.
+
+        Args:
+            preprocessed_responses (pd.DataFrame): The preprocessed responses to be matched against.
+            match_string (str): The string to be matched fuzzily against the responses.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the fuzzy match results.
+        """
+
         logger.info('Performing fuzzy match: "%s"', match_string)
 
         def _fuzzy_match(element) -> int:
@@ -434,6 +643,16 @@ class DataModel:
         return pd.DataFrame(results)
 
     def process_fuzzy_match_results(self, threshold_value: float) -> pd.DataFrame:
+        """
+        Processes and filters the fuzzy match results based on the provided threshold value.
+
+        Args:
+            threshold_value (float): The threshold value for filtering the fuzzy match results.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the processed fuzzy match results.
+        """
+
         # Filter the fuzzy match results based on the threshold
         filtered_results = self.fuzzy_match_results[
             self.fuzzy_match_results["score"] >= threshold_value
@@ -453,16 +672,46 @@ class DataModel:
     def remove_responses_from_category(
         self, responses: set[str], category: str, response_column: str, mask: pd.Series
     ):
+        """
+        Removes specified responses from a category in a given response column based on a mask.
+
+        Args:
+            responses (set[str]): A set of responses to be removed from the category.
+            category (str): The category from which the responses will be removed.
+            response_column (str): The response column where the responses are located.
+            mask (pd.Series): A boolean series used as a mask to identify rows for removal.
+        """
+
         self.categorized_data.loc[mask, f"{category}_{response_column}"] = 0
         self.categorized_dict[category] -= responses
 
     def add_responses_to_category(
         self, responses: set[str], category: str, response_column: str, mask: pd.Series
     ):
+        """
+        Adds specified responses to a category in a given response column based on a mask.
+
+        Args:
+            responses (set[str]): A set of responses to be added to the category.
+            category (str): The category to which the responses will be added.
+            response_column (str): The response column where the responses are located.
+            mask (pd.Series): A boolean series used as a mask to identify rows for addition.
+        """
+
         self.categorized_data.loc[mask, f"{category}_{response_column}"] = 1
         self.categorized_dict[category].update(responses)
 
     def preprocess_text(self, text: Any) -> str | NAType:
+        """
+        Preprocesses text data (e.g., response text) by converting to lowercase, removing special characters, and normalizing whitespace.
+
+        Args:
+            text (Any): The text to be preprocessed.
+
+        Returns:
+            str | NAType: The preprocessed text, or pd.NA if the input is missing.
+        """
+
         if pd.isna(text):
             return pd.NA
 
@@ -475,6 +724,10 @@ class DataModel:
         return text
 
     def handle_missing_data(self) -> None:
+        """
+        Handles missing data in the model's data structures by setting corresponding values to pd.NA.
+        """
+
         def _is_missing(value) -> bool:
             return pd.isna(value)
 
@@ -495,6 +748,17 @@ class DataModel:
     def validate_loaded_json(
         self, loaded_json_data: dict[str, Any], expected_data: dict[str, Any]
     ) -> Tuple[bool, str]:
+        """
+        Validates the structure of loaded JSON data against the expected structure.
+
+        Args:
+            loaded_json_data (dict[str, Any]): The loaded JSON data to be validated.
+            expected_data (dict[str, Any]): The expected structure of the JSON data.
+
+        Returns:
+            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure of the validation, and the second element is a message detailing the operation's outcome.
+        """
+
         # NOTE: self.expected_json_structure is passed in. This needs to be updated when the data structure changes.
         logger.debug("Validating project data")
 
@@ -536,6 +800,16 @@ class DataModel:
         return True, "Loaded JSON validated successfully"
 
     def get_responses_and_counts(self, category: str) -> list[Tuple[str, int]]:
+        """
+        Retrieves responses and their counts for a specific category.
+
+        Args:
+            category (str): The category for which responses and counts are retrieved.
+
+        Returns:
+            list[Tuple[str, int]]: A list of tuples, each containing a response and its count.
+        """
+
         responses_and_counts = [
             (str(response), self.sum_response_counts({response}))
             for response in self.categorized_dict[category]
@@ -547,6 +821,16 @@ class DataModel:
     def format_categories_metrics(
         self, is_including_missing_data: bool
     ) -> list[Tuple[str, int, str]]:
+        """
+        Formats metrics for categories to be displayed, including the count of responses and their percentage.
+
+        Args:
+            is_including_missing_data (bool): Whether to include missing data in percentage calculations.
+
+        Returns:
+            list[Tuple[str, int, str]]: A list of tuples, each containing a category name, count of responses, and percentage of total responses.
+        """
+
         formatted_categories_metrics = []
 
         for category, responses in self.categorized_dict.items():
@@ -558,9 +842,30 @@ class DataModel:
         return formatted_categories_metrics
 
     def sum_response_counts(self, responses: set) -> int:
+        """
+        Sums the response counts for a set of responses.
+
+        Args:
+            responses (set): A set of responses whose counts are to be summed.
+
+        Returns:
+            int: The total count of the specified responses.
+        """
+
         return sum(self.response_counts.get(response, 0) for response in responses)
 
     def calculate_percentage(self, responses: set, is_including_missing_data: bool) -> float:
+        """
+        Calculates the percentage of responses for a category relative to the total number of responses, optionally including or excluding missing data.
+
+        Args:
+            responses (set): A set of responses for which the percentage is calculated.
+            is_including_missing_data (bool): Whether to include missing data in the total responses count.
+
+        Returns:
+            float: The calculated percentage.
+        """
+
         count = self.sum_response_counts(responses)
 
         if is_including_missing_data:
