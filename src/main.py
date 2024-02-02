@@ -3,18 +3,19 @@ from controller import Controller
 from fuzzy_ui import FuzzyUI
 from data_model import DataModel
 from file_handler import FileHandler
+from logging_utils import setup_logging
 
 
-def setup_logging():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s",
-        filename="app.log",
-        filemode="w",
-    )
-    logging.getLogger("chardet").setLevel(logging.WARNING)
+# def setup_logging():
+#     logging.basicConfig(
+#         level=logging.INFO,
+#         format="%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s",
+#         filename="app.log",
+#         filemode="w",
+#     )
+#     logging.getLogger("chardet").setLevel(logging.WARNING)
 
-    logging.info("Logging initialized")
+#     logging.info("Logging initialized")
 
 
 def main():

@@ -4,6 +4,18 @@ import pandas as pd
 import inspect
 
 
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s",
+        filename="app.log",
+        filemode="w",
+    )
+    logging.getLogger("chardet").setLevel(logging.WARNING)
+
+    logging.info("Logging initialized")
+
+
 def format_and_log_data_for_debug(logger: logging.Logger, attributes: dict[str, Any]) -> None:
     log_messages = ["Class attributes:\n"]
     for name, obj in attributes.items():
