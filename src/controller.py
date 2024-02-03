@@ -191,7 +191,7 @@ class Controller:
         self.user_interface.ok_button.bind(
             "<Button-1>", lambda event: self.on_rename_category_entry()
         )
-        self.user_interface.new_category_entry.bind(
+        self.user_interface.rename_category_entry.bind(
             "<Return>", lambda event: self.on_rename_category_entry()
         )
         self.user_interface.cancel_button.bind(
@@ -202,7 +202,7 @@ class Controller:
     def on_rename_category_entry(self):
         old_category = self.user_interface.selected_categories().pop()
         logger.info("Getting new category entry")
-        new_category = self.user_interface.new_category_entry.get()
+        new_category = self.user_interface.rename_category_entry.get()
 
         if not new_category:
             logger.error("New category entry must be non-empty")
