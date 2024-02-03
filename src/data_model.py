@@ -61,32 +61,32 @@ class DataModel:
         export_df (pd.DataFrame): categorized_data with the response columns removed, for exporting to CSV.
 
     Methods:
-        initialize_data_structures: Initializes and resets data structures used in the model.
+        initialize_data_structures: Initializes empty data structures used in the model.
         fuzzy_match_logic: Handles the logic for performing fuzzy matching on the data.
-        fuzzy_match: Performs fuzzy matching on preprocessed responses.
+        fuzzy_match: Used by fuzzy_match_logic to perform the fuzzy matching.
         categorize_responses: Categorizes selected responses into selected categories.
         recategorize_responses: Recategorizes selected responses into selected categories.
-        add_responses_to_category: Adds specified responses to a category.
-        remove_responses_from_category: Removes specified responses from a category.
-        create_category: Creates a new category for categorizing responses.
-        rename_category: Renames an existing category.
-        delete_categories: Deletes selected categories and handles associated data cleanup.
+        add_responses_to_category: Used by categorize_responses and recategorize_responses to add specified responses to a category in categorized_data and categorized_dict.
+        remove_responses_from_category: Used by categorize_responses and recategorize_responses to remove specified responses from a category in categorized_data and categorized_dict.
+        create_category: Creates a new category in categorized_data and categorized_dict.
+        rename_category: Renames an existing category in categorized_data and categorized_dict.
+        delete_categories: Deletes selected categories from categorized_data and categorized_dict, and handles associated data cleanup.
         file_import_on_new_project: Handles importing data for a new project.
         populate_data_structures_on_new_project: Populates data structures for a new project.
         file_import_on_load_project: Handles importing data for loading an existing project.
         populate_data_structures_on_load_project: Populates data structures when loading a project.
         file_import_on_append_data: Handles importing data to append to the current project.
         populate_data_structures_on_append_data: Populates data structures when appending data.
-        save_project: Saves the current project's data to a file.
-        export_data_to_csv: Exports categorized data to a CSV file.
-        preprocess_text: Preprocesses text data (e.g., response text).
-        process_fuzzy_match_results: Processes and filters the fuzzy match results.
-        handle_missing_data: Handles missing data in the model's data structures.
-        validate_loaded_json: Validates the structure of loaded JSON data.
+        save_project: Saves all the current project's relevant data (the class attributes) to a JSON file.
+        export_data_to_csv: Exports the categorized data to a CSV file.
+        preprocess_text: Cleans text data (e.g. response text).
+        process_fuzzy_match_results: Filters, aggregates and sorts the fuzzy match results for display.
+        handle_missing_data: Handles missing data in categorized_data and categorized_dict.
+        validate_loaded_json: Validates the structure of loaded JSON project data.
         get_responses_and_counts: Retrieves responses and their counts for a specific category.
         format_categories_metrics: Formats metrics for categories to be displayed.
         sum_response_counts: Sums the response counts for a set of responses.
-        calculate_percentage: Calculates the percentage of responses for a category.
+        calculate_percentage: Calculates the percentage of responses for a category, with or without missing data.
     """
 
     def __init__(self, file_handler: FileHandler) -> None:
@@ -135,7 +135,7 @@ class DataModel:
         logging_utils.format_and_log_data_for_debug(logger, vars(self))
 
     ### ----------------------- Main functionality ----------------------- ###
-    def fuzzy_match_logic(self, string_to_match: str):
+    def fuzzy_match_logic(self, string_to_match: str) -> Tuple[bool, str]:
         """
         Handles the logic for performing fuzzy matching on the data against a provided string.
 
@@ -224,7 +224,7 @@ class DataModel:
 
         logger.info("Responses categorized")
 
-    def recategorize_responses(self, responses: set[str], categories: set[str]):
+    def recategorize_responses(self, responses: set[str], categories: set[str]) -> None:
         """
         Recategorizes selected responses into selected categories. This is typically used to change the categories of already categorized responses.
 
@@ -350,7 +350,7 @@ class DataModel:
         logger.info(message)
         return True, message
 
-    def delete_categories(self, categories_to_delete: set[str], categorization_type: str):
+    def delete_categories(self, categories_to_delete: set[str], categorization_type: str) -> None:
         """
         Deletes selected categories and handles associated data cleanup based on the categorization type.
 
@@ -412,7 +412,7 @@ class DataModel:
         logger.info(message)
         return True, message
 
-    def populate_data_structures_on_new_project(self):
+    def populate_data_structures_on_new_project(self) -> None:
         """
         Populates data structures for a new project after data has been successfully imported.
         """
@@ -557,7 +557,7 @@ class DataModel:
         logger.info(message)
         return True, message
 
-    def populate_data_structures_on_append_data(self, categorization_type):
+    def populate_data_structures_on_append_data(self, categorization_type) -> None:
         """
         Populates data structures when appending new data to the current project, considering the current categorization type.
 
@@ -631,7 +631,7 @@ class DataModel:
         logging_utils.format_and_log_data_for_debug(logger, vars(self))
         logger.info("Data structures populated successfully")
 
-    def save_project(self, file_path: str, user_interface_variables_to_add: dict[str, Any]):
+    def save_project(self, file_path: str, user_interface_variables_to_add: dict[str, Any]) -> None:
         """
         Saves the current project's data to a file, including additional variables from the user interface.
 
@@ -662,7 +662,7 @@ class DataModel:
         logger.info("Calling file handler to save project data")
         self.file_handler.save_data_to_json(file_path, data_to_save, handler=_none_handler)
 
-    def export_data_to_csv(self, file_path: str, categorization_type: str):
+    def export_data_to_csv(self, file_path: str, categorization_type: str) -> None:
         """
         Exports categorized data to a CSV file, considering the current categorization type.
 
