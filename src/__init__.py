@@ -12,4 +12,6 @@ Modules included in the 'src' package:
 - Main (main.py): Serves as the entry point of the application. It initializes and configures the main components of the application, including setting up logging, instantiating the data model, user interface, and controller, and starting the application loop.
 
 - Logging Tools (logging_utils.py): Provides utility functions and configurations for application-wide logging, ensuring that meaningful log messages are generated and recorded, facilitating debugging and monitoring of application behavior.
+
+Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """

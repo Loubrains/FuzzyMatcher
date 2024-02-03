@@ -1,24 +1,26 @@
 """
-This module provides a tkinter user interface via a `FuzzyUI` class for performing fuzzy matching and categorization of survey responses.
+This module provides a tkinter-based user interface via a `FuzzyUI` class for the FuzzyMatcher application.
 
-Features:
+Responsible for displaying information to the user and getting user-input to serve to the controller of the application.
+
+Key functionality:
 - Fuzzy matching: Users can input strings and adjust the fuzziness threshold to find similar responses.
 - Category management: Users can add, rename, or delete categories to organize matched responses effectively.
 - Displaying data: Match results and categorized responses are displayed in Treeview widgets.
 - File management: Users have options to start new projects, load existing projects, append data, save progress, and export results.
 
-External libraries used:
-- tkinter for the GUI components.
-- pandas for data manipulation.
-- logging for logging events and errors.
-- inspect for cleaner error message displays.
-- ctypes for DPI awareness, ensuring the UI scales correctly on high-resolution displays.
+Main dependencies:
+- tkinter: for the GUI components.
+- pandas: for data manipulation.
+- inspect: for cleaner error message displays.
+- ctypes: for DPI awareness, ensuring the UI scales correctly on high-resolution displays.
+
+Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
 
 import logging
 import tkinter as tk
-from tkinter import filedialog, messagebox
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
 from typing import Tuple
 import inspect
 import ctypes

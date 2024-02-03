@@ -5,6 +5,8 @@ Functions:
     setup_logging(): Configures the logging settings for the application. It specifies the log level, format, and output file. Additionally, it sets the log level for certain verbose third-party libraries to avoid cluttering the logs.
 
     format_and_log_data_for_debug(logger, attributes): Accepts a logger instance and a dictionary of attributes. It formats and logs the attributes based on their data types for improved readability in debugging. The function handles pandas DataFrames, dictionaries with various types of values, and other basic data types, ensuring that the logged information is concise and informative, especially for large or complex data structures.
+    
+Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
 
 import logging

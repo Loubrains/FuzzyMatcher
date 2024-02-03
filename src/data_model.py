@@ -1,24 +1,27 @@
 """
-DataModel Module for Fuzzy Matcher Application
+Provides a `DataModel` class for the FuzzyMatcher application.
 
-This module contains the DataModel class, which is responsible for managing and processing the data involved in the fuzzy matching and categorization processes of the Fuzzy Matcher application. The class handles the intricate details of data manipulation, processing, and storage, ensuring that the data is in the correct format and structure for the application's operations.
-
-The DataModel class is designed to interact with the file system for importing and exporting data, perform fuzzy matching on the responses, categorize and recategorize responses into categories, and maintain the integrity of the data throughout these processes. It also provides functionalities to create, rename, and delete categories based on user interactions.
+Responsible for storing and manipulating the data involved in the fuzzy matching and categorization processes
+and serving data to the `controller` of the FuzzyMatcher application.
 
 Key Functionalities:
-- Initializing and managing the data structures used for the application's data.
-- Performing fuzzy matching of responses against a user-provided string and processing the match results.
+- Initializing and managing the data structures.
+- Preprocessing text and handling missing data.
+- Performing fuzzy matching of responses against a provided string and processing the results.
 - Categorizing responses into user-defined categories and recategorizing them as needed.
-- Managing categories by allowing creation, renaming, and deletion of categories.
-- Handling file operations including importing data for new or existing projects, appending data, saving projects, and exporting data to CSV files.
-- Preprocessing text data for fuzzy matching and managing missing data within the application's data structures.
-- Validating the structure of loaded JSON data to ensure compatibility with the application's data model.
-- Calculating and formatting metrics for categories for display purposes.
+- Category management (category creation, renaming, and deletion)
+- Handling importing of data for new projects, appending data, saving and loading projects, and exporting categorized data to CSV.
+- Validating loaded/saved data.
+- Calculating and formatting data for display.
 
-The DataModel class acts as the backbone of the application's data management and processing, ensuring that the data is accurately represented and manipulated according to the application's logic and user actions.
+Main dependencies:
+- thefuzz: for performing fuzzy matching.
+- pandas: for data manipulation.
+- re: for pattern matching during data cleaning.
+- io: for converting data to json serializable format.
+- file_handler: a module from this project for performing file saving and loading functions.
 
-Classes:
-    DataModel: The main class for managing and processing data within the Fuzzy Matcher application.
+Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
 
 import logging
@@ -41,20 +44,30 @@ class DataModel:
 
     Attributes:
         file_handler (FileHandler): An instance of FileHandler for handling file operations.
-        raw_data (pd.DataFrame): DataFrame containing the raw imported data.
-        preprocessed_responses (pd.DataFrame): DataFrame with preprocessed response data.
-        response_columns (list): List of response columns.
-        categorized_data (pd.DataFrame): DataFrame containing categorized responses.
-        response_counts (dict): Dictionary holding counts of responses.
-        categorized_dict (dict): Dictionary holding categorized responses.
-        fuzzy_match_results (pd.DataFrame): DataFrame holding results of fuzzy matching.
-        currently_displayed_category (str): The category currently being displayed.
+        raw_data (pd.DataFrame): DataFrame containing the raw imported data. Expects first column to be uuids and subsequent columns to contain responses.
+        data_to_append (pd.DataFrame): DataFrame of imported data to append onto the current project data.
+        data_loaded (dict[str, Any]): Loaded project data (all the relevant class attributes) from json file.
+        response_columns (list[str]): List of response column names.
+        preprocessed_responses (pd.DataFrame): DataFrame of cleaned response columns from raw_data.
+        stacked_responses (pd.Series): Series containing the stacked, deduplicated responses, excluding missing data.
+        response_counts (dict[str, int]): Dictionary holding counts of responses, including missing data.
+        categorized_data (pd.DataFrame): DataFrame containing categorized responses. This is the main DataFrame of the application.
+            First column contains uuids, the next columns are the response columns, and then the subsequent columns are for each category, repeated out for each response column (with the name appended on the end).
+            The values of the category columns are 1, 0, or pd.NA, depending on whether or not the responses in their associated response column are categorized into that category, or missing data.
+        categorized_dict (dict[str, str]): Dictionary of categories to deduplicated responses, excluding missing data.
+        fuzzy_match_results (pd.DataFrame): DataFrame holding results and score of fuzzy matching.
+        currently_displayed_category (str): The category currently being displayed in the UI.
+        expected_json_structure (dict[str, type]): A dictionary of types for each class attribute, for validation loaded project data.
+        export_df (pd.DataFrame): categorized_data with the response columns removed, for exporting to CSV.
 
     Methods:
         initialize_data_structures: Initializes and resets data structures used in the model.
         fuzzy_match_logic: Handles the logic for performing fuzzy matching on the data.
+        fuzzy_match: Performs fuzzy matching on preprocessed responses.
         categorize_responses: Categorizes selected responses into selected categories.
         recategorize_responses: Recategorizes selected responses into selected categories.
+        add_responses_to_category: Adds specified responses to a category.
+        remove_responses_from_category: Removes specified responses from a category.
         create_category: Creates a new category for categorizing responses.
         rename_category: Renames an existing category.
         delete_categories: Deletes selected categories and handles associated data cleanup.
@@ -66,11 +79,8 @@ class DataModel:
         populate_data_structures_on_append_data: Populates data structures when appending data.
         save_project: Saves the current project's data to a file.
         export_data_to_csv: Exports categorized data to a CSV file.
-        fuzzy_match: Performs fuzzy matching on preprocessed responses.
-        process_fuzzy_match_results: Processes and filters the fuzzy match results.
-        remove_responses_from_category: Removes specified responses from a category.
-        add_responses_to_category: Adds specified responses to a category.
         preprocess_text: Preprocesses text data (e.g., response text).
+        process_fuzzy_match_results: Processes and filters the fuzzy match results.
         handle_missing_data: Handles missing data in the model's data structures.
         validate_loaded_json: Validates the structure of loaded JSON data.
         get_responses_and_counts: Retrieves responses and their counts for a specific category.
@@ -81,10 +91,10 @@ class DataModel:
 
     def __init__(self, file_handler: FileHandler) -> None:
         """
-        Initializes the DataModel object, setting up the file handler and data structures.
+        Sets up the data structures and file handler.
 
         Args:
-            file_handler (FileHandler): An instance of FileHandler for handling file operations.
+            file_handler (FileHandler): An instance of FileHandler.
         """
 
         logger.info("Initializing data model")
@@ -99,8 +109,6 @@ class DataModel:
 
         logger.debug("Initializing data structures")
         # Empty variables which will be populated during new project/load project
-        # categorized_data will contain a uuids, responses, and column for each category, with a 1 or 0 for each response
-        # categorized_dict will be a dict of categories containig the deduplicated set of all responses
         self.raw_data = pd.DataFrame()
         self.preprocessed_responses = pd.DataFrame()
         self.response_columns = []
@@ -110,7 +118,7 @@ class DataModel:
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # default
         self.currently_displayed_category = "Uncategorized"  # default
 
-        # For validation on load project.
+        # For validation of loaded project data.
         # NOTE: Update this when the data structure changes.
         # TODO: Need to update this and validate_loaded_json() to use more specific typing (e.g. dict[str, set[str]) and handle stringified json too
         self.expected_json_structure = {
@@ -155,6 +163,35 @@ class DataModel:
         self.fuzzy_match_results = self.fuzzy_match(uncategorized_df, string_to_match)
 
         return True, "Performed fuzzy match successfully"
+
+    def fuzzy_match(self, preprocessed_responses: pd.DataFrame, match_string: str) -> pd.DataFrame:
+        """
+        Performs fuzzy matching on preprocessed responses against a provided match string, returning a DataFrame with the results.
+
+        Args:
+            preprocessed_responses (pd.DataFrame): The preprocessed responses to be matched against.
+            match_string (str): The string to be matched fuzzily against the responses.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the fuzzy match results.
+        """
+
+        logger.info('Performing fuzzy match: "%s"', match_string)
+
+        def _fuzzy_match(element) -> int:
+            return fuzz.WRatio(
+                match_string, str(element)
+            )  # Weighted ratio of several fuzzy matching protocols
+
+        # Get fuzzy matching scores and format result: {response: score}
+        results = []
+        for row in preprocessed_responses.itertuples(index=True, name=None):
+            for response in row[1:]:
+                score = _fuzzy_match(response)
+                results.append({"response": response, "score": score})
+
+        logger.info("Performed fuzzy match successfully")
+        return pd.DataFrame(results)
 
     def categorize_responses(
         self, responses: set[str], categories: set[str], categorization_type: str
@@ -205,6 +242,38 @@ class DataModel:
             for category in categories:
                 self.add_responses_to_category(responses, category, response_column, mask)
         logger.info("Responses recategorized")
+
+    def add_responses_to_category(
+        self, responses: set[str], category: str, response_column: str, mask: pd.Series
+    ):
+        """
+        Adds specified responses to a category in a given response column based on a mask.
+
+        Args:
+            responses (set[str]): A set of responses to be added to the category.
+            category (str): The category to which the responses will be added.
+            response_column (str): The response column where the responses are located.
+            mask (pd.Series): A boolean series used as a mask to identify rows for addition.
+        """
+
+        self.categorized_data.loc[mask, f"{category}_{response_column}"] = 1
+        self.categorized_dict[category].update(responses)
+
+    def remove_responses_from_category(
+        self, responses: set[str], category: str, response_column: str, mask: pd.Series
+    ):
+        """
+        Removes specified responses from a category in a given response column based on a mask.
+
+        Args:
+            responses (set[str]): A set of responses to be removed from the category.
+            category (str): The category from which the responses will be removed.
+            response_column (str): The response column where the responses are located.
+            mask (pd.Series): A boolean series used as a mask to identify rows for removal.
+        """
+
+        self.categorized_data.loc[mask, f"{category}_{response_column}"] = 0
+        self.categorized_dict[category] -= responses
 
     def create_category(self, new_category: str):
         """
@@ -613,34 +682,27 @@ class DataModel:
         self.file_handler.export_dataframe_to_csv(file_path, self.export_df)
 
     ### ----------------------- Helper functions ----------------------- ###
-    def fuzzy_match(self, preprocessed_responses: pd.DataFrame, match_string: str) -> pd.DataFrame:
+    def preprocess_text(self, text: Any) -> str | NAType:
         """
-        Performs fuzzy matching on preprocessed responses against a provided match string, returning a DataFrame with the results.
+        Preprocesses text data (e.g., response text) by converting to lowercase, removing special characters, and normalizing whitespace.
 
         Args:
-            preprocessed_responses (pd.DataFrame): The preprocessed responses to be matched against.
-            match_string (str): The string to be matched fuzzily against the responses.
+            text (Any): The text to be preprocessed.
 
         Returns:
-            pd.DataFrame: A DataFrame containing the fuzzy match results.
+            str | NAType: The preprocessed text, or pd.NA if the input is missing.
         """
 
-        logger.info('Performing fuzzy match: "%s"', match_string)
+        if pd.isna(text):
+            return pd.NA
 
-        def _fuzzy_match(element) -> int:
-            return fuzz.WRatio(
-                match_string, str(element)
-            )  # Weighted ratio of several fuzzy matching protocols
-
-        # Get fuzzy matching scores and format result: {response: score}
-        results = []
-        for row in preprocessed_responses.itertuples(index=True, name=None):
-            for response in row[1:]:
-                score = _fuzzy_match(response)
-                results.append({"response": response, "score": score})
-
-        logger.info("Performed fuzzy match successfully")
-        return pd.DataFrame(results)
+        text = str(text).lower()
+        # Convert one or more of any kind of space to single space
+        text = re.sub(r"\s+", " ", text)
+        # Remove special characters
+        text = re.sub(r"[^a-z0-9\s]", "", text)
+        text = text.strip()
+        return text
 
     def process_fuzzy_match_results(self, threshold_value: float) -> pd.DataFrame:
         """
@@ -668,60 +730,6 @@ class DataModel:
         )
 
         return aggregated_results.sort_values(by=["score", "count"], ascending=[False, False])
-
-    def remove_responses_from_category(
-        self, responses: set[str], category: str, response_column: str, mask: pd.Series
-    ):
-        """
-        Removes specified responses from a category in a given response column based on a mask.
-
-        Args:
-            responses (set[str]): A set of responses to be removed from the category.
-            category (str): The category from which the responses will be removed.
-            response_column (str): The response column where the responses are located.
-            mask (pd.Series): A boolean series used as a mask to identify rows for removal.
-        """
-
-        self.categorized_data.loc[mask, f"{category}_{response_column}"] = 0
-        self.categorized_dict[category] -= responses
-
-    def add_responses_to_category(
-        self, responses: set[str], category: str, response_column: str, mask: pd.Series
-    ):
-        """
-        Adds specified responses to a category in a given response column based on a mask.
-
-        Args:
-            responses (set[str]): A set of responses to be added to the category.
-            category (str): The category to which the responses will be added.
-            response_column (str): The response column where the responses are located.
-            mask (pd.Series): A boolean series used as a mask to identify rows for addition.
-        """
-
-        self.categorized_data.loc[mask, f"{category}_{response_column}"] = 1
-        self.categorized_dict[category].update(responses)
-
-    def preprocess_text(self, text: Any) -> str | NAType:
-        """
-        Preprocesses text data (e.g., response text) by converting to lowercase, removing special characters, and normalizing whitespace.
-
-        Args:
-            text (Any): The text to be preprocessed.
-
-        Returns:
-            str | NAType: The preprocessed text, or pd.NA if the input is missing.
-        """
-
-        if pd.isna(text):
-            return pd.NA
-
-        text = str(text).lower()
-        # Convert one or more of any kind of space to single space
-        text = re.sub(r"\s+", " ", text)
-        # Remove special characters
-        text = re.sub(r"[^a-z0-9\s]", "", text)
-        text = text.strip()
-        return text
 
     def handle_missing_data(self) -> None:
         """
@@ -766,6 +774,7 @@ class DataModel:
             logger.debug(f"loaded_json_data:\n{loaded_json_data}")
             return False, "Loaded project data is empty"
 
+        # Unexpected variabes
         if unexpected_keys := set(loaded_json_data.keys()) - set(expected_data.keys()):
             logger.debug(
                 f"""loaded_json_data.keys:\n{loaded_json_data.keys()}\n
@@ -774,6 +783,7 @@ class DataModel:
             return False, f"Unexpected variables loaded: {', '.join(unexpected_keys)}"
 
         for expected_key, expected_type in expected_data.items():
+            # Missing variables
             if expected_key not in loaded_json_data:
                 logger.debug(
                     f"""expected_key:\n{expected_key}\n
@@ -781,6 +791,7 @@ class DataModel:
                 )
                 return False, f"Variable '{expected_key}' is missing from loaded project data"
 
+            # Wrong variable type
             # skip the bool case (e.g. `is_including_missing_data`) since its value would be evaluated in the if statement
             if expected_type is not bool and not loaded_json_data[expected_key]:
                 logger.debug(f"{expected_key}:\n{loaded_json_data[expected_key]}")

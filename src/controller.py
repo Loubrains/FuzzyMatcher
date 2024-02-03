@@ -6,9 +6,6 @@ It bridges the user interface (UI) and the data model, managing user interaction
 to the data model, and updating the UI. The Controller class responds to user actions, triggers the appropriate 
 logic in the data model, and ensures that the UI reflects the current state of the application.
 
-Classes:
-    Controller: The main application class responsible for controlling interactions between the UI and the data model.
-
 The Controller class handles various functionalities including initiating new projects, loading and saving projects, 
 handling file import and export, managing categorization tasks, and refreshing UI components. It is designed to 
 respond to user inputs, process data as per business logic, and maintain the overall workflow of the application.
@@ -25,6 +22,8 @@ Key functionalities include:
 
 The module relies on the integration of the UI (FuzzyUI) and data model (DataModel) components to function 
 effectively, ensuring a seamless and responsive user experience in the Fuzzy Matcher application.
+
+Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
 
 import logging

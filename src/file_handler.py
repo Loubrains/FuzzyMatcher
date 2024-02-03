@@ -13,6 +13,8 @@ External Libraries Used:
 - chardet: For detecting the character encoding of CSV files.
 - json: For parsing and saving JSON files.
 - logging: For logging information, warnings, and errors during file operations.
+
+Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
 
 import logging
