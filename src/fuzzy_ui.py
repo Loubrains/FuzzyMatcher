@@ -527,18 +527,18 @@ class FuzzyUI(tk.Tk):
         self.label = tk.Label(
             self.rename_dialog_popup, text=f"Enter a new name for '{old_category}':"
         )
-        self.new_category_entry = tk.Entry(self.rename_dialog_popup)
+        self.rename_category_entry = tk.Entry(self.rename_dialog_popup)
         self.ok_button = tk.Button(self.rename_dialog_popup, text="OK")
         self.cancel_button = tk.Button(self.rename_dialog_popup, text="Cancel")
 
         # Add widgets to popup
         self.label.pack(pady=10)
-        self.new_category_entry.pack()
+        self.rename_category_entry.pack()
         self.ok_button.pack(side="left", padx=20)
         self.cancel_button.pack(side="right", padx=20)
 
         # Set focus to the string entry
-        self.new_category_entry.focus_set()
+        self.rename_category_entry.focus_set()
 
     def create_ask_categorization_type_popup(self):
         """
