@@ -34,7 +34,6 @@ from typing import Any, Tuple
 from pandas._libs.missing import NAType
 from file_handler import FileHandler
 
-# Setup logging
 logger = logging.getLogger(__name__)
 
 
@@ -677,9 +676,9 @@ class DataModel:
 
     def save_project(self, file_path: str, user_interface_variables_to_add: dict[str, Any]) -> None:
         """
-        Saves the current project's data to a JSON file, including user interface variables.
+        Saves the current project's relevant class attributes to a JSON file, including user interface variables.
 
-        See class docstring for an overview these class attributes and their purpose.
+        See class docstring for an overview the class attributes and their purpose.
 
         Args:
             file_path (str): The path where the project JSON file will be saved.
@@ -711,19 +710,24 @@ class DataModel:
 
     def export_data_to_csv(self, file_path: str, categorization_type: str) -> None:
         """
-        Exports categorized data to a CSV file, considering the current categorization type.
+        Exports categorized data to a CSV file. Removes the response columns before export.
+
+        If `categorization_type == "Multi"`, the redundant "Uncategorized" columns are also removed.
 
         Args:
             file_path (str): The path where the exported CSV file will be saved.
-            categorization_type (str): The categorization type ('Single' or 'Multi') which affects how data is exported.
+            categorization_type (str): The categorization type ('Single' or 'Multi'), effecting how the data is prepared before exporting.
         """
 
         logger.info("Preparing to export categorized data to csv")
 
-        # Exported data needs only UUIDs and category binaries to be able to be imported into Q.
+        # Exported data needs only UUIDs and binary category columns to be able to be imported into Q.
         self.export_df = self.categorized_data.drop(columns=self.response_columns)
+
+        # In multi-mode, nothing ever leaves "Uncategorized", so might as well remove it
         if categorization_type == "Multi":
-            self.export_df.drop("Uncategorized", axis=1, inplace=True)
+            for response_column in self.response_columns:
+                self.export_df.drop(f"Uncategorized_{response_column}", axis=1, inplace=True)
 
         logger.info("Calling file handler  export categorized data to csv")
         self.file_handler.export_dataframe_to_csv(file_path, self.export_df)
@@ -731,13 +735,14 @@ class DataModel:
     ### ----------------------- Helper functions ----------------------- ###
     def preprocess_text(self, text: Any) -> str | NAType:
         """
-        Preprocesses text data (e.g., response text) by converting to lowercase, removing special characters, and normalizing whitespace.
+        Converts the input to a lowercase string, removes special characters, and normalizes whitespace.
+        Preserves missing data.
 
         Args:
             text (Any): The text to be preprocessed.
 
         Returns:
-            str | NAType: The preprocessed text, or pd.NA if the input is missing.
+            str | NAType: The preprocessed text, or pd.NA if the input is missing data.
         """
 
         if pd.isna(text):
@@ -753,10 +758,10 @@ class DataModel:
 
     def process_fuzzy_match_results(self, threshold_value: float) -> pd.DataFrame:
         """
-        Processes and filters the fuzzy match results based on the provided threshold value.
+        Filters the fuzzy match results based on the provided threshold value, and aggregates the results by score and count.
 
         Args:
-            threshold_value (float): The threshold value for filtering the fuzzy match results.
+            threshold_value (float): The threshold value for filtering the fuzzy match results by score.
 
         Returns:
             pd.DataFrame: A DataFrame containing the processed fuzzy match results.
@@ -780,7 +785,9 @@ class DataModel:
 
     def handle_missing_data(self) -> None:
         """
-        Handles missing data in the model's data structures by setting corresponding values to pd.NA.
+        Handles missing data in the `categorized_data` and `categorized_dict`.
+
+        Sets all the category columns to pd.NA for each response column, for the rows where those response columns are empty.
         """
 
         def _is_missing(value) -> bool:
@@ -792,9 +799,10 @@ class DataModel:
         )
 
         for response_column in self.response_columns:
-            # Boolean mask where each row is True if all elements are missing
-            missing_data_mask = self.preprocessed_responses[response_column].map(_is_missing)  # type: ignore
+            # Boolean mask where each row is True if the corresponding response column rows are empty
+            missing_data_mask = self.preprocessed_responses[response_column].map(_is_missing)
 
+            # Using categorized_dict as an easy way to get the category names
             for category in self.categorized_dict:
                 col_name = f"{category}_{response_column}"
                 self.categorized_data.loc[missing_data_mask, col_name] = pd.NA
@@ -804,16 +812,20 @@ class DataModel:
         self, loaded_json_data: dict[str, Any], expected_data: dict[str, Any]
     ) -> Tuple[bool, str]:
         """
-        Validates the structure of loaded JSON data against the expected structure.
+        Validates the structure of loaded JSON data against the expected structure,
+        ensuring that it's compatible with the app and allows the user to continue with their session.
+
+        Handles unexpected and missing variables, as well as incorrect variable types.
 
         Args:
-            loaded_json_data (dict[str, Any]): The loaded JSON data to be validated.
-            expected_data (dict[str, Any]): The expected structure of the JSON data.
+            loaded_json_data (dict[str, Any]): The loaded JSON data to be validated. A dictionary of variable names to values.
+            expected_data (dict[str, Any]): The expected structure of the JSON data. A dictionary of variable names to types.
 
         Returns:
-            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure of the validation, and the second element is a message detailing the operation's outcome.
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation's outcome.
         """
 
+        # TODO: This needs updating to use more specific type checking, potentially with pydantic.
         # NOTE: self.expected_json_structure is passed in. This needs to be updated when the data structure changes.
         logger.debug("Validating project data")
 
@@ -859,7 +871,7 @@ class DataModel:
 
     def get_responses_and_counts(self, category: str) -> list[Tuple[str, int]]:
         """
-        Retrieves responses and their counts for a specific category.
+        Retrieves responses and their counts for a specific category from `categorized_dict`.
 
         Args:
             category (str): The category for which responses and counts are retrieved.
@@ -880,7 +892,7 @@ class DataModel:
         self, is_including_missing_data: bool
     ) -> list[Tuple[str, int, str]]:
         """
-        Formats metrics for categories to be displayed, including the count of responses and their percentage.
+        Formats metrics for categories in `categorized_dict` to be displayed, including the count of responses and their percentage.
 
         Args:
             is_including_missing_data (bool): Whether to include missing data in percentage calculations.
@@ -890,7 +902,6 @@ class DataModel:
         """
 
         formatted_categories_metrics = []
-
         for category, responses in self.categorized_dict.items():
             count = self.sum_response_counts(responses)
             percentage = self.calculate_percentage(responses, is_including_missing_data)
@@ -901,7 +912,7 @@ class DataModel:
 
     def sum_response_counts(self, responses: set) -> int:
         """
-        Sums the response counts for a set of responses.
+        Sums the counts of a set of responses in the dataset.
 
         Args:
             responses (set): A set of responses whose counts are to be summed.
@@ -914,7 +925,8 @@ class DataModel:
 
     def calculate_percentage(self, responses: set, is_including_missing_data: bool) -> float:
         """
-        Calculates the percentage of responses for a category relative to the total number of responses, optionally including or excluding missing data.
+        Calculates the percentage of responses for a category relative to the total number of responses in the dataset,
+        optionally including or excluding missing data.
 
         Args:
             responses (set): A set of responses for which the percentage is calculated.
@@ -928,6 +940,7 @@ class DataModel:
 
         if is_including_missing_data:
             total_responses = sum(self.response_counts.values())
+
         else:
             missing_data_count = self.sum_response_counts({pd.NA})
             total_responses = sum(self.response_counts.values()) - missing_data_count
