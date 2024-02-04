@@ -147,7 +147,7 @@ class DataModel:
             Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation's outcome.
         """
 
-        # ? This check is probably not needed?
+        # ? This check is probably not needed, since the user can already can see if there's no data loaded?
         if self.categorized_data.empty or self.categorized_data is None:
             message = "There is no dataset in the current project to match against"
             logger.warning(message)
@@ -177,7 +177,7 @@ class DataModel:
             pd.DataFrame: A DataFrame containing the fuzzy match responses and scores.
         """
 
-        logger.info('Performing fuzzy match: "%s"', match_string)
+        logger.info(f'Performing fuzzy match: "{match_string}"')
 
         def _fuzzy_match(element) -> int:
             return fuzz.WRatio(
