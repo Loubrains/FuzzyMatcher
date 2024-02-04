@@ -26,7 +26,6 @@ import inspect
 import ctypes
 import pandas as pd
 
-# Setup logging
 logger = logging.getLogger(__name__)
 
 # Set DPI awareness

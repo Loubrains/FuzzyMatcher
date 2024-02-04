@@ -32,11 +32,9 @@ from typing import Callable, Tuple
 from fuzzy_ui import FuzzyUI
 from data_model import DataModel
 
-# Setup logging
 logger = logging.getLogger(__name__)
 
 
-# Main application class
 class Controller:
     """
     The main controller class that acts as an intermediary between the user interface (UI) and the data model.
