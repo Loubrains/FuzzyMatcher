@@ -103,7 +103,8 @@ class DataModel:
 
     def initialize_data_structures(self) -> None:
         """
-        Initializes empty data structures used in the model. See class docstring for an overview these class attributes and their purpose.
+        Initializes empty data structures used in the model.
+        See class docstring for an overview these class attributes and their purpose.
         """
 
         logger.debug("Initializing data structures")
@@ -399,15 +400,18 @@ class DataModel:
         logger.info("Categories deleted successfully")
 
     ### ----------------------- Project Management ----------------------- ###
-    def file_import_on_new_project(self, file_path: str):
+    def file_import_on_new_project(self, file_path: str) -> Tuple[bool, str]:
         """
-        Handles importing data for a new project from a file.
+        Handles importing and validating data for a new project.
+
+        Replaces `raw_data`.
 
         Args:
             file_path (str): The path to the file from which data is to be imported.
+                Expects .CSV or .XLSX. Assumes first column contains UUIDs, and subsequent columns contain responses.
 
         Returns:
-            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation's outcome.
         """
 
         logger.info("Calling file handler to import data")
@@ -435,43 +439,52 @@ class DataModel:
 
     def populate_data_structures_on_new_project(self) -> None:
         """
-        Populates data structures for a new project after data has been successfully imported.
+        Populates data structures for a new project after data has been successfully imported into `raw_data`.
+        Resets `currently_displayed_category` to "Uncategorized" and `fuzzy_match_results` to no results.
+
+        See class docstring for an overview these class attributes and their purpose.
         """
 
         logger.info("Populating data structures")
 
+        # Processed data slices and metrics
         self.preprocessed_responses = pd.DataFrame(
-            self.raw_data.iloc[:, 1:].map(self.preprocess_text)  # , na_action="ignore"
-        )  # type: ignore
-
+            self.raw_data.iloc[:, 1:].map(self.preprocess_text)
+        )
+        uuids = self.raw_data.iloc[:, 0]
+        self.response_columns = list(self.preprocessed_responses.columns)
         self.stacked_responses = self.preprocessed_responses.stack(dropna=False).reset_index(
             drop=True
         )
-        self.categorized_dict = {"Uncategorized": set(self.stacked_responses.dropna())}  # default
         self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
-        uuids = self.raw_data.iloc[:, 0]
-        self.response_columns = list(self.preprocessed_responses.columns)
+
+        # Main categorized data structures
+        self.categorized_dict = {"Uncategorized": set(self.stacked_responses.dropna())}
         self.categorized_data = pd.concat([uuids, self.preprocessed_responses], axis=1)
         for response_column in self.response_columns:
             # Everything starts uncategorized
             self.categorized_data[f"Uncategorized_{response_column}"] = 1
         self.handle_missing_data()
 
+        # Other app data
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
         logging_utils.format_and_log_data_for_debug(logger, vars(self))
         logger.info("Data structures populated successfully")
 
-    def file_import_on_load_project(self, file_path: str):
+    def file_import_on_load_project(self, file_path: str) -> Tuple[bool, str]:
         """
-        Handles importing data for loading an existing project from a file.
+        Handles importing and validating data for loading an existing project.
+
+        Replaces `data_loaded`.
 
         Args:
             file_path (str): The path to the project file to be loaded.
+                Expects JSON file. Expects the data to be compatible in various ways.
 
         Returns:
-            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation's outcome.
         """
 
         logger.info("Calling file handler to import project data")
@@ -487,20 +500,24 @@ class DataModel:
         logger.info(message)
         return True, message
 
-    def populate_data_structures_on_load_project(self):
+    def populate_data_structures_on_load_project(self) -> Tuple[str, bool]:
         """
-        Populates data structures when loading a project from a file. This involves converting the loaded data back into the appropriate data structures used by the DataModel.
+        Populates data structures after JSON project data has been successfuly loaded into `data_loaded`.
+        Resets `currently_displayed_category` to "Uncategorized" and `fuzzy_match_results` to no results
+
+        See class docstring for an overview these class attributes and their purpose.
 
         Returns:
-            Tuple[str, bool]: A tuple containing the categorization type and the boolean status of including missing data.
+            Tuple[str, bool]: A tuple containing categorization_type and the is_including_missing_data, to be passed back to the UI.
         """
 
         logger.info("Populating data structures")
 
+        # pd.NA is not JSON serializable so gets saved as None, need to load it back properly
         def _replace_none_with_pd_na(df):
             return df.map(lambda x: pd.NA if x is None else x)
 
-        # Convert JSON back to data / set default variable values
+        # Processed data slices and metrics
         self.raw_data = _replace_none_with_pd_na(
             pd.read_json(StringIO(self.data_loaded["raw_data"]))
         )
@@ -510,10 +527,14 @@ class DataModel:
         self.response_counts = {
             k if k != "null" else pd.NA: v for k, v in self.data_loaded["response_counts"].items()
         }
+
+        # Main categorized data structures
         self.categorized_data = _replace_none_with_pd_na(
             pd.read_json(StringIO(self.data_loaded["categorized_data"]))
         )
         self.categorized_dict = {k: set(v) for k, v in self.data_loaded["categorized_dict"].items()}
+
+        # Other app data
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
@@ -523,18 +544,20 @@ class DataModel:
 
         logging_utils.format_and_log_data_for_debug(logger, vars(self))
         logger.info("Data structures populated successfully")
+
         # Return Tkinter variables back to the UI class
         return (categorization_type, is_including_missing_data)
 
-    def file_import_on_append_data(self, file_path: str):
+    def file_import_on_append_data(self, file_path: str) -> Tuple[bool, str]:
         """
-        Handles importing data to append to the current project's dataset.
+        Handles importing and validating data to append to the current project's dataset.
 
         Args:
             file_path (str): The path to the file from which data is to be appended.
+                Expects CSV or XLSX. Expects the number of columns to be the same as previously loaded data `raw_data`.
 
         Returns:
-            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+            Tuple[bool, str]: A tuple a boolean indicating success or failure, and a message detailing the operation's outcome.
         """
 
         if self.raw_data.empty:
@@ -578,24 +601,24 @@ class DataModel:
 
     def populate_data_structures_on_append_data(self, categorization_type) -> None:
         """
-        Populates data structures when appending new data to the current project, considering the current categorization type.
+        Populates data structures when appending new data to the current project, and re-applies the existing codeframe to the new data.
+        Resets `currently_displayed_category` to "Uncategorized" and `fuzzy_match_results` to no results.
 
         Args:
-            categorization_type (str): The categorization type ('Single' or 'Multi') which affects how new data is appended and categorized.
+            categorization_type (str): The categorization type ('Single' or 'Multi'), effects how the new data gets categorized.
         """
 
         logger.info("Populating data structures")
 
+        ### Append data
         self.raw_data = pd.concat([self.raw_data, self.data_to_append], ignore_index=True)
         old_data_size = len(self.preprocessed_responses)
-
         new_preprocessed_responses = pd.DataFrame(
-            self.raw_data.iloc[old_data_size:, 1:].map(self.preprocess_text)  # type: ignore
+            self.raw_data.iloc[old_data_size:, 1:].map(self.preprocess_text)
         )
         self.preprocessed_responses = pd.concat(
             [self.preprocessed_responses, new_preprocessed_responses]
         )
-
         new_stacked_responses = new_preprocessed_responses.stack(dropna=False).reset_index(
             drop=True
         )
@@ -605,7 +628,8 @@ class DataModel:
         self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
 
         ### Categorize new responses
-        # This section is probably more bulky and inefficient than it needs to be
+        # TODO: This section is probably more bulky and inefficient than it needs to be
+        # Using categrized_dict to get old values here since we've already changed preprocessed_responses
         old_categorized_responses_set = set().union(
             *[
                 responses
@@ -613,7 +637,6 @@ class DataModel:
                 if category != "Uncategorized"
             ]
         )
-        # using categrized_dict values here since we've already changed self.preprocessed_responses
         new_responses_set = set(new_stacked_responses.dropna())
         new_uncategorized_responses_set = new_responses_set - old_categorized_responses_set
         new_already_categorized_responses_set = new_responses_set.intersection(
@@ -623,27 +646,29 @@ class DataModel:
         self.categorized_dict["Uncategorized"].update(new_uncategorized_responses_set)
         new_categorized_data = pd.concat(
             [self.raw_data.iloc[old_data_size:, 0], new_preprocessed_responses], axis=1
-        )  # Why isn't this axis=0?
+        )  # ? Why isn't this axis=0?
         self.categorized_data = pd.concat([self.categorized_data, new_categorized_data], axis=0)
 
-        # Everything starts uncategorized (this removes NAs but we handle it again after)
+        # Everything starts uncategorized (this step removes NAs but we handle it again after)
         for response_column in self.response_columns:
             for category in self.categorized_dict.keys():
                 self.categorized_data.loc[old_data_size:, f"Uncategorized_{response_column}"] = 1
                 self.categorized_data.loc[old_data_size:, f"{category}_{response_column}"] = 0
 
+        # Categorize the new responses that are already in the codeframe
         for new_response in new_already_categorized_responses_set:
-            categories_for_response = {
+            categories_for_new_response = {
                 category
                 for category, responses in self.categorized_dict.items()
                 if new_response in responses
             }
             self.categorize_responses(
-                {str(new_response)}, categories_for_response, categorization_type
+                {str(new_response)}, categories_for_new_response, categorization_type
             )
 
         self.handle_missing_data()
 
+        ### Other app data
         self.currently_displayed_category = "Uncategorized"  # Default
         self.fuzzy_match_results = pd.DataFrame(columns=["response", "score"])  # Default
 
@@ -652,11 +677,14 @@ class DataModel:
 
     def save_project(self, file_path: str, user_interface_variables_to_add: dict[str, Any]) -> None:
         """
-        Saves the current project's data to a file, including additional variables from the user interface.
+        Saves the current project's data to a JSON file, including user interface variables.
+
+        See class docstring for an overview these class attributes and their purpose.
 
         Args:
-            file_path (str): The path where the project file will be saved.
+            file_path (str): The path where the project JSON file will be saved.
             user_interface_variables_to_add (dict[str, Any]): Additional variables from the user interface to be included in the saved project data.
+                A dictionary of variable names to values.
         """
 
         logger.info("Preparing to save project data")

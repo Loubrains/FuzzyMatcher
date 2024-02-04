@@ -29,6 +29,8 @@ def setup_logging():
         filename="app.log",
         filemode="w",
     )
+
+    # Suppressing noisy libraries
     logging.getLogger("chardet").setLevel(logging.WARNING)
 
     logging.info("Logging initialized")
