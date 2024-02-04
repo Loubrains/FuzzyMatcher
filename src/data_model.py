@@ -99,16 +99,14 @@ class DataModel:
 
         logger.info("Initializing data model")
         self.file_handler = file_handler
-        self.initialize_data_structures()  # Empty/default variables.
+        self.initialize_data_structures()
 
-    def initialize_data_structures(self):
+    def initialize_data_structures(self) -> None:
         """
-        Initializes and resets data structures used in the model. This includes data frames for raw data, preprocessed responses, categorized data,
-        dictionaries for response counts and categorized responses, and other necessary data structures for managing the data model.
+        Initializes empty data structures used in the model. See class docstring for an overview these class attributes and their purpose.
         """
 
         logger.debug("Initializing data structures")
-        # Empty variables which will be populated during new project/load project
         self.raw_data = pd.DataFrame()
         self.preprocessed_responses = pd.DataFrame()
         self.response_columns = []
@@ -119,8 +117,8 @@ class DataModel:
         self.currently_displayed_category = "Uncategorized"  # default
 
         # For validation of loaded project data.
-        # NOTE: Update this when the data structure changes.
-        # TODO: Need to update this and validate_loaded_json() to use more specific typing (e.g. dict[str, set[str]) and handle stringified json too
+        # * Update this when the data structure changes.
+        # TODO: Update this and validate_loaded_json() to use more specific typing (e.g. dict[str, set[str]) and handle stringified json too. Can use pydantic.
         self.expected_json_structure = {
             "raw_data": str,
             "preprocessed_responses": str,
@@ -138,15 +136,18 @@ class DataModel:
     def fuzzy_match_logic(self, string_to_match: str) -> Tuple[bool, str]:
         """
         Handles the logic for performing fuzzy matching on the data against a provided string.
+        Results are stored in `fuzzy_match_results`.
+
+        Uses `fuzzy_match` method to perform the actual match.
 
         Args:
             string_to_match (str): The string to be matched fuzzily against the data.
 
         Returns:
-            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation's outcome.
         """
 
-        # NOTE: This check is probably not needed?
+        # ? This check is probably not needed?
         if self.categorized_data.empty or self.categorized_data is None:
             message = "There is no dataset in the current project to match against"
             logger.warning(message)
@@ -166,14 +167,14 @@ class DataModel:
 
     def fuzzy_match(self, preprocessed_responses: pd.DataFrame, match_string: str) -> pd.DataFrame:
         """
-        Performs fuzzy matching on preprocessed responses against a provided match string, returning a DataFrame with the results.
+        Performs the actual fuzzy match against a provided match string, and returns the results.
 
         Args:
             preprocessed_responses (pd.DataFrame): The preprocessed responses to be matched against.
             match_string (str): The string to be matched fuzzily against the responses.
 
         Returns:
-            pd.DataFrame: A DataFrame containing the fuzzy match results.
+            pd.DataFrame: A DataFrame containing the fuzzy match responses and scores.
         """
 
         logger.info('Performing fuzzy match: "%s"', match_string)
@@ -184,6 +185,7 @@ class DataModel:
             )  # Weighted ratio of several fuzzy matching protocols
 
         # Get fuzzy matching scores and format result: {response: score}
+        # Use preprocessed_responses since it only contains the data we need (response columns are identical to categorized_data)
         results = []
         for row in preprocessed_responses.itertuples(index=True, name=None):
             for response in row[1:]:
@@ -195,9 +197,12 @@ class DataModel:
 
     def categorize_responses(
         self, responses: set[str], categories: set[str], categorization_type: str
-    ):
+    ) -> None:
         """
-        Categorizes selected responses into selected categories based on the provided categorization type.
+        Handles the logic for categorizing selected responses into selected categories.
+
+        If `categorization_type == "Single"`, then the responses are removed from the the "Uncategorized" category and `fuzzy_match_results`.
+        Otherwise if `categorization_type == "Multi"`, then the responses remain in both.
 
         Args:
             responses (set[str]): A set of responses to be categorized.
@@ -207,18 +212,14 @@ class DataModel:
 
         logger.info("Categorizing responses")
         for response_column in self.response_columns:
-            mask = self.categorized_data[response_column].isin(responses)
-
             if categorization_type == "Single":
-                self.remove_responses_from_category(
-                    responses, "Uncategorized", response_column, mask
-                )
+                self.remove_responses_from_category(responses, "Uncategorized", response_column)
 
             for category in categories:
-                self.add_responses_to_category(responses, category, response_column, mask)
+                self.add_responses_to_category(responses, category, response_column)
 
-        # Additionally, remove the responses from fuzzy_match_results
         if categorization_type == "Single":
+            # Additionally, remove the responses from fuzzy_match_results
             fuzzy_mask = self.fuzzy_match_results["response"].isin(responses)
             self.fuzzy_match_results = self.fuzzy_match_results[~fuzzy_mask].reset_index(drop=True)
 
@@ -226,7 +227,9 @@ class DataModel:
 
     def recategorize_responses(self, responses: set[str], categories: set[str]) -> None:
         """
-        Recategorizes selected responses into selected categories. This is typically used to change the categories of already categorized responses.
+        Handles the logic for recategorizing selected responses into selected categories.
+
+        This is used to change the categories of already categorized responses.
 
         Args:
             responses (set[str]): A set of responses to be recategorized.
@@ -235,55 +238,68 @@ class DataModel:
 
         logger.info("Recategorizing responses")
         for response_column in self.response_columns:
-            mask = self.categorized_data[response_column].isin(responses)
             self.remove_responses_from_category(
-                responses, self.currently_displayed_category, response_column, mask
+                responses, self.currently_displayed_category, response_column
             )
+
             for category in categories:
-                self.add_responses_to_category(responses, category, response_column, mask)
+                self.add_responses_to_category(responses, category, response_column)
         logger.info("Responses recategorized")
 
     def add_responses_to_category(
-        self, responses: set[str], category: str, response_column: str, mask: pd.Series
-    ):
+        self, responses: set[str], category: str, response_column: str
+    ) -> None:
         """
-        Adds specified responses to a category in a given response column based on a mask.
+        Handles adding responses to a category in the data. Used by `categorize_responses` and `recategorize_responses` methods.
+
+        Sets the value to 1 in `categorized_data` for the specified category associated with the specified response column,
+        for each row in the response column that matches the provided set of responses.
+        Also adds the responses to the category in `categorized_dict`.
 
         Args:
             responses (set[str]): A set of responses to be added to the category.
             category (str): The category to which the responses will be added.
-            response_column (str): The response column where the responses are located.
-            mask (pd.Series): A boolean series used as a mask to identify rows for addition.
+            response_column (str): The name of the response column we are working with.
         """
 
+        mask = self.categorized_data[response_column].isin(responses)
         self.categorized_data.loc[mask, f"{category}_{response_column}"] = 1
         self.categorized_dict[category].update(responses)
 
     def remove_responses_from_category(
-        self, responses: set[str], category: str, response_column: str, mask: pd.Series
-    ):
+        self, responses: set[str], category: str, response_column: str
+    ) -> None:
         """
-        Removes specified responses from a category in a given response column based on a mask.
+        Handles removing responses from a category in the data. Used by `categorize_responses` and `recategorize_responses` methods.
+
+        Sets the value to 0 in `categorized_data` for the specified category associated with the specified response column,
+        for each row in the response column that matches the provided set of responses.
+        Also removes the responses from the category in `categorized_dict`.
 
         Args:
             responses (set[str]): A set of responses to be removed from the category.
             category (str): The category from which the responses will be removed.
             response_column (str): The response column where the responses are located.
-            mask (pd.Series): A boolean series used as a mask to identify rows for removal.
         """
 
+        mask = self.categorized_data[response_column].isin(responses)
         self.categorized_data.loc[mask, f"{category}_{response_column}"] = 0
         self.categorized_dict[category] -= responses
 
-    def create_category(self, new_category: str):
+    def create_category(self, new_category: str) -> Tuple[bool, str]:
         """
-        Creates a new category for categorizing responses.
+        Creates a new category in `categorized_data` and `categorized_dict`.
+
+        In `categorized_data`, for each response column, adds a column named `{new_column}_{response_column}`, placed before each `Uncategorized_{response_column}`.
+        New columns have initial values of 0, with missing data handled.
+
+        Adds a `new_category` key containing an empty set to `categorized_dict`.
 
         Args:
             new_category (str): The name of the new category to be created.
 
         Returns:
-            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+            Tuple[bool, str]: A tuple containing a bool indicating success or failure, and a message detailing the operation's outcome.
         """
 
         logger.info('Creating new category: "%s"', new_category)
@@ -300,7 +316,7 @@ class DataModel:
         # Start insert after uuid column + response columns
         insert_index_start = 1 + len(self.response_columns)
         number_of_categories = len(self.categorized_dict.keys())
-        # Bring index behind uncategorized column(s)/in front of previous new category column(s)
+        # Bring insert index behind uncategorized column(s)
         offset = number_of_categories - 2
 
         for i, response_column in enumerate(self.response_columns):
@@ -317,16 +333,18 @@ class DataModel:
         logger.info(message)
         return True, message
 
-    def rename_category(self, old_category: str, new_category: str):
+    def rename_category(self, old_category: str, new_category: str) -> Tuple[bool, str]:
         """
-        Renames an existing category to a new name.
+        Renames an existing category to a new name in `categorized_data` and `categorized_dict`.
+
+        In `categorized_data`, renames all instances of that category column for each response column.
 
         Args:
             old_category (str): The current name of the category to be renamed.
             new_category (str): The new name for the category.
 
         Returns:
-            Tuple[bool, str]: A tuple where the first element is a boolean indicating success or failure, and the second element is a message detailing the operation's outcome.
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation's outcome.
         """
 
         logger.info(
@@ -352,11 +370,13 @@ class DataModel:
 
     def delete_categories(self, categories_to_delete: set[str], categorization_type: str) -> None:
         """
-        Deletes selected categories and handles associated data cleanup based on the categorization type.
+        Deletes selected categories from `categorized_data` and `categorized_dict`, and handles associated data cleanup.
+
+        When `categorization_type == "Single"`, the responses are returned to "Uncategorized".
 
         Args:
             categories_to_delete (set[str]): A set of categories to be deleted.
-            categorization_type (str): The type of categorization that determines how to handle associated responses ('Single' or 'Multi').
+            categorization_type (str): The categorization type, which determines how to handle data cleanup ('Single' or 'Multi').
         """
 
         logger.info("Deleting categories: %s", categories_to_delete)
@@ -372,6 +392,7 @@ class DataModel:
                         self.categorized_data.loc[response, f"Uncategorized_{response_column}"] = 1
                     self.categorized_dict["Uncategorized"].update(self.categorized_dict[category])
 
+                # Remove categories
                 self.categorized_data.drop(columns=f"{category}_{response_column}", inplace=True)
             del self.categorized_dict[category]
 
@@ -430,8 +451,6 @@ class DataModel:
         self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
         uuids = self.raw_data.iloc[:, 0]
         self.response_columns = list(self.preprocessed_responses.columns)
-        # categorized_data has a column for uuids, all response columns, and will have a column for each category, which are repeated out for each response column
-        # In categorized_data, the category columns associated with a response column contain values 1 or 0 for whether that response is in that category, or pd.NA if response is pd.NA
         self.categorized_data = pd.concat([uuids, self.preprocessed_responses], axis=1)
         for response_column in self.response_columns:
             # Everything starts uncategorized
