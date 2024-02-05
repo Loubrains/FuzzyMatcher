@@ -1,0 +1,3390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>src.data_model API documentation</title>
+<meta name="description" content="This module provides a `DataModel` class for the FuzzyMatcher application …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>src.data_model</code></h1>
+</header>
+<section id="section-intro">
+<p>This module provides a <code><a title="src.data_model.DataModel" href="#src.data_model.DataModel">DataModel</a></code> class for the FuzzyMatcher application.</p>
+<p>Responsible for storing and manipulating the data involved in the fuzzy matching and categorization processes
+and serving data to the <code>controller</code> of the FuzzyMatcher application.</p>
+<p>Key functionalities:
+- Initializing and managing the data structures.
+- Preprocessing text and handling missing data.
+- Performing fuzzy matching of responses against a provided string and processing the results.
+- Categorizing responses into user-defined categories and recategorizing them as needed.
+- Category management (category creation, renaming, and deletion)
+- Handling importing of data for new projects, appending data, saving and loading projects, and exporting categorized data to CSV.
+- Validating loaded/saved data.
+- Calculating and formatting data for display.</p>
+<p>Main dependencies:
+- <code>thefuzz</code>: for performing fuzzy matching.
+- <code>pandas</code>: for data manipulation.
+- <code>re</code>: for pattern matching during data cleaning.
+- <code>io</code>: for converting data to json serializable format.
+- <code>file_handler</code>: a module from this project for performing file saving and loading functions.</p>
+<p>Author: Louie Atkins-Turkish (louie@tapestryresearch.com)</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+This module provides a `DataModel` class for the FuzzyMatcher application.
+
+Responsible for storing and manipulating the data involved in the fuzzy matching and categorization processes
+and serving data to the `controller` of the FuzzyMatcher application.
+
+Key functionalities:
+    - Initializing and managing the data structures.
+    - Preprocessing text and handling missing data.
+    - Performing fuzzy matching of responses against a provided string and processing the results.
+    - Categorizing responses into user-defined categories and recategorizing them as needed.
+    - Category management (category creation, renaming, and deletion)
+    - Handling importing of data for new projects, appending data, saving and loading projects, and exporting categorized data to CSV.
+    - Validating loaded/saved data.
+    - Calculating and formatting data for display.
+
+Main dependencies:
+    - `thefuzz`: for performing fuzzy matching.
+    - `pandas`: for data manipulation.
+    - `re`: for pattern matching during data cleaning.
+    - `io`: for converting data to json serializable format.
+    - `file_handler`: a module from this project for performing file saving and loading functions.
+
+Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
+&#34;&#34;&#34;
+
+import logging
+import logging_utils
+import re
+from thefuzz import fuzz
+import pandas as pd
+from io import StringIO
+from typing import Any, Tuple
+from pandas._libs.missing import NAType
+from file_handler import FileHandler
+
+logger = logging.getLogger(__name__)
+
+
+class DataModel:
+    &#34;&#34;&#34;
+    A class responsible for managing and processing the data for fuzzy matching and categorization of responses.
+
+    Attributes:
+        - `file_handler` (FileHandler): An instance of FileHandler for handling file operations.
+        - `raw_data` (pd.DataFrame): DataFrame containing the raw imported data. Expects first column to be uuids and subsequent columns to contain responses.
+        - `data_to_append` (pd.DataFrame): DataFrame of imported data to append onto the current project data.
+        - `data_loaded` (dict[str, Any]): Loaded project data (all the relevant class attributes) from json file.
+        - `response_columns` (list[str]): List of response column names.
+        - `preprocessed_responses` (pd.DataFrame): DataFrame of cleaned response columns from raw_data.
+        - `stacked_responses` (pd.Series): Series containing the stacked, deduplicated responses, excluding missing data.
+        - `response_counts` (dict[str, int]): Dictionary holding counts of responses, including missing data.
+        - `categorized_data` (pd.DataFrame): DataFrame containing categorized responses. This is the main DataFrame of the application.
+            First column contains uuids, the next columns are the response columns, and then the subsequent columns are for each category, repeated out for each response column (with the name appended on the end).
+            The values of the category columns are 1, 0, or pd.NA, depending on whether or not the responses in their associated response column are categorized into that category, or missing data.
+        - `categorized_dict` (dict[str, str]): Dictionary of categories to deduplicated responses, excluding missing data.
+        - `fuzzy_match_results` (pd.DataFrame): DataFrame holding results and score of fuzzy matching.
+        - `currently_displayed_category` (str): The category currently being displayed in the UI.
+        - `expected_json_structure` (dict[str, type]): A dictionary of types for each class attribute, for validation loaded project data.
+        - `export_df` (pd.DataFrame): The finalized data to export to CSV.
+
+    Methods:
+        - `initialize_data_structures`: Initializes empty data structures used in the model.
+        - `fuzzy_match_logic`: Handles the logic for performing fuzzy matching on the data.
+        - `fuzzy_match`: Used by `fuzzy_match_logic` to perform the fuzzy matching.
+        - `categorize_responses`: Categorizes selected responses into selected categories.
+        - `recategorize_responses`: Recategorizes selected responses into selected categories.
+        - `add_responses_to_category`: Used by `categorize_responses` and `recategorize_responses` to add specified responses to a category in categorized_data and categorized_dict.
+        - `remove_responses_from_category`: Used by `categorize_responses` and `recategorize_responses` to remove specified responses from a category in categorized_data and categorized_dict.
+        - `create_category`: Creates a new category in categorized_data and `categorized_dict`.
+        - `rename_category`: Renames an existing category in categorized_data and `categorized_dict`.
+        - `delete_categories`: Deletes selected categories from categorized_data and `categorized_dict`, and handles associated data cleanup.
+        - `file_import_on_new_project`: Handles importing data for a new project.
+        - `populate_data_structures_on_new_project`: Populates data structures for a new project.
+        - `file_import_on_load_project`: Handles importing data for loading an existing project.
+        - `populate_data_structures_on_load_project`: Populates data structures when loading a project.
+        - `file_import_on_append_data`: Handles importing data to append to the current project.
+        - `populate_data_structures_on_append_data`: Populates data structures when appending data.
+        - `save_project`: Saves all the current project&#39;s relevant data (the class attributes) to a JSON file.
+        - `export_data_to_csv`: Exports the categorized data to a CSV file.
+        - `preprocess_text`: Cleans text data (e.g. response text).
+        - `process_fuzzy_match_results`: Filters, aggregates and sorts the fuzzy match results for display.
+        - `handle_missing_data`: Handles missing data in categorized_data and `categorized_dict`.
+        - `validate_loaded_json`: Validates the structure of loaded JSON project data.
+        - `get_responses_and_counts`: Retrieves responses and their counts for a specific category.
+        - `format_categories_metrics`: Formats metrics for categories to be displayed.
+        - `sum_response_counts`: Sums the response counts for a set of responses.
+        - `calculate_percentage`: Calculates the percentage of responses for a category, with or without missing data.
+    &#34;&#34;&#34;
+
+    def __init__(self, file_handler: FileHandler) -&gt; None:
+        &#34;&#34;&#34;
+        Sets up the data structures and file handler.
+
+        Args:
+            file_handler (FileHandler): An instance of FileHandler.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Initializing data model&#34;)
+        self.file_handler = file_handler
+        self.initialize_data_structures()
+
+    def initialize_data_structures(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initializes empty data structures used in the model.
+        See class docstring for an overview these class attributes and their purpose.
+        &#34;&#34;&#34;
+
+        logger.debug(&#34;Initializing data structures&#34;)
+        self.raw_data = pd.DataFrame()
+        self.preprocessed_responses = pd.DataFrame()
+        self.response_columns = []
+        self.categorized_data = pd.DataFrame()
+        self.response_counts = {}
+        self.categorized_dict = {&#34;Uncategorized&#34;: set()}
+        self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # default
+        self.currently_displayed_category = &#34;Uncategorized&#34;  # default
+
+        # For validation of loaded project data.
+        # * Update this when the data structure changes.
+        # TODO: Update this and validate_loaded_json() to use more specific typing (e.g. dict[str, set[str]) and handle stringified json too. Can use pydantic.
+        self.expected_json_structure = {
+            &#34;raw_data&#34;: str,
+            &#34;preprocessed_responses&#34;: str,
+            &#34;response_columns&#34;: list,
+            &#34;categorized_data&#34;: str,
+            &#34;response_counts&#34;: dict,
+            &#34;categorized_dict&#34;: dict,
+            &#34;categorization_type&#34;: str,
+            &#34;is_including_missing_data&#34;: bool,
+        }
+
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
+
+    ### ----------------------- Main functionality ----------------------- ###
+    def fuzzy_match_logic(self, string_to_match: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Handles the logic for performing fuzzy matching on the data against a provided string.
+        Results are stored in `fuzzy_match_results`.
+
+        Uses `fuzzy_match` method to perform the actual match.
+
+        Args:
+            string_to_match (str): The string to be matched fuzzily against the data.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        # ? This check is probably not needed, since the user can already can see if there&#39;s no data loaded?
+        if self.categorized_data.empty or self.categorized_data is None:
+            message = &#34;There is no dataset in the current project to match against&#34;
+            logger.warning(message)
+            logger.debug(f&#34;categorized_data:\n{self.categorized_data}&#34;)
+            return False, message
+
+        logger.info(f&#39;Preparing to perform fuzzy match: &#34;{string_to_match}&#34;&#39;)
+        uncategorized_responses = self.categorized_dict[&#34;Uncategorized&#34;]
+        uncategorized_df = self.preprocessed_responses[
+            self.preprocessed_responses.isin(uncategorized_responses)
+        ].dropna(how=&#34;all&#34;)
+
+        # Perform fuzzy matching on these uncategorized responses
+        self.fuzzy_match_results = self.fuzzy_match(uncategorized_df, string_to_match)
+
+        return True, &#34;Performed fuzzy match successfully&#34;
+
+    def fuzzy_match(self, preprocessed_responses: pd.DataFrame, match_string: str) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;
+        Performs the actual fuzzy match against a provided match string, and returns the results.
+
+        Args:
+            preprocessed_responses (pd.DataFrame): The preprocessed responses to be matched against.
+            match_string (str): The string to be matched fuzzily against the responses.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the fuzzy match responses and scores.
+        &#34;&#34;&#34;
+
+        logger.info(f&#39;Performing fuzzy match: &#34;{match_string}&#34;&#39;)
+
+        def _fuzzy_match(element) -&gt; int:
+            return fuzz.WRatio(
+                match_string, str(element)
+            )  # Weighted ratio of several fuzzy matching protocols
+
+        # Get fuzzy matching scores and format result: {response: score}
+        # Use preprocessed_responses since it only contains the data we need (response columns are identical to categorized_data)
+        results = []
+        for row in preprocessed_responses.itertuples(index=True, name=None):
+            for response in row[1:]:
+                score = _fuzzy_match(response)
+                results.append({&#34;response&#34;: response, &#34;score&#34;: score})
+
+        logger.info(&#34;Performed fuzzy match successfully&#34;)
+        return pd.DataFrame(results)
+
+    def categorize_responses(
+        self, responses: set[str], categories: set[str], categorization_type: str
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Handles the logic for categorizing selected responses into selected categories.
+
+        If `categorization_type == &#34;Single&#34;`, then the responses are removed from the the &#34;Uncategorized&#34; category and `fuzzy_match_results`.
+        Otherwise if `categorization_type == &#34;Multi&#34;`, then the responses remain in both.
+
+        Args:
+            responses (set[str]): A set of responses to be categorized.
+            categories (set[str]): A set of categories into which the responses will be categorized.
+            categorization_type (str): The type of categorization to be performed (&#39;Single&#39; or &#39;Multi&#39;).
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Categorizing responses&#34;)
+        for response_column in self.response_columns:
+            if categorization_type == &#34;Single&#34;:
+                self.remove_responses_from_category(responses, &#34;Uncategorized&#34;, response_column)
+
+            for category in categories:
+                self.add_responses_to_category(responses, category, response_column)
+
+        if categorization_type == &#34;Single&#34;:
+            # Additionally, remove the responses from fuzzy_match_results
+            fuzzy_mask = self.fuzzy_match_results[&#34;response&#34;].isin(responses)
+            self.fuzzy_match_results = self.fuzzy_match_results[~fuzzy_mask].reset_index(drop=True)
+
+        logger.info(&#34;Responses categorized&#34;)
+
+    def recategorize_responses(self, responses: set[str], categories: set[str]) -&gt; None:
+        &#34;&#34;&#34;
+        Handles the logic for recategorizing selected responses into selected categories.
+
+        This is used to change the categories of already categorized responses.
+
+        Args:
+            responses (set[str]): A set of responses to be recategorized.
+            categories (set[str]): A set of new categories into which the responses will be categorized.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Recategorizing responses&#34;)
+        for response_column in self.response_columns:
+            self.remove_responses_from_category(
+                responses, self.currently_displayed_category, response_column
+            )
+
+            for category in categories:
+                self.add_responses_to_category(responses, category, response_column)
+        logger.info(&#34;Responses recategorized&#34;)
+
+    def add_responses_to_category(
+        self, responses: set[str], category: str, response_column: str
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Handles adding responses to a category in the data. Used by `categorize_responses` and `recategorize_responses` methods.
+
+        Sets the value to 1 in `categorized_data` for the specified category associated with the specified response column,
+        for each row in the response column that matches the provided set of responses.
+        Also adds the responses to the category in `categorized_dict`.
+
+        Args:
+            responses (set[str]): A set of responses to be added to the category.
+            category (str): The category to which the responses will be added.
+            response_column (str): The name of the response column we are working with.
+        &#34;&#34;&#34;
+
+        mask = self.categorized_data[response_column].isin(responses)
+        self.categorized_data.loc[mask, f&#34;{category}_{response_column}&#34;] = 1
+        self.categorized_dict[category].update(responses)
+
+    def remove_responses_from_category(
+        self, responses: set[str], category: str, response_column: str
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Handles removing responses from a category in the data. Used by `categorize_responses` and `recategorize_responses` methods.
+
+        Sets the value to 0 in `categorized_data` for the specified category associated with the specified response column,
+        for each row in the response column that matches the provided set of responses.
+        Also removes the responses from the category in `categorized_dict`.
+
+        Args:
+            responses (set[str]): A set of responses to be removed from the category.
+            category (str): The category from which the responses will be removed.
+            response_column (str): The response column where the responses are located.
+        &#34;&#34;&#34;
+
+        mask = self.categorized_data[response_column].isin(responses)
+        self.categorized_data.loc[mask, f&#34;{category}_{response_column}&#34;] = 0
+        self.categorized_dict[category] -= responses
+
+    def create_category(self, new_category: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Creates a new category in `categorized_data` and `categorized_dict`.
+
+        In `categorized_data`, for each response column, adds a column named `{new_column}_{response_column}`, placed before each `Uncategorized_{response_column}`.
+        New columns have initial values of 0, with missing data handled.
+
+        Adds a `new_category` key containing an empty set to `categorized_dict`.
+
+        Args:
+            new_category (str): The name of the new category to be created.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a bool indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        logger.info(&#39;Creating new category: &#34;%s&#34;&#39;, new_category)
+
+        if new_category in self.categorized_dict.keys():
+            message = &#34;Category already exists&#34;
+            logger.warning(message)
+            logger.debug(f&#34;categorized_dict.keys:\n{self.categorized_dict.keys()}&#34;)
+            return False, message
+
+        self.categorized_dict[new_category] = set()
+        number_of_categories = len(self.categorized_dict.keys())
+
+        # Start insert after uuid column + response columns
+        insert_index_start = 1 + len(self.response_columns)
+        number_of_categories = len(self.categorized_dict.keys())
+        # Bring insert index behind uncategorized column(s)
+        offset = number_of_categories - 2
+
+        for i, response_column in enumerate(self.response_columns):
+            col_name = f&#34;{new_category}_{response_column}&#34;
+            # keep category columns grouped by response column
+            # New categories come after previous ones, but before uncategorized
+            insert_index = insert_index_start + i * number_of_categories + offset
+            # Give all rows a value of 0 to start
+            self.categorized_data.insert(insert_index, col_name, 0)
+
+        self.handle_missing_data()
+
+        message = &#34;Category created successfully&#34;
+        logger.info(message)
+        return True, message
+
+    def rename_category(self, old_category: str, new_category: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Renames an existing category to a new name in `categorized_data` and `categorized_dict`.
+
+        In `categorized_data`, renames all instances of that category column for each response column.
+
+        Args:
+            old_category (str): The current name of the category to be renamed.
+            new_category (str): The new name for the category.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        logger.info(
+            f&#39;Renaming category. old_category: &#34;{old_category}&#34;, new_category: &#34;{new_category}&#34;&#39;
+        )
+
+        if new_category in self.categorized_dict.keys():
+            message = &#34;A category with this name already exists.&#34;
+            logger.warning(message)
+            logger.debug(f&#34;categorized_dict.keys:\n{self.categorized_dict.keys()}&#34;)
+            return False, message
+
+        for response_column in self.response_columns:
+            self.categorized_data.rename(
+                columns={f&#34;{old_category}_{response_column}&#34;: f&#34;{new_category}_{response_column}&#34;},
+                inplace=True,
+            )
+        self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
+
+        message = &#34;Category renamed successfully&#34;
+        logger.info(message)
+        return True, message
+
+    def delete_categories(self, categories_to_delete: set[str], categorization_type: str) -&gt; None:
+        &#34;&#34;&#34;
+        Deletes selected categories from `categorized_data` and `categorized_dict`, and handles associated data cleanup.
+
+        When `categorization_type == &#34;Single&#34;`, the responses are returned to &#34;Uncategorized&#34;.
+
+        Args:
+            categories_to_delete (set[str]): A set of categories to be deleted.
+            categorization_type (str): The categorization type, which determines how to handle data cleanup (&#39;Single&#39; or &#39;Multi&#39;).
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Deleting categories: %s&#34;, categories_to_delete)
+
+        for category in categories_to_delete:
+            for response_column in self.response_columns:
+                # In single mode, return the responses from this category to &#39;Uncategorized&#39;
+                if categorization_type == &#34;Single&#34;:
+                    responses_to_recategorize = self.categorized_data[
+                        self.categorized_data[f&#34;{category}_{response_column}&#34;] == 1
+                    ].index
+                    for response in responses_to_recategorize:
+                        self.categorized_data.loc[response, f&#34;Uncategorized_{response_column}&#34;] = 1
+                    self.categorized_dict[&#34;Uncategorized&#34;].update(self.categorized_dict[category])
+
+                # Remove categories
+                self.categorized_data.drop(columns=f&#34;{category}_{response_column}&#34;, inplace=True)
+            del self.categorized_dict[category]
+
+        logger.info(&#34;Categories deleted successfully&#34;)
+
+    ### ----------------------- Project Management ----------------------- ###
+    def file_import_on_new_project(self, file_path: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Handles importing and validating data for a new project.
+
+        Replaces `raw_data`.
+
+        Args:
+            file_path (str): The path to the file from which data is to be imported.
+                Expects .CSV or .XLSX. Assumes first column contains UUIDs, and subsequent columns contain responses.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling file handler to import data&#34;)
+        new_data = self.file_handler.read_csv_or_xlsx_to_dataframe(file_path)
+
+        if new_data.empty:
+            message = &#34;Imported dataset is empty&#34;
+            logger.error(message)
+            logger.debug(f&#34;new_data:\n{new_data.head()}&#34;)
+            return False, message
+
+        if new_data.shape[1] &lt; 2:
+            logger.error(&#34;Imported dataset does not contain enough columns&#34;)
+            logger.debug(f&#34;new_data:\n{new_data.head()}&#34;)
+            return (
+                False,
+                &#34;&#34;&#34;Imported dataset does not contain enough columns.\n\n
+                The dataset should contain uuids in the first column, and the subsequent columns should contian responses&#34;&#34;&#34;,
+            )
+
+        self.raw_data = new_data
+        message = &#34;Data passed checks&#34;
+        logger.info(message)
+        return True, message
+
+    def populate_data_structures_on_new_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Populates data structures for a new project after data has been successfully imported into `raw_data`.
+        Resets `currently_displayed_category` to &#34;Uncategorized&#34; and `fuzzy_match_results` to no results.
+
+        See class docstring for an overview these class attributes and their purpose.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Populating data structures&#34;)
+
+        # Processed data slices and metrics
+        self.preprocessed_responses = pd.DataFrame(
+            self.raw_data.iloc[:, 1:].map(self.preprocess_text)
+        )
+        uuids = self.raw_data.iloc[:, 0]
+        self.response_columns = list(self.preprocessed_responses.columns)
+        self.stacked_responses = self.preprocessed_responses.stack(dropna=False).reset_index(
+            drop=True
+        )
+        self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
+
+        # Main categorized data structures
+        self.categorized_dict = {&#34;Uncategorized&#34;: set(self.stacked_responses.dropna())}
+        self.categorized_data = pd.concat([uuids, self.preprocessed_responses], axis=1)
+        for response_column in self.response_columns:
+            # Everything starts uncategorized
+            self.categorized_data[f&#34;Uncategorized_{response_column}&#34;] = 1
+        self.handle_missing_data()
+
+        # Other app data
+        self.currently_displayed_category = &#34;Uncategorized&#34;  # Default
+        self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # Default
+
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
+        logger.info(&#34;Data structures populated successfully&#34;)
+
+    def file_import_on_load_project(self, file_path: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Handles importing and validating data for loading an existing project.
+
+        Replaces `data_loaded`.
+
+        Args:
+            file_path (str): The path to the project file to be loaded.
+                Expects JSON file. Expects the data to be compatible in various ways.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling file handler to import project data&#34;)
+        new_data = self.file_handler.load_json(file_path)
+        success, message = self.validate_loaded_json(new_data, self.expected_json_structure)
+
+        if not success:
+            logger.error(message)
+            return False, message
+
+        self.data_loaded = new_data
+        message = &#34;Project data passed checks&#34;
+        logger.info(message)
+        return True, message
+
+    def populate_data_structures_on_load_project(self) -&gt; Tuple[str, bool]:
+        &#34;&#34;&#34;
+        Populates data structures after JSON project data has been successfuly loaded into `data_loaded`.
+        Resets `currently_displayed_category` to &#34;Uncategorized&#34; and `fuzzy_match_results` to no results
+
+        See class docstring for an overview these class attributes and their purpose.
+
+        Returns:
+            Tuple[str, bool]: A tuple containing categorization_type and the is_including_missing_data, to be passed back to the UI.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Populating data structures&#34;)
+
+        # pd.NA is not JSON serializable so gets saved as None, need to load it back properly
+        def _replace_none_with_pd_na(df):
+            return df.map(lambda x: pd.NA if x is None else x)
+
+        # Processed data slices and metrics
+        self.raw_data = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded[&#34;raw_data&#34;]))
+        )
+        self.preprocessed_responses = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded[&#34;preprocessed_responses&#34;]))
+        )
+        self.response_counts = {
+            k if k != &#34;null&#34; else pd.NA: v for k, v in self.data_loaded[&#34;response_counts&#34;].items()
+        }
+
+        # Main categorized data structures
+        self.categorized_data = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded[&#34;categorized_data&#34;]))
+        )
+        self.categorized_dict = {k: set(v) for k, v in self.data_loaded[&#34;categorized_dict&#34;].items()}
+
+        # Other app data
+        self.currently_displayed_category = &#34;Uncategorized&#34;  # Default
+        self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # Default
+
+        # Tkinter variables
+        categorization_type = self.data_loaded[&#34;categorization_type&#34;]
+        is_including_missing_data = self.data_loaded[&#34;is_including_missing_data&#34;]
+
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
+        logger.info(&#34;Data structures populated successfully&#34;)
+
+        # Return Tkinter variables back to the UI class
+        return (categorization_type, is_including_missing_data)
+
+    def file_import_on_append_data(self, file_path: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Handles importing and validating data to append to the current project&#39;s dataset.
+
+        Args:
+            file_path (str): The path to the file from which data is to be appended.
+                Expects CSV or XLSX. Expects the number of columns to be the same as previously loaded data `raw_data`.
+
+        Returns:
+            Tuple[bool, str]: A tuple a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        if self.raw_data.empty:
+            logger.warning(&#34;There is no dataset in the current project to append to&#34;)
+            logger.error(f&#34;raw_data:\n{self.raw_data}&#34;)
+            return (
+                False,
+                &#39;&#39;&#39;There is no dataset in the current project to append to.\n\n
+                Click &#34;Start New Project&#34; or &#34;Load project&#34;&#39;&#39;&#39;,
+            )
+
+        logger.info(&#34;Calling file handler to import data to append&#34;)
+        new_data = self.file_handler.read_csv_or_xlsx_to_dataframe(file_path)
+
+        if new_data.empty:
+            message = &#34;Imported dataset is empty&#34;
+            logger.error(message)
+            logger.debug(f&#34;new_data:\n{new_data}&#34;)
+            return False, message
+
+        # using self.raw_data as it should have the same columns as self.categorized_data without the category columns.
+        if new_data.shape[1] != self.raw_data.shape[1]:
+            logger.error(
+                &#34;Imported dataset does not have the same number of columns as the dataset in the current project&#34;
+            )
+            logger.debug(
+                f&#34;&#34;&#34;new_data:\n{new_data.head()}\n
+                raw_data:\n{self.raw_data.head()}&#34;&#34;&#34;
+            )
+            return (
+                False,
+                &#34;&#34;&#34;Imported dataset does not have the same number of columns as the dataset in the current project.\n\n
+                The dataset should contain UUIDs in the first column, and the subsequent columns should contain
+                the same number of response columns as the currently loaded data.&#34;&#34;&#34;,
+            )
+
+        self.data_to_append = new_data
+        message = &#34;Data passed checks&#34;
+        logger.info(message)
+        return True, message
+
+    def populate_data_structures_on_append_data(self, categorization_type) -&gt; None:
+        &#34;&#34;&#34;
+        Populates data structures when appending new data to the current project, and re-applies the existing codeframe to the new data.
+        Resets `currently_displayed_category` to &#34;Uncategorized&#34; and `fuzzy_match_results` to no results.
+
+        Args:
+            categorization_type (str): The categorization type (&#39;Single&#39; or &#39;Multi&#39;), effects how the new data gets categorized.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Populating data structures&#34;)
+
+        ### Append data
+        self.raw_data = pd.concat([self.raw_data, self.data_to_append], ignore_index=True)
+        old_data_size = len(self.preprocessed_responses)
+        new_preprocessed_responses = pd.DataFrame(
+            self.raw_data.iloc[old_data_size:, 1:].map(self.preprocess_text)
+        )
+        self.preprocessed_responses = pd.concat(
+            [self.preprocessed_responses, new_preprocessed_responses]
+        )
+        new_stacked_responses = new_preprocessed_responses.stack(dropna=False).reset_index(
+            drop=True
+        )
+        self.stacked_responses = self.preprocessed_responses.stack(dropna=False).reset_index(
+            drop=True
+        )
+        self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
+
+        ### Categorize new responses
+        # TODO: This section is probably more bulky and inefficient than it needs to be
+        # Using categrized_dict to get old values here since we&#39;ve already changed preprocessed_responses
+        old_categorized_responses_set = set().union(
+            *[
+                responses
+                for category, responses in self.categorized_dict.items()
+                if category != &#34;Uncategorized&#34;
+            ]
+        )
+        new_responses_set = set(new_stacked_responses.dropna())
+        new_uncategorized_responses_set = new_responses_set - old_categorized_responses_set
+        new_already_categorized_responses_set = new_responses_set.intersection(
+            old_categorized_responses_set
+        )
+
+        self.categorized_dict[&#34;Uncategorized&#34;].update(new_uncategorized_responses_set)
+        new_categorized_data = pd.concat(
+            [self.raw_data.iloc[old_data_size:, 0], new_preprocessed_responses], axis=1
+        )  # ? Why isn&#39;t this axis=0?
+        self.categorized_data = pd.concat([self.categorized_data, new_categorized_data], axis=0)
+
+        # Everything starts uncategorized (this step removes NAs but we handle it again after)
+        for response_column in self.response_columns:
+            for category in self.categorized_dict.keys():
+                self.categorized_data.loc[old_data_size:, f&#34;Uncategorized_{response_column}&#34;] = 1
+                self.categorized_data.loc[old_data_size:, f&#34;{category}_{response_column}&#34;] = 0
+
+        # Categorize the new responses that are already in the codeframe
+        for new_response in new_already_categorized_responses_set:
+            categories_for_new_response = {
+                category
+                for category, responses in self.categorized_dict.items()
+                if new_response in responses
+            }
+            self.categorize_responses(
+                {str(new_response)}, categories_for_new_response, categorization_type
+            )
+
+        self.handle_missing_data()
+
+        ### Other app data
+        self.currently_displayed_category = &#34;Uncategorized&#34;  # Default
+        self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # Default
+
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
+        logger.info(&#34;Data structures populated successfully&#34;)
+
+    def save_project(self, file_path: str, user_interface_variables_to_add: dict[str, Any]) -&gt; None:
+        &#34;&#34;&#34;
+        Saves the current project&#39;s relevant class attributes to a JSON file, including user interface variables.
+
+        See class docstring for an overview the class attributes and their purpose.
+
+        Args:
+            file_path (str): The path where the project JSON file will be saved.
+            user_interface_variables_to_add (dict[str, Any]): Additional variables from the user interface to be included in the saved project data.
+                A dictionary of variable names to values.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Preparing to save project data&#34;)
+
+        data_to_save = {
+            &#34;raw_data&#34;: self.raw_data.to_json(),
+            &#34;preprocessed_responses&#34;: self.preprocessed_responses.to_json(),
+            &#34;response_columns&#34;: self.response_columns,
+            &#34;categorized_data&#34;: self.categorized_data.to_json(),
+            &#34;response_counts&#34;: {
+                k if k is not pd.NA else None: v for k, v in self.response_counts.items()
+            },
+            &#34;categorized_dict&#34;: {k: list(v) for k, v in self.categorized_dict.items()},
+        }
+        data_to_save.update(user_interface_variables_to_add)
+
+        # Pandas NAType is not JSON serializable
+        def _none_handler(o):
+            if pd.isna(o):
+                return None
+
+        logger.info(&#34;Calling file handler to save project data&#34;)
+        self.file_handler.save_data_to_json(file_path, data_to_save, handler=_none_handler)
+
+    def export_data_to_csv(self, file_path: str, categorization_type: str) -&gt; None:
+        &#34;&#34;&#34;
+        Exports categorized data to a CSV file. Removes the response columns before export.
+
+        If `categorization_type == &#34;Multi&#34;`, the redundant &#34;Uncategorized&#34; columns are also removed.
+
+        Args:
+            file_path (str): The path where the exported CSV file will be saved.
+            categorization_type (str): The categorization type (&#39;Single&#39; or &#39;Multi&#39;), effecting how the data is prepared before exporting.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Preparing to export categorized data to csv&#34;)
+
+        # Exported data needs only UUIDs and binary category columns to be able to be imported into Q.
+        self.export_df = self.categorized_data.drop(columns=self.response_columns)
+
+        # In multi-mode, nothing ever leaves &#34;Uncategorized&#34;, so might as well remove it
+        if categorization_type == &#34;Multi&#34;:
+            for response_column in self.response_columns:
+                self.export_df.drop(f&#34;Uncategorized_{response_column}&#34;, axis=1, inplace=True)
+
+        logger.info(&#34;Calling file handler  export categorized data to csv&#34;)
+        self.file_handler.export_dataframe_to_csv(file_path, self.export_df)
+
+    ### ----------------------- Helper functions ----------------------- ###
+    def preprocess_text(self, text: Any) -&gt; str | NAType:
+        &#34;&#34;&#34;
+        Converts the input to a lowercase string, removes special characters, and normalizes whitespace.
+        Preserves missing data.
+
+        Args:
+            text (Any): The text to be preprocessed.
+
+        Returns:
+            str | NAType: The preprocessed text, or pd.NA if the input is missing data.
+        &#34;&#34;&#34;
+
+        if pd.isna(text):
+            return pd.NA
+
+        text = str(text).lower()
+        # Convert one or more of any kind of space to single space
+        text = re.sub(r&#34;\s+&#34;, &#34; &#34;, text)
+        # Remove special characters
+        text = re.sub(r&#34;[^a-z0-9\s]&#34;, &#34;&#34;, text)
+        text = text.strip()
+        return text
+
+    def process_fuzzy_match_results(self, threshold_value: float) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;
+        Filters the fuzzy match results based on the provided threshold value, and aggregates the results by score and count.
+
+        Args:
+            threshold_value (float): The threshold value for filtering the fuzzy match results by score.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the processed fuzzy match results.
+        &#34;&#34;&#34;
+
+        # Filter the fuzzy match results based on the threshold
+        filtered_results = self.fuzzy_match_results[
+            self.fuzzy_match_results[&#34;score&#34;] &gt;= threshold_value
+        ]
+
+        aggregated_results = (
+            filtered_results.groupby(&#34;response&#34;)
+            .agg(
+                score=pd.NamedAgg(column=&#34;score&#34;, aggfunc=&#34;max&#34;),
+                count=pd.NamedAgg(column=&#34;response&#34;, aggfunc=&#34;count&#34;),
+            )
+            .reset_index()
+        )
+
+        return aggregated_results.sort_values(by=[&#34;score&#34;, &#34;count&#34;], ascending=[False, False])
+
+    def handle_missing_data(self) -&gt; None:
+        &#34;&#34;&#34;
+        Handles missing data in the `categorized_data` and `categorized_dict`.
+
+        Sets all the category columns to pd.NA for each response column, for the rows where those response columns are empty.
+        &#34;&#34;&#34;
+
+        def _is_missing(value) -&gt; bool:
+            return pd.isna(value)
+
+        logger.debug(
+            f&#34;&#34;&#34;Handling missing data\n
+            categorized_data (before):\n{self.categorized_data.head()}\n&#34;&#34;&#34;
+        )
+
+        for response_column in self.response_columns:
+            # Boolean mask where each row is True if the corresponding response column rows are empty
+            missing_data_mask = self.preprocessed_responses[response_column].map(_is_missing)
+
+            # Using categorized_dict as an easy way to get the category names
+            for category in self.categorized_dict:
+                col_name = f&#34;{category}_{response_column}&#34;
+                self.categorized_data.loc[missing_data_mask, col_name] = pd.NA
+            logger.debug(f&#34;categorized_data (after):\n{self.categorized_data.head()}\n&#34; &#34;&#34;)
+
+    def validate_loaded_json(
+        self, loaded_json_data: dict[str, Any], expected_data: dict[str, Any]
+    ) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Validates the structure of loaded JSON data against the expected structure,
+        ensuring that it&#39;s compatible with the app and allows the user to continue with their session.
+
+        Handles unexpected and missing variables, as well as incorrect variable types.
+
+        Args:
+            loaded_json_data (dict[str, Any]): The loaded JSON data to be validated. A dictionary of variable names to values.
+            expected_data (dict[str, Any]): The expected structure of the JSON data. A dictionary of variable names to types.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        # TODO: This needs updating to use more specific type checking, potentially with pydantic.
+        # NOTE: self.expected_json_structure is passed in. This needs to be updated when the data structure changes.
+        logger.debug(&#34;Validating project data&#34;)
+
+        if not loaded_json_data:
+            logger.debug(f&#34;loaded_json_data:\n{loaded_json_data}&#34;)
+            return False, &#34;Loaded project data is empty&#34;
+
+        # Unexpected variabes
+        if unexpected_keys := set(loaded_json_data.keys()) - set(expected_data.keys()):
+            logger.debug(
+                f&#34;&#34;&#34;loaded_json_data.keys:\n{loaded_json_data.keys()}\n
+                expected_data.keys:\n{expected_data.keys()}&#34;&#34;&#34;
+            )
+            return False, f&#34;Unexpected variables loaded: {&#39;, &#39;.join(unexpected_keys)}&#34;
+
+        for expected_key, expected_type in expected_data.items():
+            # Missing variables
+            if expected_key not in loaded_json_data:
+                logger.debug(
+                    f&#34;&#34;&#34;expected_key:\n{expected_key}\n
+                    loaded_json_data.keys:\n{loaded_json_data.keys()}&#34;&#34;&#34;
+                )
+                return False, f&#34;Variable &#39;{expected_key}&#39; is missing from loaded project data&#34;
+
+            # Wrong variable type
+            # skip the bool case (e.g. `is_including_missing_data`) since its value would be evaluated in the if statement
+            if expected_type is not bool and not loaded_json_data[expected_key]:
+                logger.debug(f&#34;{expected_key}:\n{loaded_json_data[expected_key]}&#34;)
+                return False, f&#34;Variable &#39;{expected_key}&#39; is empty in loaded project data&#34;
+
+            if not isinstance(loaded_json_data[expected_key], expected_type):
+                logger.debug(
+                    f&#34;&#34;&#34;Expected {expected_key}:{expected_type}\n
+                    Received {expected_key}:{type(loaded_json_data[expected_key])}&#34;&#34;&#34;
+                )
+                return (
+                    False,
+                    f&#34;Variable &#39;{expected_key}&#39; in loaded project data contains values that are not of expected type {expected_type.__name__}.&#34;,
+                )
+
+        logger.debug(&#34;Project data validated successfully&#34;)
+        return True, &#34;Loaded JSON validated successfully&#34;
+
+    def get_responses_and_counts(self, category: str) -&gt; list[Tuple[str, int]]:
+        &#34;&#34;&#34;
+        Retrieves responses and their counts for a specific category from `categorized_dict`.
+
+        Args:
+            category (str): The category for which responses and counts are retrieved.
+
+        Returns:
+            list[Tuple[str, int]]: A list of tuples, each containing a response and its count.
+        &#34;&#34;&#34;
+
+        responses_and_counts = [
+            (str(response), self.sum_response_counts({response}))
+            for response in self.categorized_dict[category]
+        ]
+
+        # Sort first by score and then alphabetically
+        return sorted(responses_and_counts, key=lambda x: (-x[1], x[0]))
+
+    def format_categories_metrics(
+        self, is_including_missing_data: bool
+    ) -&gt; list[Tuple[str, int, str]]:
+        &#34;&#34;&#34;
+        Formats metrics for categories in `categorized_dict` to be displayed, including the count of responses and their percentage.
+
+        Args:
+            is_including_missing_data (bool): Whether to include missing data in percentage calculations.
+
+        Returns:
+            list[Tuple[str, int, str]]: A list of tuples, each containing a category name, count of responses, and percentage of total responses.
+        &#34;&#34;&#34;
+
+        formatted_categories_metrics = []
+        for category, responses in self.categorized_dict.items():
+            count = self.sum_response_counts(responses)
+            percentage = self.calculate_percentage(responses, is_including_missing_data)
+            percentage_str = f&#34;{percentage:.2f}%&#34;
+            formatted_categories_metrics.append((category, count, percentage_str))
+
+        return formatted_categories_metrics
+
+    def sum_response_counts(self, responses: set) -&gt; int:
+        &#34;&#34;&#34;
+        Sums the counts of a set of responses in the dataset.
+
+        Args:
+            responses (set): A set of responses whose counts are to be summed.
+
+        Returns:
+            int: The total count of the specified responses.
+        &#34;&#34;&#34;
+
+        return sum(self.response_counts.get(response, 0) for response in responses)
+
+    def calculate_percentage(self, responses: set, is_including_missing_data: bool) -&gt; float:
+        &#34;&#34;&#34;
+        Calculates the percentage of responses for a category relative to the total number of responses in the dataset,
+        optionally including or excluding missing data.
+
+        Args:
+            responses (set): A set of responses for which the percentage is calculated.
+            is_including_missing_data (bool): Whether to include missing data in the total responses count.
+
+        Returns:
+            float: The calculated percentage.
+        &#34;&#34;&#34;
+
+        count = self.sum_response_counts(responses)
+
+        if is_including_missing_data:
+            total_responses = sum(self.response_counts.values())
+
+        else:
+            missing_data_count = self.sum_response_counts({pd.NA})
+            total_responses = sum(self.response_counts.values()) - missing_data_count
+
+        return (count / total_responses) * 100 if total_responses &gt; 0 else 0</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="src.data_model.DataModel"><code class="flex name class">
+<span>class <span class="ident">DataModel</span></span>
+<span>(</span><span>file_handler: file_handler.FileHandler)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class responsible for managing and processing the data for fuzzy matching and categorization of responses.</p>
+<h2 id="attributes">Attributes</h2>
+<ul>
+<li><code>file_handler</code> (FileHandler): An instance of FileHandler for handling file operations.</li>
+<li><code>raw_data</code> (pd.DataFrame): DataFrame containing the raw imported data. Expects first column to be uuids and subsequent columns to contain responses.</li>
+<li><code>data_to_append</code> (pd.DataFrame): DataFrame of imported data to append onto the current project data.</li>
+<li><code>data_loaded</code> (dict[str, Any]): Loaded project data (all the relevant class attributes) from json file.</li>
+<li><code>response_columns</code> (list[str]): List of response column names.</li>
+<li><code>preprocessed_responses</code> (pd.DataFrame): DataFrame of cleaned response columns from raw_data.</li>
+<li><code>stacked_responses</code> (pd.Series): Series containing the stacked, deduplicated responses, excluding missing data.</li>
+<li><code>response_counts</code> (dict[str, int]): Dictionary holding counts of responses, including missing data.</li>
+<li><code>categorized_data</code> (pd.DataFrame): DataFrame containing categorized responses. This is the main DataFrame of the application.
+First column contains uuids, the next columns are the response columns, and then the subsequent columns are for each category, repeated out for each response column (with the name appended on the end).
+The values of the category columns are 1, 0, or pd.NA, depending on whether or not the responses in their associated response column are categorized into that category, or missing data.</li>
+<li><code>categorized_dict</code> (dict[str, str]): Dictionary of categories to deduplicated responses, excluding missing data.</li>
+<li><code>fuzzy_match_results</code> (pd.DataFrame): DataFrame holding results and score of fuzzy matching.</li>
+<li><code>currently_displayed_category</code> (str): The category currently being displayed in the UI.</li>
+<li><code>expected_json_structure</code> (dict[str, type]): A dictionary of types for each class attribute, for validation loaded project data.</li>
+<li><code>export_df</code> (pd.DataFrame): The finalized data to export to CSV.</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li><code>initialize_data_structures</code>: Initializes empty data structures used in the model.</li>
+<li><code>fuzzy_match_logic</code>: Handles the logic for performing fuzzy matching on the data.</li>
+<li><code>fuzzy_match</code>: Used by <code>fuzzy_match_logic</code> to perform the fuzzy matching.</li>
+<li><code>categorize_responses</code>: Categorizes selected responses into selected categories.</li>
+<li><code>recategorize_responses</code>: Recategorizes selected responses into selected categories.</li>
+<li><code>add_responses_to_category</code>: Used by <code>categorize_responses</code> and <code>recategorize_responses</code> to add specified responses to a category in categorized_data and categorized_dict.</li>
+<li><code>remove_responses_from_category</code>: Used by <code>categorize_responses</code> and <code>recategorize_responses</code> to remove specified responses from a category in categorized_data and categorized_dict.</li>
+<li><code>create_category</code>: Creates a new category in categorized_data and <code>categorized_dict</code>.</li>
+<li><code>rename_category</code>: Renames an existing category in categorized_data and <code>categorized_dict</code>.</li>
+<li><code>delete_categories</code>: Deletes selected categories from categorized_data and <code>categorized_dict</code>, and handles associated data cleanup.</li>
+<li><code>file_import_on_new_project</code>: Handles importing data for a new project.</li>
+<li><code>populate_data_structures_on_new_project</code>: Populates data structures for a new project.</li>
+<li><code>file_import_on_load_project</code>: Handles importing data for loading an existing project.</li>
+<li><code>populate_data_structures_on_load_project</code>: Populates data structures when loading a project.</li>
+<li><code>file_import_on_append_data</code>: Handles importing data to append to the current project.</li>
+<li><code>populate_data_structures_on_append_data</code>: Populates data structures when appending data.</li>
+<li><code>save_project</code>: Saves all the current project's relevant data (the class attributes) to a JSON file.</li>
+<li><code>export_data_to_csv</code>: Exports the categorized data to a CSV file.</li>
+<li><code>preprocess_text</code>: Cleans text data (e.g. response text).</li>
+<li><code>process_fuzzy_match_results</code>: Filters, aggregates and sorts the fuzzy match results for display.</li>
+<li><code>handle_missing_data</code>: Handles missing data in categorized_data and <code>categorized_dict</code>.</li>
+<li><code>validate_loaded_json</code>: Validates the structure of loaded JSON project data.</li>
+<li><code>get_responses_and_counts</code>: Retrieves responses and their counts for a specific category.</li>
+<li><code>format_categories_metrics</code>: Formats metrics for categories to be displayed.</li>
+<li><code>sum_response_counts</code>: Sums the response counts for a set of responses.</li>
+<li><code>calculate_percentage</code>: Calculates the percentage of responses for a category, with or without missing data.</li>
+</ul>
+<p>Sets up the data structures and file handler.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>file_handler</code></strong> :&ensp;<code>FileHandler</code></dt>
+<dd>An instance of FileHandler.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataModel:
+    &#34;&#34;&#34;
+    A class responsible for managing and processing the data for fuzzy matching and categorization of responses.
+
+    Attributes:
+        - `file_handler` (FileHandler): An instance of FileHandler for handling file operations.
+        - `raw_data` (pd.DataFrame): DataFrame containing the raw imported data. Expects first column to be uuids and subsequent columns to contain responses.
+        - `data_to_append` (pd.DataFrame): DataFrame of imported data to append onto the current project data.
+        - `data_loaded` (dict[str, Any]): Loaded project data (all the relevant class attributes) from json file.
+        - `response_columns` (list[str]): List of response column names.
+        - `preprocessed_responses` (pd.DataFrame): DataFrame of cleaned response columns from raw_data.
+        - `stacked_responses` (pd.Series): Series containing the stacked, deduplicated responses, excluding missing data.
+        - `response_counts` (dict[str, int]): Dictionary holding counts of responses, including missing data.
+        - `categorized_data` (pd.DataFrame): DataFrame containing categorized responses. This is the main DataFrame of the application.
+            First column contains uuids, the next columns are the response columns, and then the subsequent columns are for each category, repeated out for each response column (with the name appended on the end).
+            The values of the category columns are 1, 0, or pd.NA, depending on whether or not the responses in their associated response column are categorized into that category, or missing data.
+        - `categorized_dict` (dict[str, str]): Dictionary of categories to deduplicated responses, excluding missing data.
+        - `fuzzy_match_results` (pd.DataFrame): DataFrame holding results and score of fuzzy matching.
+        - `currently_displayed_category` (str): The category currently being displayed in the UI.
+        - `expected_json_structure` (dict[str, type]): A dictionary of types for each class attribute, for validation loaded project data.
+        - `export_df` (pd.DataFrame): The finalized data to export to CSV.
+
+    Methods:
+        - `initialize_data_structures`: Initializes empty data structures used in the model.
+        - `fuzzy_match_logic`: Handles the logic for performing fuzzy matching on the data.
+        - `fuzzy_match`: Used by `fuzzy_match_logic` to perform the fuzzy matching.
+        - `categorize_responses`: Categorizes selected responses into selected categories.
+        - `recategorize_responses`: Recategorizes selected responses into selected categories.
+        - `add_responses_to_category`: Used by `categorize_responses` and `recategorize_responses` to add specified responses to a category in categorized_data and categorized_dict.
+        - `remove_responses_from_category`: Used by `categorize_responses` and `recategorize_responses` to remove specified responses from a category in categorized_data and categorized_dict.
+        - `create_category`: Creates a new category in categorized_data and `categorized_dict`.
+        - `rename_category`: Renames an existing category in categorized_data and `categorized_dict`.
+        - `delete_categories`: Deletes selected categories from categorized_data and `categorized_dict`, and handles associated data cleanup.
+        - `file_import_on_new_project`: Handles importing data for a new project.
+        - `populate_data_structures_on_new_project`: Populates data structures for a new project.
+        - `file_import_on_load_project`: Handles importing data for loading an existing project.
+        - `populate_data_structures_on_load_project`: Populates data structures when loading a project.
+        - `file_import_on_append_data`: Handles importing data to append to the current project.
+        - `populate_data_structures_on_append_data`: Populates data structures when appending data.
+        - `save_project`: Saves all the current project&#39;s relevant data (the class attributes) to a JSON file.
+        - `export_data_to_csv`: Exports the categorized data to a CSV file.
+        - `preprocess_text`: Cleans text data (e.g. response text).
+        - `process_fuzzy_match_results`: Filters, aggregates and sorts the fuzzy match results for display.
+        - `handle_missing_data`: Handles missing data in categorized_data and `categorized_dict`.
+        - `validate_loaded_json`: Validates the structure of loaded JSON project data.
+        - `get_responses_and_counts`: Retrieves responses and their counts for a specific category.
+        - `format_categories_metrics`: Formats metrics for categories to be displayed.
+        - `sum_response_counts`: Sums the response counts for a set of responses.
+        - `calculate_percentage`: Calculates the percentage of responses for a category, with or without missing data.
+    &#34;&#34;&#34;
+
+    def __init__(self, file_handler: FileHandler) -&gt; None:
+        &#34;&#34;&#34;
+        Sets up the data structures and file handler.
+
+        Args:
+            file_handler (FileHandler): An instance of FileHandler.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Initializing data model&#34;)
+        self.file_handler = file_handler
+        self.initialize_data_structures()
+
+    def initialize_data_structures(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initializes empty data structures used in the model.
+        See class docstring for an overview these class attributes and their purpose.
+        &#34;&#34;&#34;
+
+        logger.debug(&#34;Initializing data structures&#34;)
+        self.raw_data = pd.DataFrame()
+        self.preprocessed_responses = pd.DataFrame()
+        self.response_columns = []
+        self.categorized_data = pd.DataFrame()
+        self.response_counts = {}
+        self.categorized_dict = {&#34;Uncategorized&#34;: set()}
+        self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # default
+        self.currently_displayed_category = &#34;Uncategorized&#34;  # default
+
+        # For validation of loaded project data.
+        # * Update this when the data structure changes.
+        # TODO: Update this and validate_loaded_json() to use more specific typing (e.g. dict[str, set[str]) and handle stringified json too. Can use pydantic.
+        self.expected_json_structure = {
+            &#34;raw_data&#34;: str,
+            &#34;preprocessed_responses&#34;: str,
+            &#34;response_columns&#34;: list,
+            &#34;categorized_data&#34;: str,
+            &#34;response_counts&#34;: dict,
+            &#34;categorized_dict&#34;: dict,
+            &#34;categorization_type&#34;: str,
+            &#34;is_including_missing_data&#34;: bool,
+        }
+
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
+
+    ### ----------------------- Main functionality ----------------------- ###
+    def fuzzy_match_logic(self, string_to_match: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Handles the logic for performing fuzzy matching on the data against a provided string.
+        Results are stored in `fuzzy_match_results`.
+
+        Uses `fuzzy_match` method to perform the actual match.
+
+        Args:
+            string_to_match (str): The string to be matched fuzzily against the data.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        # ? This check is probably not needed, since the user can already can see if there&#39;s no data loaded?
+        if self.categorized_data.empty or self.categorized_data is None:
+            message = &#34;There is no dataset in the current project to match against&#34;
+            logger.warning(message)
+            logger.debug(f&#34;categorized_data:\n{self.categorized_data}&#34;)
+            return False, message
+
+        logger.info(f&#39;Preparing to perform fuzzy match: &#34;{string_to_match}&#34;&#39;)
+        uncategorized_responses = self.categorized_dict[&#34;Uncategorized&#34;]
+        uncategorized_df = self.preprocessed_responses[
+            self.preprocessed_responses.isin(uncategorized_responses)
+        ].dropna(how=&#34;all&#34;)
+
+        # Perform fuzzy matching on these uncategorized responses
+        self.fuzzy_match_results = self.fuzzy_match(uncategorized_df, string_to_match)
+
+        return True, &#34;Performed fuzzy match successfully&#34;
+
+    def fuzzy_match(self, preprocessed_responses: pd.DataFrame, match_string: str) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;
+        Performs the actual fuzzy match against a provided match string, and returns the results.
+
+        Args:
+            preprocessed_responses (pd.DataFrame): The preprocessed responses to be matched against.
+            match_string (str): The string to be matched fuzzily against the responses.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the fuzzy match responses and scores.
+        &#34;&#34;&#34;
+
+        logger.info(f&#39;Performing fuzzy match: &#34;{match_string}&#34;&#39;)
+
+        def _fuzzy_match(element) -&gt; int:
+            return fuzz.WRatio(
+                match_string, str(element)
+            )  # Weighted ratio of several fuzzy matching protocols
+
+        # Get fuzzy matching scores and format result: {response: score}
+        # Use preprocessed_responses since it only contains the data we need (response columns are identical to categorized_data)
+        results = []
+        for row in preprocessed_responses.itertuples(index=True, name=None):
+            for response in row[1:]:
+                score = _fuzzy_match(response)
+                results.append({&#34;response&#34;: response, &#34;score&#34;: score})
+
+        logger.info(&#34;Performed fuzzy match successfully&#34;)
+        return pd.DataFrame(results)
+
+    def categorize_responses(
+        self, responses: set[str], categories: set[str], categorization_type: str
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Handles the logic for categorizing selected responses into selected categories.
+
+        If `categorization_type == &#34;Single&#34;`, then the responses are removed from the the &#34;Uncategorized&#34; category and `fuzzy_match_results`.
+        Otherwise if `categorization_type == &#34;Multi&#34;`, then the responses remain in both.
+
+        Args:
+            responses (set[str]): A set of responses to be categorized.
+            categories (set[str]): A set of categories into which the responses will be categorized.
+            categorization_type (str): The type of categorization to be performed (&#39;Single&#39; or &#39;Multi&#39;).
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Categorizing responses&#34;)
+        for response_column in self.response_columns:
+            if categorization_type == &#34;Single&#34;:
+                self.remove_responses_from_category(responses, &#34;Uncategorized&#34;, response_column)
+
+            for category in categories:
+                self.add_responses_to_category(responses, category, response_column)
+
+        if categorization_type == &#34;Single&#34;:
+            # Additionally, remove the responses from fuzzy_match_results
+            fuzzy_mask = self.fuzzy_match_results[&#34;response&#34;].isin(responses)
+            self.fuzzy_match_results = self.fuzzy_match_results[~fuzzy_mask].reset_index(drop=True)
+
+        logger.info(&#34;Responses categorized&#34;)
+
+    def recategorize_responses(self, responses: set[str], categories: set[str]) -&gt; None:
+        &#34;&#34;&#34;
+        Handles the logic for recategorizing selected responses into selected categories.
+
+        This is used to change the categories of already categorized responses.
+
+        Args:
+            responses (set[str]): A set of responses to be recategorized.
+            categories (set[str]): A set of new categories into which the responses will be categorized.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Recategorizing responses&#34;)
+        for response_column in self.response_columns:
+            self.remove_responses_from_category(
+                responses, self.currently_displayed_category, response_column
+            )
+
+            for category in categories:
+                self.add_responses_to_category(responses, category, response_column)
+        logger.info(&#34;Responses recategorized&#34;)
+
+    def add_responses_to_category(
+        self, responses: set[str], category: str, response_column: str
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Handles adding responses to a category in the data. Used by `categorize_responses` and `recategorize_responses` methods.
+
+        Sets the value to 1 in `categorized_data` for the specified category associated with the specified response column,
+        for each row in the response column that matches the provided set of responses.
+        Also adds the responses to the category in `categorized_dict`.
+
+        Args:
+            responses (set[str]): A set of responses to be added to the category.
+            category (str): The category to which the responses will be added.
+            response_column (str): The name of the response column we are working with.
+        &#34;&#34;&#34;
+
+        mask = self.categorized_data[response_column].isin(responses)
+        self.categorized_data.loc[mask, f&#34;{category}_{response_column}&#34;] = 1
+        self.categorized_dict[category].update(responses)
+
+    def remove_responses_from_category(
+        self, responses: set[str], category: str, response_column: str
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Handles removing responses from a category in the data. Used by `categorize_responses` and `recategorize_responses` methods.
+
+        Sets the value to 0 in `categorized_data` for the specified category associated with the specified response column,
+        for each row in the response column that matches the provided set of responses.
+        Also removes the responses from the category in `categorized_dict`.
+
+        Args:
+            responses (set[str]): A set of responses to be removed from the category.
+            category (str): The category from which the responses will be removed.
+            response_column (str): The response column where the responses are located.
+        &#34;&#34;&#34;
+
+        mask = self.categorized_data[response_column].isin(responses)
+        self.categorized_data.loc[mask, f&#34;{category}_{response_column}&#34;] = 0
+        self.categorized_dict[category] -= responses
+
+    def create_category(self, new_category: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Creates a new category in `categorized_data` and `categorized_dict`.
+
+        In `categorized_data`, for each response column, adds a column named `{new_column}_{response_column}`, placed before each `Uncategorized_{response_column}`.
+        New columns have initial values of 0, with missing data handled.
+
+        Adds a `new_category` key containing an empty set to `categorized_dict`.
+
+        Args:
+            new_category (str): The name of the new category to be created.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a bool indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        logger.info(&#39;Creating new category: &#34;%s&#34;&#39;, new_category)
+
+        if new_category in self.categorized_dict.keys():
+            message = &#34;Category already exists&#34;
+            logger.warning(message)
+            logger.debug(f&#34;categorized_dict.keys:\n{self.categorized_dict.keys()}&#34;)
+            return False, message
+
+        self.categorized_dict[new_category] = set()
+        number_of_categories = len(self.categorized_dict.keys())
+
+        # Start insert after uuid column + response columns
+        insert_index_start = 1 + len(self.response_columns)
+        number_of_categories = len(self.categorized_dict.keys())
+        # Bring insert index behind uncategorized column(s)
+        offset = number_of_categories - 2
+
+        for i, response_column in enumerate(self.response_columns):
+            col_name = f&#34;{new_category}_{response_column}&#34;
+            # keep category columns grouped by response column
+            # New categories come after previous ones, but before uncategorized
+            insert_index = insert_index_start + i * number_of_categories + offset
+            # Give all rows a value of 0 to start
+            self.categorized_data.insert(insert_index, col_name, 0)
+
+        self.handle_missing_data()
+
+        message = &#34;Category created successfully&#34;
+        logger.info(message)
+        return True, message
+
+    def rename_category(self, old_category: str, new_category: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Renames an existing category to a new name in `categorized_data` and `categorized_dict`.
+
+        In `categorized_data`, renames all instances of that category column for each response column.
+
+        Args:
+            old_category (str): The current name of the category to be renamed.
+            new_category (str): The new name for the category.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        logger.info(
+            f&#39;Renaming category. old_category: &#34;{old_category}&#34;, new_category: &#34;{new_category}&#34;&#39;
+        )
+
+        if new_category in self.categorized_dict.keys():
+            message = &#34;A category with this name already exists.&#34;
+            logger.warning(message)
+            logger.debug(f&#34;categorized_dict.keys:\n{self.categorized_dict.keys()}&#34;)
+            return False, message
+
+        for response_column in self.response_columns:
+            self.categorized_data.rename(
+                columns={f&#34;{old_category}_{response_column}&#34;: f&#34;{new_category}_{response_column}&#34;},
+                inplace=True,
+            )
+        self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
+
+        message = &#34;Category renamed successfully&#34;
+        logger.info(message)
+        return True, message
+
+    def delete_categories(self, categories_to_delete: set[str], categorization_type: str) -&gt; None:
+        &#34;&#34;&#34;
+        Deletes selected categories from `categorized_data` and `categorized_dict`, and handles associated data cleanup.
+
+        When `categorization_type == &#34;Single&#34;`, the responses are returned to &#34;Uncategorized&#34;.
+
+        Args:
+            categories_to_delete (set[str]): A set of categories to be deleted.
+            categorization_type (str): The categorization type, which determines how to handle data cleanup (&#39;Single&#39; or &#39;Multi&#39;).
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Deleting categories: %s&#34;, categories_to_delete)
+
+        for category in categories_to_delete:
+            for response_column in self.response_columns:
+                # In single mode, return the responses from this category to &#39;Uncategorized&#39;
+                if categorization_type == &#34;Single&#34;:
+                    responses_to_recategorize = self.categorized_data[
+                        self.categorized_data[f&#34;{category}_{response_column}&#34;] == 1
+                    ].index
+                    for response in responses_to_recategorize:
+                        self.categorized_data.loc[response, f&#34;Uncategorized_{response_column}&#34;] = 1
+                    self.categorized_dict[&#34;Uncategorized&#34;].update(self.categorized_dict[category])
+
+                # Remove categories
+                self.categorized_data.drop(columns=f&#34;{category}_{response_column}&#34;, inplace=True)
+            del self.categorized_dict[category]
+
+        logger.info(&#34;Categories deleted successfully&#34;)
+
+    ### ----------------------- Project Management ----------------------- ###
+    def file_import_on_new_project(self, file_path: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Handles importing and validating data for a new project.
+
+        Replaces `raw_data`.
+
+        Args:
+            file_path (str): The path to the file from which data is to be imported.
+                Expects .CSV or .XLSX. Assumes first column contains UUIDs, and subsequent columns contain responses.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling file handler to import data&#34;)
+        new_data = self.file_handler.read_csv_or_xlsx_to_dataframe(file_path)
+
+        if new_data.empty:
+            message = &#34;Imported dataset is empty&#34;
+            logger.error(message)
+            logger.debug(f&#34;new_data:\n{new_data.head()}&#34;)
+            return False, message
+
+        if new_data.shape[1] &lt; 2:
+            logger.error(&#34;Imported dataset does not contain enough columns&#34;)
+            logger.debug(f&#34;new_data:\n{new_data.head()}&#34;)
+            return (
+                False,
+                &#34;&#34;&#34;Imported dataset does not contain enough columns.\n\n
+                The dataset should contain uuids in the first column, and the subsequent columns should contian responses&#34;&#34;&#34;,
+            )
+
+        self.raw_data = new_data
+        message = &#34;Data passed checks&#34;
+        logger.info(message)
+        return True, message
+
+    def populate_data_structures_on_new_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Populates data structures for a new project after data has been successfully imported into `raw_data`.
+        Resets `currently_displayed_category` to &#34;Uncategorized&#34; and `fuzzy_match_results` to no results.
+
+        See class docstring for an overview these class attributes and their purpose.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Populating data structures&#34;)
+
+        # Processed data slices and metrics
+        self.preprocessed_responses = pd.DataFrame(
+            self.raw_data.iloc[:, 1:].map(self.preprocess_text)
+        )
+        uuids = self.raw_data.iloc[:, 0]
+        self.response_columns = list(self.preprocessed_responses.columns)
+        self.stacked_responses = self.preprocessed_responses.stack(dropna=False).reset_index(
+            drop=True
+        )
+        self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
+
+        # Main categorized data structures
+        self.categorized_dict = {&#34;Uncategorized&#34;: set(self.stacked_responses.dropna())}
+        self.categorized_data = pd.concat([uuids, self.preprocessed_responses], axis=1)
+        for response_column in self.response_columns:
+            # Everything starts uncategorized
+            self.categorized_data[f&#34;Uncategorized_{response_column}&#34;] = 1
+        self.handle_missing_data()
+
+        # Other app data
+        self.currently_displayed_category = &#34;Uncategorized&#34;  # Default
+        self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # Default
+
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
+        logger.info(&#34;Data structures populated successfully&#34;)
+
+    def file_import_on_load_project(self, file_path: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Handles importing and validating data for loading an existing project.
+
+        Replaces `data_loaded`.
+
+        Args:
+            file_path (str): The path to the project file to be loaded.
+                Expects JSON file. Expects the data to be compatible in various ways.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling file handler to import project data&#34;)
+        new_data = self.file_handler.load_json(file_path)
+        success, message = self.validate_loaded_json(new_data, self.expected_json_structure)
+
+        if not success:
+            logger.error(message)
+            return False, message
+
+        self.data_loaded = new_data
+        message = &#34;Project data passed checks&#34;
+        logger.info(message)
+        return True, message
+
+    def populate_data_structures_on_load_project(self) -&gt; Tuple[str, bool]:
+        &#34;&#34;&#34;
+        Populates data structures after JSON project data has been successfuly loaded into `data_loaded`.
+        Resets `currently_displayed_category` to &#34;Uncategorized&#34; and `fuzzy_match_results` to no results
+
+        See class docstring for an overview these class attributes and their purpose.
+
+        Returns:
+            Tuple[str, bool]: A tuple containing categorization_type and the is_including_missing_data, to be passed back to the UI.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Populating data structures&#34;)
+
+        # pd.NA is not JSON serializable so gets saved as None, need to load it back properly
+        def _replace_none_with_pd_na(df):
+            return df.map(lambda x: pd.NA if x is None else x)
+
+        # Processed data slices and metrics
+        self.raw_data = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded[&#34;raw_data&#34;]))
+        )
+        self.preprocessed_responses = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded[&#34;preprocessed_responses&#34;]))
+        )
+        self.response_counts = {
+            k if k != &#34;null&#34; else pd.NA: v for k, v in self.data_loaded[&#34;response_counts&#34;].items()
+        }
+
+        # Main categorized data structures
+        self.categorized_data = _replace_none_with_pd_na(
+            pd.read_json(StringIO(self.data_loaded[&#34;categorized_data&#34;]))
+        )
+        self.categorized_dict = {k: set(v) for k, v in self.data_loaded[&#34;categorized_dict&#34;].items()}
+
+        # Other app data
+        self.currently_displayed_category = &#34;Uncategorized&#34;  # Default
+        self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # Default
+
+        # Tkinter variables
+        categorization_type = self.data_loaded[&#34;categorization_type&#34;]
+        is_including_missing_data = self.data_loaded[&#34;is_including_missing_data&#34;]
+
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
+        logger.info(&#34;Data structures populated successfully&#34;)
+
+        # Return Tkinter variables back to the UI class
+        return (categorization_type, is_including_missing_data)
+
+    def file_import_on_append_data(self, file_path: str) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Handles importing and validating data to append to the current project&#39;s dataset.
+
+        Args:
+            file_path (str): The path to the file from which data is to be appended.
+                Expects CSV or XLSX. Expects the number of columns to be the same as previously loaded data `raw_data`.
+
+        Returns:
+            Tuple[bool, str]: A tuple a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        if self.raw_data.empty:
+            logger.warning(&#34;There is no dataset in the current project to append to&#34;)
+            logger.error(f&#34;raw_data:\n{self.raw_data}&#34;)
+            return (
+                False,
+                &#39;&#39;&#39;There is no dataset in the current project to append to.\n\n
+                Click &#34;Start New Project&#34; or &#34;Load project&#34;&#39;&#39;&#39;,
+            )
+
+        logger.info(&#34;Calling file handler to import data to append&#34;)
+        new_data = self.file_handler.read_csv_or_xlsx_to_dataframe(file_path)
+
+        if new_data.empty:
+            message = &#34;Imported dataset is empty&#34;
+            logger.error(message)
+            logger.debug(f&#34;new_data:\n{new_data}&#34;)
+            return False, message
+
+        # using self.raw_data as it should have the same columns as self.categorized_data without the category columns.
+        if new_data.shape[1] != self.raw_data.shape[1]:
+            logger.error(
+                &#34;Imported dataset does not have the same number of columns as the dataset in the current project&#34;
+            )
+            logger.debug(
+                f&#34;&#34;&#34;new_data:\n{new_data.head()}\n
+                raw_data:\n{self.raw_data.head()}&#34;&#34;&#34;
+            )
+            return (
+                False,
+                &#34;&#34;&#34;Imported dataset does not have the same number of columns as the dataset in the current project.\n\n
+                The dataset should contain UUIDs in the first column, and the subsequent columns should contain
+                the same number of response columns as the currently loaded data.&#34;&#34;&#34;,
+            )
+
+        self.data_to_append = new_data
+        message = &#34;Data passed checks&#34;
+        logger.info(message)
+        return True, message
+
+    def populate_data_structures_on_append_data(self, categorization_type) -&gt; None:
+        &#34;&#34;&#34;
+        Populates data structures when appending new data to the current project, and re-applies the existing codeframe to the new data.
+        Resets `currently_displayed_category` to &#34;Uncategorized&#34; and `fuzzy_match_results` to no results.
+
+        Args:
+            categorization_type (str): The categorization type (&#39;Single&#39; or &#39;Multi&#39;), effects how the new data gets categorized.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Populating data structures&#34;)
+
+        ### Append data
+        self.raw_data = pd.concat([self.raw_data, self.data_to_append], ignore_index=True)
+        old_data_size = len(self.preprocessed_responses)
+        new_preprocessed_responses = pd.DataFrame(
+            self.raw_data.iloc[old_data_size:, 1:].map(self.preprocess_text)
+        )
+        self.preprocessed_responses = pd.concat(
+            [self.preprocessed_responses, new_preprocessed_responses]
+        )
+        new_stacked_responses = new_preprocessed_responses.stack(dropna=False).reset_index(
+            drop=True
+        )
+        self.stacked_responses = self.preprocessed_responses.stack(dropna=False).reset_index(
+            drop=True
+        )
+        self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
+
+        ### Categorize new responses
+        # TODO: This section is probably more bulky and inefficient than it needs to be
+        # Using categrized_dict to get old values here since we&#39;ve already changed preprocessed_responses
+        old_categorized_responses_set = set().union(
+            *[
+                responses
+                for category, responses in self.categorized_dict.items()
+                if category != &#34;Uncategorized&#34;
+            ]
+        )
+        new_responses_set = set(new_stacked_responses.dropna())
+        new_uncategorized_responses_set = new_responses_set - old_categorized_responses_set
+        new_already_categorized_responses_set = new_responses_set.intersection(
+            old_categorized_responses_set
+        )
+
+        self.categorized_dict[&#34;Uncategorized&#34;].update(new_uncategorized_responses_set)
+        new_categorized_data = pd.concat(
+            [self.raw_data.iloc[old_data_size:, 0], new_preprocessed_responses], axis=1
+        )  # ? Why isn&#39;t this axis=0?
+        self.categorized_data = pd.concat([self.categorized_data, new_categorized_data], axis=0)
+
+        # Everything starts uncategorized (this step removes NAs but we handle it again after)
+        for response_column in self.response_columns:
+            for category in self.categorized_dict.keys():
+                self.categorized_data.loc[old_data_size:, f&#34;Uncategorized_{response_column}&#34;] = 1
+                self.categorized_data.loc[old_data_size:, f&#34;{category}_{response_column}&#34;] = 0
+
+        # Categorize the new responses that are already in the codeframe
+        for new_response in new_already_categorized_responses_set:
+            categories_for_new_response = {
+                category
+                for category, responses in self.categorized_dict.items()
+                if new_response in responses
+            }
+            self.categorize_responses(
+                {str(new_response)}, categories_for_new_response, categorization_type
+            )
+
+        self.handle_missing_data()
+
+        ### Other app data
+        self.currently_displayed_category = &#34;Uncategorized&#34;  # Default
+        self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # Default
+
+        logging_utils.format_and_log_data_for_debug(logger, vars(self))
+        logger.info(&#34;Data structures populated successfully&#34;)
+
+    def save_project(self, file_path: str, user_interface_variables_to_add: dict[str, Any]) -&gt; None:
+        &#34;&#34;&#34;
+        Saves the current project&#39;s relevant class attributes to a JSON file, including user interface variables.
+
+        See class docstring for an overview the class attributes and their purpose.
+
+        Args:
+            file_path (str): The path where the project JSON file will be saved.
+            user_interface_variables_to_add (dict[str, Any]): Additional variables from the user interface to be included in the saved project data.
+                A dictionary of variable names to values.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Preparing to save project data&#34;)
+
+        data_to_save = {
+            &#34;raw_data&#34;: self.raw_data.to_json(),
+            &#34;preprocessed_responses&#34;: self.preprocessed_responses.to_json(),
+            &#34;response_columns&#34;: self.response_columns,
+            &#34;categorized_data&#34;: self.categorized_data.to_json(),
+            &#34;response_counts&#34;: {
+                k if k is not pd.NA else None: v for k, v in self.response_counts.items()
+            },
+            &#34;categorized_dict&#34;: {k: list(v) for k, v in self.categorized_dict.items()},
+        }
+        data_to_save.update(user_interface_variables_to_add)
+
+        # Pandas NAType is not JSON serializable
+        def _none_handler(o):
+            if pd.isna(o):
+                return None
+
+        logger.info(&#34;Calling file handler to save project data&#34;)
+        self.file_handler.save_data_to_json(file_path, data_to_save, handler=_none_handler)
+
+    def export_data_to_csv(self, file_path: str, categorization_type: str) -&gt; None:
+        &#34;&#34;&#34;
+        Exports categorized data to a CSV file. Removes the response columns before export.
+
+        If `categorization_type == &#34;Multi&#34;`, the redundant &#34;Uncategorized&#34; columns are also removed.
+
+        Args:
+            file_path (str): The path where the exported CSV file will be saved.
+            categorization_type (str): The categorization type (&#39;Single&#39; or &#39;Multi&#39;), effecting how the data is prepared before exporting.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Preparing to export categorized data to csv&#34;)
+
+        # Exported data needs only UUIDs and binary category columns to be able to be imported into Q.
+        self.export_df = self.categorized_data.drop(columns=self.response_columns)
+
+        # In multi-mode, nothing ever leaves &#34;Uncategorized&#34;, so might as well remove it
+        if categorization_type == &#34;Multi&#34;:
+            for response_column in self.response_columns:
+                self.export_df.drop(f&#34;Uncategorized_{response_column}&#34;, axis=1, inplace=True)
+
+        logger.info(&#34;Calling file handler  export categorized data to csv&#34;)
+        self.file_handler.export_dataframe_to_csv(file_path, self.export_df)
+
+    ### ----------------------- Helper functions ----------------------- ###
+    def preprocess_text(self, text: Any) -&gt; str | NAType:
+        &#34;&#34;&#34;
+        Converts the input to a lowercase string, removes special characters, and normalizes whitespace.
+        Preserves missing data.
+
+        Args:
+            text (Any): The text to be preprocessed.
+
+        Returns:
+            str | NAType: The preprocessed text, or pd.NA if the input is missing data.
+        &#34;&#34;&#34;
+
+        if pd.isna(text):
+            return pd.NA
+
+        text = str(text).lower()
+        # Convert one or more of any kind of space to single space
+        text = re.sub(r&#34;\s+&#34;, &#34; &#34;, text)
+        # Remove special characters
+        text = re.sub(r&#34;[^a-z0-9\s]&#34;, &#34;&#34;, text)
+        text = text.strip()
+        return text
+
+    def process_fuzzy_match_results(self, threshold_value: float) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;
+        Filters the fuzzy match results based on the provided threshold value, and aggregates the results by score and count.
+
+        Args:
+            threshold_value (float): The threshold value for filtering the fuzzy match results by score.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the processed fuzzy match results.
+        &#34;&#34;&#34;
+
+        # Filter the fuzzy match results based on the threshold
+        filtered_results = self.fuzzy_match_results[
+            self.fuzzy_match_results[&#34;score&#34;] &gt;= threshold_value
+        ]
+
+        aggregated_results = (
+            filtered_results.groupby(&#34;response&#34;)
+            .agg(
+                score=pd.NamedAgg(column=&#34;score&#34;, aggfunc=&#34;max&#34;),
+                count=pd.NamedAgg(column=&#34;response&#34;, aggfunc=&#34;count&#34;),
+            )
+            .reset_index()
+        )
+
+        return aggregated_results.sort_values(by=[&#34;score&#34;, &#34;count&#34;], ascending=[False, False])
+
+    def handle_missing_data(self) -&gt; None:
+        &#34;&#34;&#34;
+        Handles missing data in the `categorized_data` and `categorized_dict`.
+
+        Sets all the category columns to pd.NA for each response column, for the rows where those response columns are empty.
+        &#34;&#34;&#34;
+
+        def _is_missing(value) -&gt; bool:
+            return pd.isna(value)
+
+        logger.debug(
+            f&#34;&#34;&#34;Handling missing data\n
+            categorized_data (before):\n{self.categorized_data.head()}\n&#34;&#34;&#34;
+        )
+
+        for response_column in self.response_columns:
+            # Boolean mask where each row is True if the corresponding response column rows are empty
+            missing_data_mask = self.preprocessed_responses[response_column].map(_is_missing)
+
+            # Using categorized_dict as an easy way to get the category names
+            for category in self.categorized_dict:
+                col_name = f&#34;{category}_{response_column}&#34;
+                self.categorized_data.loc[missing_data_mask, col_name] = pd.NA
+            logger.debug(f&#34;categorized_data (after):\n{self.categorized_data.head()}\n&#34; &#34;&#34;)
+
+    def validate_loaded_json(
+        self, loaded_json_data: dict[str, Any], expected_data: dict[str, Any]
+    ) -&gt; Tuple[bool, str]:
+        &#34;&#34;&#34;
+        Validates the structure of loaded JSON data against the expected structure,
+        ensuring that it&#39;s compatible with the app and allows the user to continue with their session.
+
+        Handles unexpected and missing variables, as well as incorrect variable types.
+
+        Args:
+            loaded_json_data (dict[str, Any]): The loaded JSON data to be validated. A dictionary of variable names to values.
+            expected_data (dict[str, Any]): The expected structure of the JSON data. A dictionary of variable names to types.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+        &#34;&#34;&#34;
+
+        # TODO: This needs updating to use more specific type checking, potentially with pydantic.
+        # NOTE: self.expected_json_structure is passed in. This needs to be updated when the data structure changes.
+        logger.debug(&#34;Validating project data&#34;)
+
+        if not loaded_json_data:
+            logger.debug(f&#34;loaded_json_data:\n{loaded_json_data}&#34;)
+            return False, &#34;Loaded project data is empty&#34;
+
+        # Unexpected variabes
+        if unexpected_keys := set(loaded_json_data.keys()) - set(expected_data.keys()):
+            logger.debug(
+                f&#34;&#34;&#34;loaded_json_data.keys:\n{loaded_json_data.keys()}\n
+                expected_data.keys:\n{expected_data.keys()}&#34;&#34;&#34;
+            )
+            return False, f&#34;Unexpected variables loaded: {&#39;, &#39;.join(unexpected_keys)}&#34;
+
+        for expected_key, expected_type in expected_data.items():
+            # Missing variables
+            if expected_key not in loaded_json_data:
+                logger.debug(
+                    f&#34;&#34;&#34;expected_key:\n{expected_key}\n
+                    loaded_json_data.keys:\n{loaded_json_data.keys()}&#34;&#34;&#34;
+                )
+                return False, f&#34;Variable &#39;{expected_key}&#39; is missing from loaded project data&#34;
+
+            # Wrong variable type
+            # skip the bool case (e.g. `is_including_missing_data`) since its value would be evaluated in the if statement
+            if expected_type is not bool and not loaded_json_data[expected_key]:
+                logger.debug(f&#34;{expected_key}:\n{loaded_json_data[expected_key]}&#34;)
+                return False, f&#34;Variable &#39;{expected_key}&#39; is empty in loaded project data&#34;
+
+            if not isinstance(loaded_json_data[expected_key], expected_type):
+                logger.debug(
+                    f&#34;&#34;&#34;Expected {expected_key}:{expected_type}\n
+                    Received {expected_key}:{type(loaded_json_data[expected_key])}&#34;&#34;&#34;
+                )
+                return (
+                    False,
+                    f&#34;Variable &#39;{expected_key}&#39; in loaded project data contains values that are not of expected type {expected_type.__name__}.&#34;,
+                )
+
+        logger.debug(&#34;Project data validated successfully&#34;)
+        return True, &#34;Loaded JSON validated successfully&#34;
+
+    def get_responses_and_counts(self, category: str) -&gt; list[Tuple[str, int]]:
+        &#34;&#34;&#34;
+        Retrieves responses and their counts for a specific category from `categorized_dict`.
+
+        Args:
+            category (str): The category for which responses and counts are retrieved.
+
+        Returns:
+            list[Tuple[str, int]]: A list of tuples, each containing a response and its count.
+        &#34;&#34;&#34;
+
+        responses_and_counts = [
+            (str(response), self.sum_response_counts({response}))
+            for response in self.categorized_dict[category]
+        ]
+
+        # Sort first by score and then alphabetically
+        return sorted(responses_and_counts, key=lambda x: (-x[1], x[0]))
+
+    def format_categories_metrics(
+        self, is_including_missing_data: bool
+    ) -&gt; list[Tuple[str, int, str]]:
+        &#34;&#34;&#34;
+        Formats metrics for categories in `categorized_dict` to be displayed, including the count of responses and their percentage.
+
+        Args:
+            is_including_missing_data (bool): Whether to include missing data in percentage calculations.
+
+        Returns:
+            list[Tuple[str, int, str]]: A list of tuples, each containing a category name, count of responses, and percentage of total responses.
+        &#34;&#34;&#34;
+
+        formatted_categories_metrics = []
+        for category, responses in self.categorized_dict.items():
+            count = self.sum_response_counts(responses)
+            percentage = self.calculate_percentage(responses, is_including_missing_data)
+            percentage_str = f&#34;{percentage:.2f}%&#34;
+            formatted_categories_metrics.append((category, count, percentage_str))
+
+        return formatted_categories_metrics
+
+    def sum_response_counts(self, responses: set) -&gt; int:
+        &#34;&#34;&#34;
+        Sums the counts of a set of responses in the dataset.
+
+        Args:
+            responses (set): A set of responses whose counts are to be summed.
+
+        Returns:
+            int: The total count of the specified responses.
+        &#34;&#34;&#34;
+
+        return sum(self.response_counts.get(response, 0) for response in responses)
+
+    def calculate_percentage(self, responses: set, is_including_missing_data: bool) -&gt; float:
+        &#34;&#34;&#34;
+        Calculates the percentage of responses for a category relative to the total number of responses in the dataset,
+        optionally including or excluding missing data.
+
+        Args:
+            responses (set): A set of responses for which the percentage is calculated.
+            is_including_missing_data (bool): Whether to include missing data in the total responses count.
+
+        Returns:
+            float: The calculated percentage.
+        &#34;&#34;&#34;
+
+        count = self.sum_response_counts(responses)
+
+        if is_including_missing_data:
+            total_responses = sum(self.response_counts.values())
+
+        else:
+            missing_data_count = self.sum_response_counts({pd.NA})
+            total_responses = sum(self.response_counts.values()) - missing_data_count
+
+        return (count / total_responses) * 100 if total_responses &gt; 0 else 0</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="src.data_model.DataModel.add_responses_to_category"><code class="name flex">
+<span>def <span class="ident">add_responses_to_category</span></span>(<span>self, responses: set[str], category: str, response_column: str) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles adding responses to a category in the data. Used by <code>categorize_responses</code> and <code>recategorize_responses</code> methods.</p>
+<p>Sets the value to 1 in <code>categorized_data</code> for the specified category associated with the specified response column,
+for each row in the response column that matches the provided set of responses.
+Also adds the responses to the category in <code>categorized_dict</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>responses</code></strong> :&ensp;<code>set[str]</code></dt>
+<dd>A set of responses to be added to the category.</dd>
+<dt><strong><code>category</code></strong> :&ensp;<code>str</code></dt>
+<dd>The category to which the responses will be added.</dd>
+<dt><strong><code>response_column</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the response column we are working with.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_responses_to_category(
+    self, responses: set[str], category: str, response_column: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Handles adding responses to a category in the data. Used by `categorize_responses` and `recategorize_responses` methods.
+
+    Sets the value to 1 in `categorized_data` for the specified category associated with the specified response column,
+    for each row in the response column that matches the provided set of responses.
+    Also adds the responses to the category in `categorized_dict`.
+
+    Args:
+        responses (set[str]): A set of responses to be added to the category.
+        category (str): The category to which the responses will be added.
+        response_column (str): The name of the response column we are working with.
+    &#34;&#34;&#34;
+
+    mask = self.categorized_data[response_column].isin(responses)
+    self.categorized_data.loc[mask, f&#34;{category}_{response_column}&#34;] = 1
+    self.categorized_dict[category].update(responses)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.calculate_percentage"><code class="name flex">
+<span>def <span class="ident">calculate_percentage</span></span>(<span>self, responses: set, is_including_missing_data: bool) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates the percentage of responses for a category relative to the total number of responses in the dataset,
+optionally including or excluding missing data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>responses</code></strong> :&ensp;<code>set</code></dt>
+<dd>A set of responses for which the percentage is calculated.</dd>
+<dt><strong><code>is_including_missing_data</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to include missing data in the total responses count.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The calculated percentage.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_percentage(self, responses: set, is_including_missing_data: bool) -&gt; float:
+    &#34;&#34;&#34;
+    Calculates the percentage of responses for a category relative to the total number of responses in the dataset,
+    optionally including or excluding missing data.
+
+    Args:
+        responses (set): A set of responses for which the percentage is calculated.
+        is_including_missing_data (bool): Whether to include missing data in the total responses count.
+
+    Returns:
+        float: The calculated percentage.
+    &#34;&#34;&#34;
+
+    count = self.sum_response_counts(responses)
+
+    if is_including_missing_data:
+        total_responses = sum(self.response_counts.values())
+
+    else:
+        missing_data_count = self.sum_response_counts({pd.NA})
+        total_responses = sum(self.response_counts.values()) - missing_data_count
+
+    return (count / total_responses) * 100 if total_responses &gt; 0 else 0</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.categorize_responses"><code class="name flex">
+<span>def <span class="ident">categorize_responses</span></span>(<span>self, responses: set[str], categories: set[str], categorization_type: str) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles the logic for categorizing selected responses into selected categories.</p>
+<p>If <code>categorization_type == "Single"</code>, then the responses are removed from the the "Uncategorized" category and <code>fuzzy_match_results</code>.
+Otherwise if <code>categorization_type == "Multi"</code>, then the responses remain in both.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>responses</code></strong> :&ensp;<code>set[str]</code></dt>
+<dd>A set of responses to be categorized.</dd>
+<dt><strong><code>categories</code></strong> :&ensp;<code>set[str]</code></dt>
+<dd>A set of categories into which the responses will be categorized.</dd>
+<dt><strong><code>categorization_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>The type of categorization to be performed ('Single' or 'Multi').</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def categorize_responses(
+    self, responses: set[str], categories: set[str], categorization_type: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Handles the logic for categorizing selected responses into selected categories.
+
+    If `categorization_type == &#34;Single&#34;`, then the responses are removed from the the &#34;Uncategorized&#34; category and `fuzzy_match_results`.
+    Otherwise if `categorization_type == &#34;Multi&#34;`, then the responses remain in both.
+
+    Args:
+        responses (set[str]): A set of responses to be categorized.
+        categories (set[str]): A set of categories into which the responses will be categorized.
+        categorization_type (str): The type of categorization to be performed (&#39;Single&#39; or &#39;Multi&#39;).
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Categorizing responses&#34;)
+    for response_column in self.response_columns:
+        if categorization_type == &#34;Single&#34;:
+            self.remove_responses_from_category(responses, &#34;Uncategorized&#34;, response_column)
+
+        for category in categories:
+            self.add_responses_to_category(responses, category, response_column)
+
+    if categorization_type == &#34;Single&#34;:
+        # Additionally, remove the responses from fuzzy_match_results
+        fuzzy_mask = self.fuzzy_match_results[&#34;response&#34;].isin(responses)
+        self.fuzzy_match_results = self.fuzzy_match_results[~fuzzy_mask].reset_index(drop=True)
+
+    logger.info(&#34;Responses categorized&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.create_category"><code class="name flex">
+<span>def <span class="ident">create_category</span></span>(<span>self, new_category: str) ‑> Tuple[bool, str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a new category in <code>categorized_data</code> and <code>categorized_dict</code>.</p>
+<p>In <code>categorized_data</code>, for each response column, adds a column named <code>{new_column}_{response_column}</code>, placed before each <code>Uncategorized_{response_column}</code>.
+New columns have initial values of 0, with missing data handled.</p>
+<p>Adds a <code>new_category</code> key containing an empty set to <code>categorized_dict</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>new_category</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the new category to be created.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[bool, str]</code></dt>
+<dd>A tuple containing a bool indicating success or failure, and a message detailing the operation's outcome.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_category(self, new_category: str) -&gt; Tuple[bool, str]:
+    &#34;&#34;&#34;
+    Creates a new category in `categorized_data` and `categorized_dict`.
+
+    In `categorized_data`, for each response column, adds a column named `{new_column}_{response_column}`, placed before each `Uncategorized_{response_column}`.
+    New columns have initial values of 0, with missing data handled.
+
+    Adds a `new_category` key containing an empty set to `categorized_dict`.
+
+    Args:
+        new_category (str): The name of the new category to be created.
+
+    Returns:
+        Tuple[bool, str]: A tuple containing a bool indicating success or failure, and a message detailing the operation&#39;s outcome.
+    &#34;&#34;&#34;
+
+    logger.info(&#39;Creating new category: &#34;%s&#34;&#39;, new_category)
+
+    if new_category in self.categorized_dict.keys():
+        message = &#34;Category already exists&#34;
+        logger.warning(message)
+        logger.debug(f&#34;categorized_dict.keys:\n{self.categorized_dict.keys()}&#34;)
+        return False, message
+
+    self.categorized_dict[new_category] = set()
+    number_of_categories = len(self.categorized_dict.keys())
+
+    # Start insert after uuid column + response columns
+    insert_index_start = 1 + len(self.response_columns)
+    number_of_categories = len(self.categorized_dict.keys())
+    # Bring insert index behind uncategorized column(s)
+    offset = number_of_categories - 2
+
+    for i, response_column in enumerate(self.response_columns):
+        col_name = f&#34;{new_category}_{response_column}&#34;
+        # keep category columns grouped by response column
+        # New categories come after previous ones, but before uncategorized
+        insert_index = insert_index_start + i * number_of_categories + offset
+        # Give all rows a value of 0 to start
+        self.categorized_data.insert(insert_index, col_name, 0)
+
+    self.handle_missing_data()
+
+    message = &#34;Category created successfully&#34;
+    logger.info(message)
+    return True, message</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.delete_categories"><code class="name flex">
+<span>def <span class="ident">delete_categories</span></span>(<span>self, categories_to_delete: set[str], categorization_type: str) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deletes selected categories from <code>categorized_data</code> and <code>categorized_dict</code>, and handles associated data cleanup.</p>
+<p>When <code>categorization_type == "Single"</code>, the responses are returned to "Uncategorized".</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>categories_to_delete</code></strong> :&ensp;<code>set[str]</code></dt>
+<dd>A set of categories to be deleted.</dd>
+<dt><strong><code>categorization_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>The categorization type, which determines how to handle data cleanup ('Single' or 'Multi').</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delete_categories(self, categories_to_delete: set[str], categorization_type: str) -&gt; None:
+    &#34;&#34;&#34;
+    Deletes selected categories from `categorized_data` and `categorized_dict`, and handles associated data cleanup.
+
+    When `categorization_type == &#34;Single&#34;`, the responses are returned to &#34;Uncategorized&#34;.
+
+    Args:
+        categories_to_delete (set[str]): A set of categories to be deleted.
+        categorization_type (str): The categorization type, which determines how to handle data cleanup (&#39;Single&#39; or &#39;Multi&#39;).
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Deleting categories: %s&#34;, categories_to_delete)
+
+    for category in categories_to_delete:
+        for response_column in self.response_columns:
+            # In single mode, return the responses from this category to &#39;Uncategorized&#39;
+            if categorization_type == &#34;Single&#34;:
+                responses_to_recategorize = self.categorized_data[
+                    self.categorized_data[f&#34;{category}_{response_column}&#34;] == 1
+                ].index
+                for response in responses_to_recategorize:
+                    self.categorized_data.loc[response, f&#34;Uncategorized_{response_column}&#34;] = 1
+                self.categorized_dict[&#34;Uncategorized&#34;].update(self.categorized_dict[category])
+
+            # Remove categories
+            self.categorized_data.drop(columns=f&#34;{category}_{response_column}&#34;, inplace=True)
+        del self.categorized_dict[category]
+
+    logger.info(&#34;Categories deleted successfully&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.export_data_to_csv"><code class="name flex">
+<span>def <span class="ident">export_data_to_csv</span></span>(<span>self, file_path: str, categorization_type: str) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Exports categorized data to a CSV file. Removes the response columns before export.</p>
+<p>If <code>categorization_type == "Multi"</code>, the redundant "Uncategorized" columns are also removed.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path where the exported CSV file will be saved.</dd>
+<dt><strong><code>categorization_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>The categorization type ('Single' or 'Multi'), effecting how the data is prepared before exporting.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def export_data_to_csv(self, file_path: str, categorization_type: str) -&gt; None:
+    &#34;&#34;&#34;
+    Exports categorized data to a CSV file. Removes the response columns before export.
+
+    If `categorization_type == &#34;Multi&#34;`, the redundant &#34;Uncategorized&#34; columns are also removed.
+
+    Args:
+        file_path (str): The path where the exported CSV file will be saved.
+        categorization_type (str): The categorization type (&#39;Single&#39; or &#39;Multi&#39;), effecting how the data is prepared before exporting.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Preparing to export categorized data to csv&#34;)
+
+    # Exported data needs only UUIDs and binary category columns to be able to be imported into Q.
+    self.export_df = self.categorized_data.drop(columns=self.response_columns)
+
+    # In multi-mode, nothing ever leaves &#34;Uncategorized&#34;, so might as well remove it
+    if categorization_type == &#34;Multi&#34;:
+        for response_column in self.response_columns:
+            self.export_df.drop(f&#34;Uncategorized_{response_column}&#34;, axis=1, inplace=True)
+
+    logger.info(&#34;Calling file handler  export categorized data to csv&#34;)
+    self.file_handler.export_dataframe_to_csv(file_path, self.export_df)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.file_import_on_append_data"><code class="name flex">
+<span>def <span class="ident">file_import_on_append_data</span></span>(<span>self, file_path: str) ‑> Tuple[bool, str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles importing and validating data to append to the current project's dataset.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the file from which data is to be appended.
+Expects CSV or XLSX. Expects the number of columns to be the same as previously loaded data <code>raw_data</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[bool, str]</code></dt>
+<dd>A tuple a boolean indicating success or failure, and a message detailing the operation's outcome.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def file_import_on_append_data(self, file_path: str) -&gt; Tuple[bool, str]:
+    &#34;&#34;&#34;
+    Handles importing and validating data to append to the current project&#39;s dataset.
+
+    Args:
+        file_path (str): The path to the file from which data is to be appended.
+            Expects CSV or XLSX. Expects the number of columns to be the same as previously loaded data `raw_data`.
+
+    Returns:
+        Tuple[bool, str]: A tuple a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+    &#34;&#34;&#34;
+
+    if self.raw_data.empty:
+        logger.warning(&#34;There is no dataset in the current project to append to&#34;)
+        logger.error(f&#34;raw_data:\n{self.raw_data}&#34;)
+        return (
+            False,
+            &#39;&#39;&#39;There is no dataset in the current project to append to.\n\n
+            Click &#34;Start New Project&#34; or &#34;Load project&#34;&#39;&#39;&#39;,
+        )
+
+    logger.info(&#34;Calling file handler to import data to append&#34;)
+    new_data = self.file_handler.read_csv_or_xlsx_to_dataframe(file_path)
+
+    if new_data.empty:
+        message = &#34;Imported dataset is empty&#34;
+        logger.error(message)
+        logger.debug(f&#34;new_data:\n{new_data}&#34;)
+        return False, message
+
+    # using self.raw_data as it should have the same columns as self.categorized_data without the category columns.
+    if new_data.shape[1] != self.raw_data.shape[1]:
+        logger.error(
+            &#34;Imported dataset does not have the same number of columns as the dataset in the current project&#34;
+        )
+        logger.debug(
+            f&#34;&#34;&#34;new_data:\n{new_data.head()}\n
+            raw_data:\n{self.raw_data.head()}&#34;&#34;&#34;
+        )
+        return (
+            False,
+            &#34;&#34;&#34;Imported dataset does not have the same number of columns as the dataset in the current project.\n\n
+            The dataset should contain UUIDs in the first column, and the subsequent columns should contain
+            the same number of response columns as the currently loaded data.&#34;&#34;&#34;,
+        )
+
+    self.data_to_append = new_data
+    message = &#34;Data passed checks&#34;
+    logger.info(message)
+    return True, message</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.file_import_on_load_project"><code class="name flex">
+<span>def <span class="ident">file_import_on_load_project</span></span>(<span>self, file_path: str) ‑> Tuple[bool, str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles importing and validating data for loading an existing project.</p>
+<p>Replaces <code>data_loaded</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the project file to be loaded.
+Expects JSON file. Expects the data to be compatible in various ways.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[bool, str]</code></dt>
+<dd>A tuple containing a boolean indicating success or failure, and a message detailing the operation's outcome.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def file_import_on_load_project(self, file_path: str) -&gt; Tuple[bool, str]:
+    &#34;&#34;&#34;
+    Handles importing and validating data for loading an existing project.
+
+    Replaces `data_loaded`.
+
+    Args:
+        file_path (str): The path to the project file to be loaded.
+            Expects JSON file. Expects the data to be compatible in various ways.
+
+    Returns:
+        Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Calling file handler to import project data&#34;)
+    new_data = self.file_handler.load_json(file_path)
+    success, message = self.validate_loaded_json(new_data, self.expected_json_structure)
+
+    if not success:
+        logger.error(message)
+        return False, message
+
+    self.data_loaded = new_data
+    message = &#34;Project data passed checks&#34;
+    logger.info(message)
+    return True, message</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.file_import_on_new_project"><code class="name flex">
+<span>def <span class="ident">file_import_on_new_project</span></span>(<span>self, file_path: str) ‑> Tuple[bool, str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles importing and validating data for a new project.</p>
+<p>Replaces <code>raw_data</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to the file from which data is to be imported.
+Expects .CSV or .XLSX. Assumes first column contains UUIDs, and subsequent columns contain responses.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[bool, str]</code></dt>
+<dd>A tuple containing a boolean indicating success or failure, and a message detailing the operation's outcome.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def file_import_on_new_project(self, file_path: str) -&gt; Tuple[bool, str]:
+    &#34;&#34;&#34;
+    Handles importing and validating data for a new project.
+
+    Replaces `raw_data`.
+
+    Args:
+        file_path (str): The path to the file from which data is to be imported.
+            Expects .CSV or .XLSX. Assumes first column contains UUIDs, and subsequent columns contain responses.
+
+    Returns:
+        Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Calling file handler to import data&#34;)
+    new_data = self.file_handler.read_csv_or_xlsx_to_dataframe(file_path)
+
+    if new_data.empty:
+        message = &#34;Imported dataset is empty&#34;
+        logger.error(message)
+        logger.debug(f&#34;new_data:\n{new_data.head()}&#34;)
+        return False, message
+
+    if new_data.shape[1] &lt; 2:
+        logger.error(&#34;Imported dataset does not contain enough columns&#34;)
+        logger.debug(f&#34;new_data:\n{new_data.head()}&#34;)
+        return (
+            False,
+            &#34;&#34;&#34;Imported dataset does not contain enough columns.\n\n
+            The dataset should contain uuids in the first column, and the subsequent columns should contian responses&#34;&#34;&#34;,
+        )
+
+    self.raw_data = new_data
+    message = &#34;Data passed checks&#34;
+    logger.info(message)
+    return True, message</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.format_categories_metrics"><code class="name flex">
+<span>def <span class="ident">format_categories_metrics</span></span>(<span>self, is_including_missing_data: bool) ‑> list[typing.Tuple[str, int, str]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Formats metrics for categories in <code>categorized_dict</code> to be displayed, including the count of responses and their percentage.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>is_including_missing_data</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to include missing data in percentage calculations.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list[Tuple[str, int, str]]</code></dt>
+<dd>A list of tuples, each containing a category name, count of responses, and percentage of total responses.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def format_categories_metrics(
+    self, is_including_missing_data: bool
+) -&gt; list[Tuple[str, int, str]]:
+    &#34;&#34;&#34;
+    Formats metrics for categories in `categorized_dict` to be displayed, including the count of responses and their percentage.
+
+    Args:
+        is_including_missing_data (bool): Whether to include missing data in percentage calculations.
+
+    Returns:
+        list[Tuple[str, int, str]]: A list of tuples, each containing a category name, count of responses, and percentage of total responses.
+    &#34;&#34;&#34;
+
+    formatted_categories_metrics = []
+    for category, responses in self.categorized_dict.items():
+        count = self.sum_response_counts(responses)
+        percentage = self.calculate_percentage(responses, is_including_missing_data)
+        percentage_str = f&#34;{percentage:.2f}%&#34;
+        formatted_categories_metrics.append((category, count, percentage_str))
+
+    return formatted_categories_metrics</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.fuzzy_match"><code class="name flex">
+<span>def <span class="ident">fuzzy_match</span></span>(<span>self, preprocessed_responses: pandas.core.frame.DataFrame, match_string: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Performs the actual fuzzy match against a provided match string, and returns the results.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>preprocessed_responses</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>The preprocessed responses to be matched against.</dd>
+<dt><strong><code>match_string</code></strong> :&ensp;<code>str</code></dt>
+<dd>The string to be matched fuzzily against the responses.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the fuzzy match responses and scores.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fuzzy_match(self, preprocessed_responses: pd.DataFrame, match_string: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Performs the actual fuzzy match against a provided match string, and returns the results.
+
+    Args:
+        preprocessed_responses (pd.DataFrame): The preprocessed responses to be matched against.
+        match_string (str): The string to be matched fuzzily against the responses.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the fuzzy match responses and scores.
+    &#34;&#34;&#34;
+
+    logger.info(f&#39;Performing fuzzy match: &#34;{match_string}&#34;&#39;)
+
+    def _fuzzy_match(element) -&gt; int:
+        return fuzz.WRatio(
+            match_string, str(element)
+        )  # Weighted ratio of several fuzzy matching protocols
+
+    # Get fuzzy matching scores and format result: {response: score}
+    # Use preprocessed_responses since it only contains the data we need (response columns are identical to categorized_data)
+    results = []
+    for row in preprocessed_responses.itertuples(index=True, name=None):
+        for response in row[1:]:
+            score = _fuzzy_match(response)
+            results.append({&#34;response&#34;: response, &#34;score&#34;: score})
+
+    logger.info(&#34;Performed fuzzy match successfully&#34;)
+    return pd.DataFrame(results)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.fuzzy_match_logic"><code class="name flex">
+<span>def <span class="ident">fuzzy_match_logic</span></span>(<span>self, string_to_match: str) ‑> Tuple[bool, str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles the logic for performing fuzzy matching on the data against a provided string.
+Results are stored in <code>fuzzy_match_results</code>.</p>
+<p>Uses <code>fuzzy_match</code> method to perform the actual match.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>string_to_match</code></strong> :&ensp;<code>str</code></dt>
+<dd>The string to be matched fuzzily against the data.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[bool, str]</code></dt>
+<dd>A tuple containing a boolean indicating success or failure, and a message detailing the operation's outcome.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fuzzy_match_logic(self, string_to_match: str) -&gt; Tuple[bool, str]:
+    &#34;&#34;&#34;
+    Handles the logic for performing fuzzy matching on the data against a provided string.
+    Results are stored in `fuzzy_match_results`.
+
+    Uses `fuzzy_match` method to perform the actual match.
+
+    Args:
+        string_to_match (str): The string to be matched fuzzily against the data.
+
+    Returns:
+        Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+    &#34;&#34;&#34;
+
+    # ? This check is probably not needed, since the user can already can see if there&#39;s no data loaded?
+    if self.categorized_data.empty or self.categorized_data is None:
+        message = &#34;There is no dataset in the current project to match against&#34;
+        logger.warning(message)
+        logger.debug(f&#34;categorized_data:\n{self.categorized_data}&#34;)
+        return False, message
+
+    logger.info(f&#39;Preparing to perform fuzzy match: &#34;{string_to_match}&#34;&#39;)
+    uncategorized_responses = self.categorized_dict[&#34;Uncategorized&#34;]
+    uncategorized_df = self.preprocessed_responses[
+        self.preprocessed_responses.isin(uncategorized_responses)
+    ].dropna(how=&#34;all&#34;)
+
+    # Perform fuzzy matching on these uncategorized responses
+    self.fuzzy_match_results = self.fuzzy_match(uncategorized_df, string_to_match)
+
+    return True, &#34;Performed fuzzy match successfully&#34;</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.get_responses_and_counts"><code class="name flex">
+<span>def <span class="ident">get_responses_and_counts</span></span>(<span>self, category: str) ‑> list[typing.Tuple[str, int]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves responses and their counts for a specific category from <code>categorized_dict</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>category</code></strong> :&ensp;<code>str</code></dt>
+<dd>The category for which responses and counts are retrieved.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list[Tuple[str, int]]</code></dt>
+<dd>A list of tuples, each containing a response and its count.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_responses_and_counts(self, category: str) -&gt; list[Tuple[str, int]]:
+    &#34;&#34;&#34;
+    Retrieves responses and their counts for a specific category from `categorized_dict`.
+
+    Args:
+        category (str): The category for which responses and counts are retrieved.
+
+    Returns:
+        list[Tuple[str, int]]: A list of tuples, each containing a response and its count.
+    &#34;&#34;&#34;
+
+    responses_and_counts = [
+        (str(response), self.sum_response_counts({response}))
+        for response in self.categorized_dict[category]
+    ]
+
+    # Sort first by score and then alphabetically
+    return sorted(responses_and_counts, key=lambda x: (-x[1], x[0]))</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.handle_missing_data"><code class="name flex">
+<span>def <span class="ident">handle_missing_data</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles missing data in the <code>categorized_data</code> and <code>categorized_dict</code>.</p>
+<p>Sets all the category columns to pd.NA for each response column, for the rows where those response columns are empty.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def handle_missing_data(self) -&gt; None:
+    &#34;&#34;&#34;
+    Handles missing data in the `categorized_data` and `categorized_dict`.
+
+    Sets all the category columns to pd.NA for each response column, for the rows where those response columns are empty.
+    &#34;&#34;&#34;
+
+    def _is_missing(value) -&gt; bool:
+        return pd.isna(value)
+
+    logger.debug(
+        f&#34;&#34;&#34;Handling missing data\n
+        categorized_data (before):\n{self.categorized_data.head()}\n&#34;&#34;&#34;
+    )
+
+    for response_column in self.response_columns:
+        # Boolean mask where each row is True if the corresponding response column rows are empty
+        missing_data_mask = self.preprocessed_responses[response_column].map(_is_missing)
+
+        # Using categorized_dict as an easy way to get the category names
+        for category in self.categorized_dict:
+            col_name = f&#34;{category}_{response_column}&#34;
+            self.categorized_data.loc[missing_data_mask, col_name] = pd.NA
+        logger.debug(f&#34;categorized_data (after):\n{self.categorized_data.head()}\n&#34; &#34;&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.initialize_data_structures"><code class="name flex">
+<span>def <span class="ident">initialize_data_structures</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initializes empty data structures used in the model.
+See class docstring for an overview these class attributes and their purpose.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def initialize_data_structures(self) -&gt; None:
+    &#34;&#34;&#34;
+    Initializes empty data structures used in the model.
+    See class docstring for an overview these class attributes and their purpose.
+    &#34;&#34;&#34;
+
+    logger.debug(&#34;Initializing data structures&#34;)
+    self.raw_data = pd.DataFrame()
+    self.preprocessed_responses = pd.DataFrame()
+    self.response_columns = []
+    self.categorized_data = pd.DataFrame()
+    self.response_counts = {}
+    self.categorized_dict = {&#34;Uncategorized&#34;: set()}
+    self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # default
+    self.currently_displayed_category = &#34;Uncategorized&#34;  # default
+
+    # For validation of loaded project data.
+    # * Update this when the data structure changes.
+    # TODO: Update this and validate_loaded_json() to use more specific typing (e.g. dict[str, set[str]) and handle stringified json too. Can use pydantic.
+    self.expected_json_structure = {
+        &#34;raw_data&#34;: str,
+        &#34;preprocessed_responses&#34;: str,
+        &#34;response_columns&#34;: list,
+        &#34;categorized_data&#34;: str,
+        &#34;response_counts&#34;: dict,
+        &#34;categorized_dict&#34;: dict,
+        &#34;categorization_type&#34;: str,
+        &#34;is_including_missing_data&#34;: bool,
+    }
+
+    logging_utils.format_and_log_data_for_debug(logger, vars(self))</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.populate_data_structures_on_append_data"><code class="name flex">
+<span>def <span class="ident">populate_data_structures_on_append_data</span></span>(<span>self, categorization_type) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Populates data structures when appending new data to the current project, and re-applies the existing codeframe to the new data.
+Resets <code>currently_displayed_category</code> to "Uncategorized" and <code>fuzzy_match_results</code> to no results.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>categorization_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>The categorization type ('Single' or 'Multi'), effects how the new data gets categorized.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def populate_data_structures_on_append_data(self, categorization_type) -&gt; None:
+    &#34;&#34;&#34;
+    Populates data structures when appending new data to the current project, and re-applies the existing codeframe to the new data.
+    Resets `currently_displayed_category` to &#34;Uncategorized&#34; and `fuzzy_match_results` to no results.
+
+    Args:
+        categorization_type (str): The categorization type (&#39;Single&#39; or &#39;Multi&#39;), effects how the new data gets categorized.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Populating data structures&#34;)
+
+    ### Append data
+    self.raw_data = pd.concat([self.raw_data, self.data_to_append], ignore_index=True)
+    old_data_size = len(self.preprocessed_responses)
+    new_preprocessed_responses = pd.DataFrame(
+        self.raw_data.iloc[old_data_size:, 1:].map(self.preprocess_text)
+    )
+    self.preprocessed_responses = pd.concat(
+        [self.preprocessed_responses, new_preprocessed_responses]
+    )
+    new_stacked_responses = new_preprocessed_responses.stack(dropna=False).reset_index(
+        drop=True
+    )
+    self.stacked_responses = self.preprocessed_responses.stack(dropna=False).reset_index(
+        drop=True
+    )
+    self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
+
+    ### Categorize new responses
+    # TODO: This section is probably more bulky and inefficient than it needs to be
+    # Using categrized_dict to get old values here since we&#39;ve already changed preprocessed_responses
+    old_categorized_responses_set = set().union(
+        *[
+            responses
+            for category, responses in self.categorized_dict.items()
+            if category != &#34;Uncategorized&#34;
+        ]
+    )
+    new_responses_set = set(new_stacked_responses.dropna())
+    new_uncategorized_responses_set = new_responses_set - old_categorized_responses_set
+    new_already_categorized_responses_set = new_responses_set.intersection(
+        old_categorized_responses_set
+    )
+
+    self.categorized_dict[&#34;Uncategorized&#34;].update(new_uncategorized_responses_set)
+    new_categorized_data = pd.concat(
+        [self.raw_data.iloc[old_data_size:, 0], new_preprocessed_responses], axis=1
+    )  # ? Why isn&#39;t this axis=0?
+    self.categorized_data = pd.concat([self.categorized_data, new_categorized_data], axis=0)
+
+    # Everything starts uncategorized (this step removes NAs but we handle it again after)
+    for response_column in self.response_columns:
+        for category in self.categorized_dict.keys():
+            self.categorized_data.loc[old_data_size:, f&#34;Uncategorized_{response_column}&#34;] = 1
+            self.categorized_data.loc[old_data_size:, f&#34;{category}_{response_column}&#34;] = 0
+
+    # Categorize the new responses that are already in the codeframe
+    for new_response in new_already_categorized_responses_set:
+        categories_for_new_response = {
+            category
+            for category, responses in self.categorized_dict.items()
+            if new_response in responses
+        }
+        self.categorize_responses(
+            {str(new_response)}, categories_for_new_response, categorization_type
+        )
+
+    self.handle_missing_data()
+
+    ### Other app data
+    self.currently_displayed_category = &#34;Uncategorized&#34;  # Default
+    self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # Default
+
+    logging_utils.format_and_log_data_for_debug(logger, vars(self))
+    logger.info(&#34;Data structures populated successfully&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.populate_data_structures_on_load_project"><code class="name flex">
+<span>def <span class="ident">populate_data_structures_on_load_project</span></span>(<span>self) ‑> Tuple[str, bool]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Populates data structures after JSON project data has been successfuly loaded into <code>data_loaded</code>.
+Resets <code>currently_displayed_category</code> to "Uncategorized" and <code>fuzzy_match_results</code> to no results</p>
+<p>See class docstring for an overview these class attributes and their purpose.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[str, bool]</code></dt>
+<dd>A tuple containing categorization_type and the is_including_missing_data, to be passed back to the UI.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def populate_data_structures_on_load_project(self) -&gt; Tuple[str, bool]:
+    &#34;&#34;&#34;
+    Populates data structures after JSON project data has been successfuly loaded into `data_loaded`.
+    Resets `currently_displayed_category` to &#34;Uncategorized&#34; and `fuzzy_match_results` to no results
+
+    See class docstring for an overview these class attributes and their purpose.
+
+    Returns:
+        Tuple[str, bool]: A tuple containing categorization_type and the is_including_missing_data, to be passed back to the UI.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Populating data structures&#34;)
+
+    # pd.NA is not JSON serializable so gets saved as None, need to load it back properly
+    def _replace_none_with_pd_na(df):
+        return df.map(lambda x: pd.NA if x is None else x)
+
+    # Processed data slices and metrics
+    self.raw_data = _replace_none_with_pd_na(
+        pd.read_json(StringIO(self.data_loaded[&#34;raw_data&#34;]))
+    )
+    self.preprocessed_responses = _replace_none_with_pd_na(
+        pd.read_json(StringIO(self.data_loaded[&#34;preprocessed_responses&#34;]))
+    )
+    self.response_counts = {
+        k if k != &#34;null&#34; else pd.NA: v for k, v in self.data_loaded[&#34;response_counts&#34;].items()
+    }
+
+    # Main categorized data structures
+    self.categorized_data = _replace_none_with_pd_na(
+        pd.read_json(StringIO(self.data_loaded[&#34;categorized_data&#34;]))
+    )
+    self.categorized_dict = {k: set(v) for k, v in self.data_loaded[&#34;categorized_dict&#34;].items()}
+
+    # Other app data
+    self.currently_displayed_category = &#34;Uncategorized&#34;  # Default
+    self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # Default
+
+    # Tkinter variables
+    categorization_type = self.data_loaded[&#34;categorization_type&#34;]
+    is_including_missing_data = self.data_loaded[&#34;is_including_missing_data&#34;]
+
+    logging_utils.format_and_log_data_for_debug(logger, vars(self))
+    logger.info(&#34;Data structures populated successfully&#34;)
+
+    # Return Tkinter variables back to the UI class
+    return (categorization_type, is_including_missing_data)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.populate_data_structures_on_new_project"><code class="name flex">
+<span>def <span class="ident">populate_data_structures_on_new_project</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Populates data structures for a new project after data has been successfully imported into <code>raw_data</code>.
+Resets <code>currently_displayed_category</code> to "Uncategorized" and <code>fuzzy_match_results</code> to no results.</p>
+<p>See class docstring for an overview these class attributes and their purpose.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def populate_data_structures_on_new_project(self) -&gt; None:
+    &#34;&#34;&#34;
+    Populates data structures for a new project after data has been successfully imported into `raw_data`.
+    Resets `currently_displayed_category` to &#34;Uncategorized&#34; and `fuzzy_match_results` to no results.
+
+    See class docstring for an overview these class attributes and their purpose.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Populating data structures&#34;)
+
+    # Processed data slices and metrics
+    self.preprocessed_responses = pd.DataFrame(
+        self.raw_data.iloc[:, 1:].map(self.preprocess_text)
+    )
+    uuids = self.raw_data.iloc[:, 0]
+    self.response_columns = list(self.preprocessed_responses.columns)
+    self.stacked_responses = self.preprocessed_responses.stack(dropna=False).reset_index(
+        drop=True
+    )
+    self.response_counts = self.stacked_responses.value_counts(dropna=False).to_dict()
+
+    # Main categorized data structures
+    self.categorized_dict = {&#34;Uncategorized&#34;: set(self.stacked_responses.dropna())}
+    self.categorized_data = pd.concat([uuids, self.preprocessed_responses], axis=1)
+    for response_column in self.response_columns:
+        # Everything starts uncategorized
+        self.categorized_data[f&#34;Uncategorized_{response_column}&#34;] = 1
+    self.handle_missing_data()
+
+    # Other app data
+    self.currently_displayed_category = &#34;Uncategorized&#34;  # Default
+    self.fuzzy_match_results = pd.DataFrame(columns=[&#34;response&#34;, &#34;score&#34;])  # Default
+
+    logging_utils.format_and_log_data_for_debug(logger, vars(self))
+    logger.info(&#34;Data structures populated successfully&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.preprocess_text"><code class="name flex">
+<span>def <span class="ident">preprocess_text</span></span>(<span>self, text: Any) ‑> str | pandas._libs.missing.NAType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts the input to a lowercase string, removes special characters, and normalizes whitespace.
+Preserves missing data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>text</code></strong> :&ensp;<code>Any</code></dt>
+<dd>The text to be preprocessed.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>str | NAType: The preprocessed text, or pd.NA if the input is missing data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def preprocess_text(self, text: Any) -&gt; str | NAType:
+    &#34;&#34;&#34;
+    Converts the input to a lowercase string, removes special characters, and normalizes whitespace.
+    Preserves missing data.
+
+    Args:
+        text (Any): The text to be preprocessed.
+
+    Returns:
+        str | NAType: The preprocessed text, or pd.NA if the input is missing data.
+    &#34;&#34;&#34;
+
+    if pd.isna(text):
+        return pd.NA
+
+    text = str(text).lower()
+    # Convert one or more of any kind of space to single space
+    text = re.sub(r&#34;\s+&#34;, &#34; &#34;, text)
+    # Remove special characters
+    text = re.sub(r&#34;[^a-z0-9\s]&#34;, &#34;&#34;, text)
+    text = text.strip()
+    return text</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.process_fuzzy_match_results"><code class="name flex">
+<span>def <span class="ident">process_fuzzy_match_results</span></span>(<span>self, threshold_value: float) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Filters the fuzzy match results based on the provided threshold value, and aggregates the results by score and count.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>threshold_value</code></strong> :&ensp;<code>float</code></dt>
+<dd>The threshold value for filtering the fuzzy match results by score.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pd.DataFrame</code></dt>
+<dd>A DataFrame containing the processed fuzzy match results.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def process_fuzzy_match_results(self, threshold_value: float) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Filters the fuzzy match results based on the provided threshold value, and aggregates the results by score and count.
+
+    Args:
+        threshold_value (float): The threshold value for filtering the fuzzy match results by score.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the processed fuzzy match results.
+    &#34;&#34;&#34;
+
+    # Filter the fuzzy match results based on the threshold
+    filtered_results = self.fuzzy_match_results[
+        self.fuzzy_match_results[&#34;score&#34;] &gt;= threshold_value
+    ]
+
+    aggregated_results = (
+        filtered_results.groupby(&#34;response&#34;)
+        .agg(
+            score=pd.NamedAgg(column=&#34;score&#34;, aggfunc=&#34;max&#34;),
+            count=pd.NamedAgg(column=&#34;response&#34;, aggfunc=&#34;count&#34;),
+        )
+        .reset_index()
+    )
+
+    return aggregated_results.sort_values(by=[&#34;score&#34;, &#34;count&#34;], ascending=[False, False])</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.recategorize_responses"><code class="name flex">
+<span>def <span class="ident">recategorize_responses</span></span>(<span>self, responses: set[str], categories: set[str]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles the logic for recategorizing selected responses into selected categories.</p>
+<p>This is used to change the categories of already categorized responses.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>responses</code></strong> :&ensp;<code>set[str]</code></dt>
+<dd>A set of responses to be recategorized.</dd>
+<dt><strong><code>categories</code></strong> :&ensp;<code>set[str]</code></dt>
+<dd>A set of new categories into which the responses will be categorized.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def recategorize_responses(self, responses: set[str], categories: set[str]) -&gt; None:
+    &#34;&#34;&#34;
+    Handles the logic for recategorizing selected responses into selected categories.
+
+    This is used to change the categories of already categorized responses.
+
+    Args:
+        responses (set[str]): A set of responses to be recategorized.
+        categories (set[str]): A set of new categories into which the responses will be categorized.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Recategorizing responses&#34;)
+    for response_column in self.response_columns:
+        self.remove_responses_from_category(
+            responses, self.currently_displayed_category, response_column
+        )
+
+        for category in categories:
+            self.add_responses_to_category(responses, category, response_column)
+    logger.info(&#34;Responses recategorized&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.remove_responses_from_category"><code class="name flex">
+<span>def <span class="ident">remove_responses_from_category</span></span>(<span>self, responses: set[str], category: str, response_column: str) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles removing responses from a category in the data. Used by <code>categorize_responses</code> and <code>recategorize_responses</code> methods.</p>
+<p>Sets the value to 0 in <code>categorized_data</code> for the specified category associated with the specified response column,
+for each row in the response column that matches the provided set of responses.
+Also removes the responses from the category in <code>categorized_dict</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>responses</code></strong> :&ensp;<code>set[str]</code></dt>
+<dd>A set of responses to be removed from the category.</dd>
+<dt><strong><code>category</code></strong> :&ensp;<code>str</code></dt>
+<dd>The category from which the responses will be removed.</dd>
+<dt><strong><code>response_column</code></strong> :&ensp;<code>str</code></dt>
+<dd>The response column where the responses are located.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_responses_from_category(
+    self, responses: set[str], category: str, response_column: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Handles removing responses from a category in the data. Used by `categorize_responses` and `recategorize_responses` methods.
+
+    Sets the value to 0 in `categorized_data` for the specified category associated with the specified response column,
+    for each row in the response column that matches the provided set of responses.
+    Also removes the responses from the category in `categorized_dict`.
+
+    Args:
+        responses (set[str]): A set of responses to be removed from the category.
+        category (str): The category from which the responses will be removed.
+        response_column (str): The response column where the responses are located.
+    &#34;&#34;&#34;
+
+    mask = self.categorized_data[response_column].isin(responses)
+    self.categorized_data.loc[mask, f&#34;{category}_{response_column}&#34;] = 0
+    self.categorized_dict[category] -= responses</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.rename_category"><code class="name flex">
+<span>def <span class="ident">rename_category</span></span>(<span>self, old_category: str, new_category: str) ‑> Tuple[bool, str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Renames an existing category to a new name in <code>categorized_data</code> and <code>categorized_dict</code>.</p>
+<p>In <code>categorized_data</code>, renames all instances of that category column for each response column.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>old_category</code></strong> :&ensp;<code>str</code></dt>
+<dd>The current name of the category to be renamed.</dd>
+<dt><strong><code>new_category</code></strong> :&ensp;<code>str</code></dt>
+<dd>The new name for the category.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[bool, str]</code></dt>
+<dd>A tuple containing a boolean indicating success or failure, and a message detailing the operation's outcome.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rename_category(self, old_category: str, new_category: str) -&gt; Tuple[bool, str]:
+    &#34;&#34;&#34;
+    Renames an existing category to a new name in `categorized_data` and `categorized_dict`.
+
+    In `categorized_data`, renames all instances of that category column for each response column.
+
+    Args:
+        old_category (str): The current name of the category to be renamed.
+        new_category (str): The new name for the category.
+
+    Returns:
+        Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+    &#34;&#34;&#34;
+
+    logger.info(
+        f&#39;Renaming category. old_category: &#34;{old_category}&#34;, new_category: &#34;{new_category}&#34;&#39;
+    )
+
+    if new_category in self.categorized_dict.keys():
+        message = &#34;A category with this name already exists.&#34;
+        logger.warning(message)
+        logger.debug(f&#34;categorized_dict.keys:\n{self.categorized_dict.keys()}&#34;)
+        return False, message
+
+    for response_column in self.response_columns:
+        self.categorized_data.rename(
+            columns={f&#34;{old_category}_{response_column}&#34;: f&#34;{new_category}_{response_column}&#34;},
+            inplace=True,
+        )
+    self.categorized_dict[new_category] = self.categorized_dict.pop(old_category)
+
+    message = &#34;Category renamed successfully&#34;
+    logger.info(message)
+    return True, message</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.save_project"><code class="name flex">
+<span>def <span class="ident">save_project</span></span>(<span>self, file_path: str, user_interface_variables_to_add: dict[str, typing.Any]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Saves the current project's relevant class attributes to a JSON file, including user interface variables.</p>
+<p>See class docstring for an overview the class attributes and their purpose.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path where the project JSON file will be saved.</dd>
+<dt><strong><code>user_interface_variables_to_add</code></strong> :&ensp;<code>dict[str, Any]</code></dt>
+<dd>Additional variables from the user interface to be included in the saved project data.
+A dictionary of variable names to values.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_project(self, file_path: str, user_interface_variables_to_add: dict[str, Any]) -&gt; None:
+    &#34;&#34;&#34;
+    Saves the current project&#39;s relevant class attributes to a JSON file, including user interface variables.
+
+    See class docstring for an overview the class attributes and their purpose.
+
+    Args:
+        file_path (str): The path where the project JSON file will be saved.
+        user_interface_variables_to_add (dict[str, Any]): Additional variables from the user interface to be included in the saved project data.
+            A dictionary of variable names to values.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Preparing to save project data&#34;)
+
+    data_to_save = {
+        &#34;raw_data&#34;: self.raw_data.to_json(),
+        &#34;preprocessed_responses&#34;: self.preprocessed_responses.to_json(),
+        &#34;response_columns&#34;: self.response_columns,
+        &#34;categorized_data&#34;: self.categorized_data.to_json(),
+        &#34;response_counts&#34;: {
+            k if k is not pd.NA else None: v for k, v in self.response_counts.items()
+        },
+        &#34;categorized_dict&#34;: {k: list(v) for k, v in self.categorized_dict.items()},
+    }
+    data_to_save.update(user_interface_variables_to_add)
+
+    # Pandas NAType is not JSON serializable
+    def _none_handler(o):
+        if pd.isna(o):
+            return None
+
+    logger.info(&#34;Calling file handler to save project data&#34;)
+    self.file_handler.save_data_to_json(file_path, data_to_save, handler=_none_handler)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.sum_response_counts"><code class="name flex">
+<span>def <span class="ident">sum_response_counts</span></span>(<span>self, responses: set) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sums the counts of a set of responses in the dataset.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>responses</code></strong> :&ensp;<code>set</code></dt>
+<dd>A set of responses whose counts are to be summed.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>The total count of the specified responses.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sum_response_counts(self, responses: set) -&gt; int:
+    &#34;&#34;&#34;
+    Sums the counts of a set of responses in the dataset.
+
+    Args:
+        responses (set): A set of responses whose counts are to be summed.
+
+    Returns:
+        int: The total count of the specified responses.
+    &#34;&#34;&#34;
+
+    return sum(self.response_counts.get(response, 0) for response in responses)</code></pre>
+</details>
+</dd>
+<dt id="src.data_model.DataModel.validate_loaded_json"><code class="name flex">
+<span>def <span class="ident">validate_loaded_json</span></span>(<span>self, loaded_json_data: dict[str, typing.Any], expected_data: dict[str, typing.Any]) ‑> Tuple[bool, str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Validates the structure of loaded JSON data against the expected structure,
+ensuring that it's compatible with the app and allows the user to continue with their session.</p>
+<p>Handles unexpected and missing variables, as well as incorrect variable types.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>loaded_json_data</code></strong> :&ensp;<code>dict[str, Any]</code></dt>
+<dd>The loaded JSON data to be validated. A dictionary of variable names to values.</dd>
+<dt><strong><code>expected_data</code></strong> :&ensp;<code>dict[str, Any]</code></dt>
+<dd>The expected structure of the JSON data. A dictionary of variable names to types.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[bool, str]</code></dt>
+<dd>A tuple containing a boolean indicating success or failure, and a message detailing the operation's outcome.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_loaded_json(
+    self, loaded_json_data: dict[str, Any], expected_data: dict[str, Any]
+) -&gt; Tuple[bool, str]:
+    &#34;&#34;&#34;
+    Validates the structure of loaded JSON data against the expected structure,
+    ensuring that it&#39;s compatible with the app and allows the user to continue with their session.
+
+    Handles unexpected and missing variables, as well as incorrect variable types.
+
+    Args:
+        loaded_json_data (dict[str, Any]): The loaded JSON data to be validated. A dictionary of variable names to values.
+        expected_data (dict[str, Any]): The expected structure of the JSON data. A dictionary of variable names to types.
+
+    Returns:
+        Tuple[bool, str]: A tuple containing a boolean indicating success or failure, and a message detailing the operation&#39;s outcome.
+    &#34;&#34;&#34;
+
+    # TODO: This needs updating to use more specific type checking, potentially with pydantic.
+    # NOTE: self.expected_json_structure is passed in. This needs to be updated when the data structure changes.
+    logger.debug(&#34;Validating project data&#34;)
+
+    if not loaded_json_data:
+        logger.debug(f&#34;loaded_json_data:\n{loaded_json_data}&#34;)
+        return False, &#34;Loaded project data is empty&#34;
+
+    # Unexpected variabes
+    if unexpected_keys := set(loaded_json_data.keys()) - set(expected_data.keys()):
+        logger.debug(
+            f&#34;&#34;&#34;loaded_json_data.keys:\n{loaded_json_data.keys()}\n
+            expected_data.keys:\n{expected_data.keys()}&#34;&#34;&#34;
+        )
+        return False, f&#34;Unexpected variables loaded: {&#39;, &#39;.join(unexpected_keys)}&#34;
+
+    for expected_key, expected_type in expected_data.items():
+        # Missing variables
+        if expected_key not in loaded_json_data:
+            logger.debug(
+                f&#34;&#34;&#34;expected_key:\n{expected_key}\n
+                loaded_json_data.keys:\n{loaded_json_data.keys()}&#34;&#34;&#34;
+            )
+            return False, f&#34;Variable &#39;{expected_key}&#39; is missing from loaded project data&#34;
+
+        # Wrong variable type
+        # skip the bool case (e.g. `is_including_missing_data`) since its value would be evaluated in the if statement
+        if expected_type is not bool and not loaded_json_data[expected_key]:
+            logger.debug(f&#34;{expected_key}:\n{loaded_json_data[expected_key]}&#34;)
+            return False, f&#34;Variable &#39;{expected_key}&#39; is empty in loaded project data&#34;
+
+        if not isinstance(loaded_json_data[expected_key], expected_type):
+            logger.debug(
+                f&#34;&#34;&#34;Expected {expected_key}:{expected_type}\n
+                Received {expected_key}:{type(loaded_json_data[expected_key])}&#34;&#34;&#34;
+            )
+            return (
+                False,
+                f&#34;Variable &#39;{expected_key}&#39; in loaded project data contains values that are not of expected type {expected_type.__name__}.&#34;,
+            )
+
+    logger.debug(&#34;Project data validated successfully&#34;)
+    return True, &#34;Loaded JSON validated successfully&#34;</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src" href="index.html">src</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="src.data_model.DataModel" href="#src.data_model.DataModel">DataModel</a></code></h4>
+<ul class="">
+<li><code><a title="src.data_model.DataModel.add_responses_to_category" href="#src.data_model.DataModel.add_responses_to_category">add_responses_to_category</a></code></li>
+<li><code><a title="src.data_model.DataModel.calculate_percentage" href="#src.data_model.DataModel.calculate_percentage">calculate_percentage</a></code></li>
+<li><code><a title="src.data_model.DataModel.categorize_responses" href="#src.data_model.DataModel.categorize_responses">categorize_responses</a></code></li>
+<li><code><a title="src.data_model.DataModel.create_category" href="#src.data_model.DataModel.create_category">create_category</a></code></li>
+<li><code><a title="src.data_model.DataModel.delete_categories" href="#src.data_model.DataModel.delete_categories">delete_categories</a></code></li>
+<li><code><a title="src.data_model.DataModel.export_data_to_csv" href="#src.data_model.DataModel.export_data_to_csv">export_data_to_csv</a></code></li>
+<li><code><a title="src.data_model.DataModel.file_import_on_append_data" href="#src.data_model.DataModel.file_import_on_append_data">file_import_on_append_data</a></code></li>
+<li><code><a title="src.data_model.DataModel.file_import_on_load_project" href="#src.data_model.DataModel.file_import_on_load_project">file_import_on_load_project</a></code></li>
+<li><code><a title="src.data_model.DataModel.file_import_on_new_project" href="#src.data_model.DataModel.file_import_on_new_project">file_import_on_new_project</a></code></li>
+<li><code><a title="src.data_model.DataModel.format_categories_metrics" href="#src.data_model.DataModel.format_categories_metrics">format_categories_metrics</a></code></li>
+<li><code><a title="src.data_model.DataModel.fuzzy_match" href="#src.data_model.DataModel.fuzzy_match">fuzzy_match</a></code></li>
+<li><code><a title="src.data_model.DataModel.fuzzy_match_logic" href="#src.data_model.DataModel.fuzzy_match_logic">fuzzy_match_logic</a></code></li>
+<li><code><a title="src.data_model.DataModel.get_responses_and_counts" href="#src.data_model.DataModel.get_responses_and_counts">get_responses_and_counts</a></code></li>
+<li><code><a title="src.data_model.DataModel.handle_missing_data" href="#src.data_model.DataModel.handle_missing_data">handle_missing_data</a></code></li>
+<li><code><a title="src.data_model.DataModel.initialize_data_structures" href="#src.data_model.DataModel.initialize_data_structures">initialize_data_structures</a></code></li>
+<li><code><a title="src.data_model.DataModel.populate_data_structures_on_append_data" href="#src.data_model.DataModel.populate_data_structures_on_append_data">populate_data_structures_on_append_data</a></code></li>
+<li><code><a title="src.data_model.DataModel.populate_data_structures_on_load_project" href="#src.data_model.DataModel.populate_data_structures_on_load_project">populate_data_structures_on_load_project</a></code></li>
+<li><code><a title="src.data_model.DataModel.populate_data_structures_on_new_project" href="#src.data_model.DataModel.populate_data_structures_on_new_project">populate_data_structures_on_new_project</a></code></li>
+<li><code><a title="src.data_model.DataModel.preprocess_text" href="#src.data_model.DataModel.preprocess_text">preprocess_text</a></code></li>
+<li><code><a title="src.data_model.DataModel.process_fuzzy_match_results" href="#src.data_model.DataModel.process_fuzzy_match_results">process_fuzzy_match_results</a></code></li>
+<li><code><a title="src.data_model.DataModel.recategorize_responses" href="#src.data_model.DataModel.recategorize_responses">recategorize_responses</a></code></li>
+<li><code><a title="src.data_model.DataModel.remove_responses_from_category" href="#src.data_model.DataModel.remove_responses_from_category">remove_responses_from_category</a></code></li>
+<li><code><a title="src.data_model.DataModel.rename_category" href="#src.data_model.DataModel.rename_category">rename_category</a></code></li>
+<li><code><a title="src.data_model.DataModel.save_project" href="#src.data_model.DataModel.save_project">save_project</a></code></li>
+<li><code><a title="src.data_model.DataModel.sum_response_counts" href="#src.data_model.DataModel.sum_response_counts">sum_response_counts</a></code></li>
+<li><code><a title="src.data_model.DataModel.validate_loaded_json" href="#src.data_model.DataModel.validate_loaded_json">validate_loaded_json</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

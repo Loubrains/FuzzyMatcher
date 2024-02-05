@@ -59,7 +59,45 @@ python src/main.py
   - Accepts only `.json` files.
   - These files must have been previously saved from this app.
 
-# To do
+# Documentation
+
+The HTML documentation for this project is generated with `pdoc3`.
+You can view it by opening the files located in the `docs` directory with your web browser.
+
+To generate the docs, first set the Python path to include this project directory and the scripts directory:
+
+```powershell
+$env:PYTHONPATH = "path\to\project\directory"
+$env:PYTHONPATH += "path\to\project\directory\src"
+```
+
+Then generate the docs with the following command:
+
+```powershell
+pdoc --html --output-dir docs --force src
+```
+
+# Tests
+
+To run the test suite, enter the following command in the project root directory:
+
+```powershell
+pytest
+```
+
+You can run tests in a specific file or directory by providing the path:
+
+```powershell
+pytest tests/test_specific_module.py
+```
+
+For more verbose output, use the -v flag:
+
+```powershell
+pytest -v
+```
+
+# Future developments
 
 - Implement the ability to switch back to multi from single categorization mode - spit warning "can't go back"
 - Enable sorting results by different dimensions.

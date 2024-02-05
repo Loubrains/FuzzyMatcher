@@ -1,0 +1,2217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>src.controller API documentation</title>
+<meta name="description" content="This module provides a `Controller` class for the FuzzyMatcher application …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>src.controller</code></h1>
+</header>
+<section id="section-intro">
+<p>This module provides a <code><a title="src.controller.Controller" href="#src.controller.Controller">Controller</a></code> class for the FuzzyMatcher application.</p>
+<p>Serves as the central coordinator for the Fuzzy Matcher application, bridging the user interface and the data model.
+It manages user interactions, delegating data processing tasks to the data model, and uses data served by the data model to update the UI.</p>
+<p>Key functionalities:
+- Setting up UI bindings and initiating the application loop.
+- Handling the fuzzy match logic based on user inputs.
+- Categorizing and recategorizing responses based on user selections.
+- Creating, renaming, and deleting categories.
+- Project management, such as creating a new project, loading an existing project, appending data,
+saving projects, and exporting data to CSV files.
+- Refreshing and updating different components of the UI based on data model changes.</p>
+<p>Main dependencies:
+- <code>fuzzy_ui</code>: The user interface module from this project.
+- <code>data_model</code>: The data model module from this project.</p>
+<p>Author: Louie Atkins-Turkish (louie@tapestryresearch.com)</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+This module provides a `Controller` class for the FuzzyMatcher application.
+
+Serves as the central coordinator for the Fuzzy Matcher application, bridging the user interface and the data model.
+It manages user interactions, delegating data processing tasks to the data model, and uses data served by the data model to update the UI.
+
+Key functionalities:
+    - Setting up UI bindings and initiating the application loop.
+    - Handling the fuzzy match logic based on user inputs.
+    - Categorizing and recategorizing responses based on user selections.
+    - Creating, renaming, and deleting categories.
+    - Project management, such as creating a new project, loading an existing project, appending data, 
+        saving projects, and exporting data to CSV files.
+    - Refreshing and updating different components of the UI based on data model changes.
+
+Main dependencies:
+    - `fuzzy_ui`: The user interface module from this project.
+    - `data_model`: The data model module from this project.
+
+Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
+&#34;&#34;&#34;
+
+import logging
+import logging_utils
+from typing import Callable, Tuple
+from fuzzy_ui import FuzzyUI
+from data_model import DataModel
+
+logger = logging.getLogger(__name__)
+
+
+class Controller:
+    &#34;&#34;&#34;
+    The main controller class that acts as an intermediary between the user interface (UI) and the data model.
+    It handles user interactions, delegates data processing tasks to the data model, and updates the UI.
+
+    Attributes:
+        - `user_interface`: An instance of the `FuzzyUI` class to manage the user interface.
+        - `data_model`: An instance of the `DataModel` class to manage and process the data.
+
+    Methods:
+        - `setup_UI_bindings`: Binds UI components to their respective handler functions.
+        - `run`: Starts the main loop of the application.
+        - `fuzzy_match_logic`: Handles the logic for initiating a fuzzy match based on user input.
+        - `categorize_selected_responses`: Categorizes user-selected responses into selected categories.
+        - `recategorize_selected_responses`: Recategorizes user-selected responses into new categories.
+        - `create_category`: Handles the creation of a new category based on user input.
+        - `rename_category`: Handles the renaming of an existing category based on user input.
+        - `on_rename_category_entry`: Finalizes the renaming of a category and updates the UI and data model.
+        - `delete_categories`: Handles the deletion of user-selected categories.
+        - `new_project`: Initiates the process of starting a new project.
+        - `populate_data_structures_on_new_project`: Populates data structures for a new project.
+        - `ask_categorization_type`: Prompts the user to select a categorization type for the new project.
+        - `load_project`: Initiates the process of loading an existing project.
+        - `populate_data_structures_on_load_project`: Populates data structures when loading a project.
+        - `append_data_logic`: Initiates the process of appending data to the current project.
+        - `file_import_logic`: Handles the logic for importing files for new, load, or append data operations.
+        - `save_project`: Handles the process of saving the current project to a file.
+        - `export_data_to_csv`: Handles the process of exporting the current project&#39;s data to a CSV file.
+        - `refresh_treeviews`: Refreshes the display of fuzzy match results, categories, and category results in the UI.
+        - `display_fuzzy_match_results`: Displays the results of fuzzy matching in the UI.
+        - `on_display_selected_category_results`: Handles the selection and display of category results in the UI.
+        - `display_category_results`: Displays the results of a specific category in the UI.
+        - `display_categories`: Displays the list of categories and related metrics in the UI.
+    &#34;&#34;&#34;
+
+    def __init__(self, user_interface: FuzzyUI, data_model: DataModel) -&gt; None:
+        &#34;&#34;&#34;
+        Sets up UI bindings and triggers initial UI display functions.
+
+        Args:
+            user_interface (FuzzyUI): An instance of the FuzzyUI class to manage the user interface.
+            data_model (DataModel): An instance of the DataModel class to manage and process the data.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Initializing controller&#34;)
+
+        self.user_interface = user_interface
+        self.data_model = data_model
+
+        self.setup_UI_bindings()
+
+        self.user_interface.after(100, self.display_categories)
+        self.user_interface.after(100, self.display_category_results)
+
+    def setup_UI_bindings(self) -&gt; None:
+        &#34;&#34;&#34;
+        Binds UI components to their respective handler functions defined in this controller.
+        &#34;&#34;&#34;
+
+        self.user_interface.match_string_entry.bind(
+            &#34;&lt;Return&gt;&#34;, lambda event: self.fuzzy_match_logic()
+        )
+        self.user_interface.threshold_slider.bind(
+            &#34;&lt;ButtonRelease-1&gt;&#34;, lambda val: self.display_fuzzy_match_results()
+        )
+        self.user_interface.match_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.fuzzy_match_logic())
+        self.user_interface.categorize_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.categorize_selected_responses()
+        )
+        self.user_interface.display_category_results_for_selected_category_button.bind(
+            &#34;&lt;Button-1&gt;&#34;,
+            lambda event: self.on_display_selected_category_results(),
+        )
+        self.user_interface.recategorize_selected_responses_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.recategorize_selected_responses()
+        )
+        self.user_interface.new_category_entry.bind(
+            &#34;&lt;Return&gt;&#34;, lambda event: self.create_category()
+        )
+        self.user_interface.add_category_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.create_category()
+        )
+        self.user_interface.rename_category_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.rename_category()
+        )
+        self.user_interface.delete_categories_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.delete_categories()
+        )
+        self.user_interface.is_including_missing_data.trace_add(
+            &#34;write&#34;, lambda *args: self.display_categories()
+        )  # Using trace_add() to make sure it calls the command only after setting the bool value.
+        self.user_interface.new_project_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.new_project())
+        self.user_interface.load_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.load_project())
+        self.user_interface.append_data_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.append_data_logic()
+        )
+        self.user_interface.save_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.save_project())
+        self.user_interface.export_csv_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.export_data_to_csv()
+        )
+
+    def run(self) -&gt; None:
+        &#34;&#34;&#34;
+        Starts the main loop of the application. This method should be called to start the user interface
+        and make the application responsive to user interactions.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Starting the app mainloop&#34;)
+        self.user_interface.mainloop()
+
+    ### ----------------------- Main Functionality ----------------------- ###
+    def fuzzy_match_logic(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the string entered by the user, initiates the fuzzy matching process in the data model,
+        and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting string entry&#34;)
+        string_to_match = self.user_interface.match_string_entry.get()
+        logger.info(f&#39;Calling data model to fuzzy match: &#34;{string_to_match}&#34;&#39;)
+        self.data_model.fuzzy_match_logic(string_to_match)
+        self.display_fuzzy_match_results()
+
+    def categorize_selected_responses(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves user-selected responses and categories, initiates the categorization process in the data model,
+        and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting selected categories and responses&#34;)
+        responses = self.user_interface.selected_match_responses()
+        categories = self.user_interface.selected_categories()
+        categorization_type = self.user_interface.categorization_type.get()
+
+        if not categories or not responses:
+            logger.warning(&#34;Both a category and response must be selected to categorize&#34;)
+            logger.debug(f&#34;selected categories:{categories}, selected responses:{responses}&#34;)
+            self.user_interface.show_warning(
+                &#34;Please select both a category and responses to categorize.&#34;
+            )
+            return
+
+        if categorization_type == &#34;Single&#34; and len(categories) &gt; 1:
+            logger.warning(&#34;Only one category can be selected in Single Categorization mode.&#34;)
+            logger.debug(f&#34;selected categories:{categories}&#34;)
+            self.user_interface.show_warning(
+                &#34;Only one category can be selected in Single Categorization mode.&#34;,
+            )
+            return
+
+        logger.info(&#34;Calling data model to categorize selected responses into selected categories&#34;)
+        self.data_model.categorize_responses(responses, categories, categorization_type)
+
+        self.refresh_treeviews()
+        self.user_interface.update_treeview_selections(
+            selected_categories=categories,
+            selected_responses=responses,
+        )
+
+    def recategorize_selected_responses(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves user-selected responses and new categories, initiates the process of recategorizing the responses in the data model,
+        and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting selected categories and responses&#34;)
+        responses, categories = (
+            self.user_interface.selected_category_responses(),
+            self.user_interface.selected_categories(),
+        )
+
+        if not categories or not responses:
+            logger.warning(
+                &#34;Both a category and response from the category results display must be selected to categorize&#34;
+            )
+            logger.debug(f&#34;selected categories:{categories}, selected responses:{responses}&#34;)
+            self.user_interface.show_warning(
+                &#34;Please select both a category and responses in the category results display to categorize.&#34;,
+            )
+            return
+
+        if self.user_interface.categorization_type.get() == &#34;Single&#34; and len(categories) &gt; 1:
+            logger.warning(&#34;Only one category can be selected in Single Categorization mode.&#34;)
+            logger.debug(f&#34;selected categories:{categories}&#34;)
+            self.user_interface.show_warning(
+                &#34;Only one category can be selected in Single Categorization mode.&#34;,
+            )
+            return
+
+        logger.info(
+            &#34;Calling data model to recategorize selected responses into selected categories&#34;
+        )
+        self.data_model.recategorize_responses(responses, categories)
+
+        self.refresh_treeviews()
+        self.user_interface.update_treeview_selections(
+            selected_categories=categories,
+            selected_responses=responses,
+        )
+
+    def create_category(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the new category name entered by the user, initiates the process of creating a new category in the data model,
+        and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting new category entry&#34;)
+        new_category = self.user_interface.new_category_entry.get()
+
+        if not new_category:
+            message = &#34;Category name cannot be empty&#34;
+            logger.warning(message)
+            logging_utils.format_and_log_data_for_debug(logger, {&#34;new_category&#34;: new_category})
+            return
+
+        logger.info(f&#39;Calling data model to create new category: &#34;{new_category}&#34;&#39;)
+        success, message = self.data_model.create_category(new_category)
+
+        if success:
+            self.display_categories()
+        else:
+            self.user_interface.show_error(message)
+
+    def rename_category(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the selected category from the UI, prompts the user to enter a new category name,
+        initiates the process of renaming the category in the data model, and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting selected categories&#34;)
+        selected_categories = self.user_interface.selected_categories()
+
+        if len(selected_categories) != 1:
+            logger.warning(&#34;One category to be renamed has not been selected&#34;)
+            logger.debug(f&#34;selected_categories: {selected_categories}&#34;)
+            self.user_interface.show_warning(&#34;Please select one category to rename.&#34;)
+            return
+
+        if &#34;Uncategorized&#34; in selected_categories:
+            logger.warning(&#39;Category &#34;Uncategorized&#34; cannot be renamed&#39;)
+            logger.debug(f&#34;selected_categories: {selected_categories}&#34;)
+            self.user_interface.show_warning(
+                &#39;You may not rename the category &#34;Uncategorized&#34;.&#39;,
+            )
+            return
+
+        old_category = selected_categories.pop()
+
+        # Create popup
+        logger.info(&#34;Calling UI to create rename popup&#34;)
+        self.user_interface.create_rename_category_popup(old_category)
+
+        # Bind widgets to commands
+        self.user_interface.ok_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.on_rename_category_entry()
+        )
+        self.user_interface.rename_category_entry.bind(
+            &#34;&lt;Return&gt;&#34;, lambda event: self.on_rename_category_entry()
+        )
+        self.user_interface.cancel_button.bind(
+            &#34;&lt;Button-1&gt;&#34;,
+            lambda event: self.user_interface.rename_dialog_popup.destroy(),
+        )
+
+    def on_rename_category_entry(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the new category name entered by the user and finalizes the renaming of the category in the data model.
+        Closes the rename category popup and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        old_category = self.user_interface.selected_categories().pop()
+        logger.info(&#34;Getting new category entry&#34;)
+        new_category = self.user_interface.rename_category_entry.get()
+
+        if not new_category:
+            logger.error(&#34;New category entry must be non-empty&#34;)
+            logger.debug(f&#39;new_category: &#34;{new_category}&#34;&#39;)
+            self.user_interface.show_error(&#34;Please enter a non-empty category name.&#34;)
+            return
+
+        logger.info(
+            f&#34;Calling data model to rename category. Old category: {old_category}, new category: {new_category}&#34;
+        )
+        success, message = self.data_model.rename_category(old_category, new_category)
+
+        if success:
+            self.user_interface.rename_dialog_popup.destroy()
+            self.display_categories()
+            self.display_category_results()
+        else:
+            self.user_interface.show_error(message)
+
+    def delete_categories(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves user-selected categories and initiates the process of deleting those categories in the data model.
+        After confirmation, updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting selected categories&#34;)
+        selected_categories = self.user_interface.selected_categories()
+
+        if not selected_categories:
+            logger.warning(&#34;No categories selected to delete&#34;)
+            logger.debug(f&#34;Selected categories: {selected_categories}&#34;)
+            self.user_interface.show_warning(&#34;Please select categories to delete.&#34;)
+            return
+
+        if &#34;Uncategorized&#34; in selected_categories:
+            logger.warning(&#39;Category &#34;Uncategorized&#34; cannot be deleted&#39;)
+            logger.debug(f&#34;selected_categories: {selected_categories}&#34;)
+            self.user_interface.show_warning(
+                &#39;You may not delete the category &#34;Uncategorized&#34;.&#39;,
+            )
+            return
+
+        logger.info(&#34;Calling UI to get confirmation&#34;)
+        if self.user_interface.show_askyesno(
+            &#34;Confirmation&#34;, &#34;Are you sure you want to delete the selected categories?&#34;
+        ):
+            logger.info(
+                f&#34;Category deletion confirmed. Calling data model to delete categories: {selected_categories}&#34;
+            )
+            self.data_model.delete_categories(
+                selected_categories, self.user_interface.categorization_type.get()
+            )
+            self.display_categories()
+            self.display_category_results()
+        else:
+            logger.info(&#34;Category deletion aborted&#34;)
+
+    ### ----------------------- Project Management ----------------------- ###
+    def new_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initiates the process of starting a new project by prompting the user to select a data file.
+        Populates the data structures for the new project and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Starting new project&#34;)
+        try:
+            if self.file_import_logic(
+                file_types=[(&#34;CSV files&#34;, &#34;*.csv&#34;), (&#34;XLSX files&#34;, &#34;*.xlsx&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+                title=&#34;Please select a file containing your dataset&#34;,
+                data_model_method=self.data_model.file_import_on_new_project,
+            ):
+                self.populate_data_structures_on_new_project()
+                self.refresh_treeviews()
+                self.user_interface.show_info(&#34;Data imported successfully&#34;)
+                self.ask_categorization_type()
+                logger.info(&#34;New project setup successfully&#34;)
+
+        except Exception as e:
+            logger.exception(&#34;&#34;)
+            self.user_interface.show_error(f&#34;Failed to initialize new project: {e}&#34;)
+
+    def populate_data_structures_on_new_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Populates data structures in the data model for a new project
+        and resets is_including_missing_data boolian variable in the UI to False.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling data model to populate data structures&#34;)
+        self.data_model.populate_data_structures_on_new_project()
+        logger.info(&#34;Resetting UI variables&#34;)
+        self.user_interface.is_including_missing_data.set(False)
+
+    def ask_categorization_type(self) -&gt; None:
+        &#34;&#34;&#34;
+        Creates a popup to prompts the user to select the categorization type (Single or Multi) for the new project.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling UI to create popup for categorization type&#34;)
+        self.user_interface.create_ask_categorization_type_popup()
+
+    def load_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initiates the process of loading an existing project by prompting the user to select a project JSON file.
+        Populates the data structures for the loaded project and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Starting load project&#34;)
+        try:
+            if self.file_import_logic(
+                file_types=[(&#34;JSON files&#34;, &#34;*.json&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+                title=&#34;Load Project&#34;,
+                data_model_method=self.data_model.file_import_on_load_project,
+            ):
+                self.populate_data_structures_on_load_project()
+                self.user_interface.set_categorization_type_label()
+                self.refresh_treeviews()
+                logger.info(&#34;Project loaded successfully&#34;)
+                self.user_interface.show_info(&#34;Project loaded successfully&#34;)
+
+        except Exception as e:
+            logger.exception(&#34;&#34;)
+            self.user_interface.show_error(f&#34;Failed to load project: {e}&#34;)
+
+    def populate_data_structures_on_load_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Populates data structures in the data model when loading a project JSON file.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling data model to popuate data structures&#34;)
+        (
+            categorization_type,
+            is_including_missing_data,
+        ) = self.data_model.populate_data_structures_on_load_project()
+
+        logger.info(&#34;Setting UI variables&#34;)
+        self.user_interface.categorization_type.set(categorization_type)
+        self.user_interface.is_including_missing_data.set(is_including_missing_data)
+
+    def append_data_logic(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initiates the process of appending data to the current project by prompting the user to select a data file.
+        Populates the data structures for the appended data and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Starting append data&#34;)
+        try:
+            if self.file_import_logic(
+                file_types=[(&#34;CSV files&#34;, &#34;*.csv&#34;), (&#34;XLSX files&#34;, &#34;*.xlsx&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+                title=&#34;Select file containing data to append&#34;,
+                data_model_method=self.data_model.file_import_on_append_data,
+            ):
+                self.data_model.populate_data_structures_on_append_data(
+                    self.user_interface.categorization_type.get()
+                )
+                self.refresh_treeviews()
+                logger.info(&#34;Data appended successfully&#34;)
+                self.user_interface.show_info(&#34;Data appended successfully&#34;)
+        except Exception as e:
+            logger.exception(&#34;&#34;)
+            self.user_interface.show_error(f&#34;Failed to append data: {e}&#34;)
+
+    def file_import_logic(
+        self, file_types: list[Tuple[str, str]], title: str, data_model_method: Callable
+    ) -&gt; bool:
+        &#34;&#34;&#34;
+        Handles the logic for importing files for new, load, or append data operations.
+        Prompts the user to select a file and calls the specified method in the data model to update itself.
+
+        Args:
+            file_types (list[Tuple[str, str]]): A list of file types to be accepted in the file dialog.
+            title (str): The title of the file dialog window.
+            data_model_method (Callable): The method to be called in the data model to update itself after file selection.
+
+        Returns:
+            bool: True if the file import operation was successful, False otherwise.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling UI to get file path&#34;)
+        file_path = self.user_interface.show_open_file_dialog(
+            filetypes=file_types,
+            title=title,
+        )
+
+        if not file_path:
+            logger.info(&#34;No file path selected&#34;)
+            return False
+
+        logger.info(&#34;Calling data model to import file&#34;)
+        success, message = data_model_method(file_path)
+
+        if not success:
+            logger.error(message)
+            self.user_interface.show_error(message)
+            return False
+
+        return True
+
+    def save_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initiates the process of saving the current project variables to a JSON file by prompting the user to select a file location.
+        Calls the data model to save the project data.
+        &#34;&#34;&#34;
+
+        # TODO: Possibly abstract out this method and export_data_to_csv method to inherit from single method?
+        logger.info(&#34;Starting save project&#34;)
+        try:
+            logger.info(&#34;Calling UI to get file path&#34;)
+            if file_path := self.user_interface.show_save_file_dialog(
+                defaultextension=&#34;.json&#34;,
+                filetypes=[(&#34;JSON files&#34;, &#34;*.json&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+                title=&#34;Save Project As&#34;,
+            ):
+                user_interface_variables_to_add = {
+                    &#34;categorization_type&#34;: self.user_interface.categorization_type.get(),
+                    &#34;is_including_missing_data&#34;: self.user_interface.is_including_missing_data.get(),
+                }
+
+                logger.info(&#34;Calling data model to save project&#34;)
+                self.data_model.save_project(file_path, user_interface_variables_to_add)
+                logger.info(&#34;Project saved successfully&#34;)
+                self.user_interface.show_info(&#34;Project saved successfully to:\n\n&#34; + file_path)
+
+            else:
+                logger.info(&#34;No file path selected&#34;)
+
+        except Exception as e:
+            logger.exception(&#34;&#34;)
+            self.user_interface.show_error(f&#34;Failed to save project: {e}&#34;)
+
+    def export_data_to_csv(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initiates the process of exporting the categorized data to a CSV file by prompting the user to select a file location.
+        Calls the data model to export the data.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Starting data export&#34;)
+        try:
+            logger.info(&#34;Calling UI to get file path&#34;)
+            if file_path := self.user_interface.show_save_file_dialog(
+                defaultextension=&#34;.csv&#34;,
+                filetypes=[(&#34;CSV files&#34;, &#34;*.csv&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+                title=&#34;Save As&#34;,
+            ):
+                categorization_type = self.user_interface.categorization_type.get()
+                logger.info(&#34;Calling data model to export data&#34;)
+                self.data_model.export_data_to_csv(file_path, categorization_type)
+                logger.info(&#34;Data exported successfully&#34;)
+                self.user_interface.show_info(&#34;Data exported successfully to:\n\n&#34; + file_path)
+
+            else:
+                logger.info(&#34;No file path selected&#34;)
+
+        except Exception as e:
+            logger.exception(&#34;&#34;)
+            self.user_interface.show_error(f&#34;Failed to export data to csv: {e}&#34;)
+
+    ### ----------------------- UI management ----------------------- ###
+    def refresh_treeviews(self) -&gt; None:
+        &#34;&#34;&#34;
+        Refreshes the display of fuzzy match results, category results, and categories in the UI.
+        &#34;&#34;&#34;
+
+        self.display_fuzzy_match_results()
+        self.display_category_results()
+        self.display_categories()
+
+    def display_fuzzy_match_results(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the fuzzy match threshold from the UI, processes the fuzzy match results in the data model, and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling UI to get fuzzy threshold&#34;)
+        threshold = self.user_interface.threshold_slider.get()
+        logger.info(&#34;Calling data model to process and return fuzzy match results&#34;)
+        processed_results = self.data_model.process_fuzzy_match_results(threshold)
+        logger.info(&#34;Calling UI to display fuzzy match results&#34;)
+        self.user_interface.display_fuzzy_match_results(processed_results)
+
+    def on_display_selected_category_results(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the selected category from the UI, and calls a method to retrieve the data
+        and update the UI with the results of the selected category.
+        Updates `currently_selected_category` to the selected category.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling UI to get selected categories&#34;)
+        selected_categories = self.user_interface.selected_categories()
+
+        if len(selected_categories) == 0:
+            logger.error(&#34;No category selected to display results of&#34;)
+            logger.debug(f&#34;selected categories: {selected_categories}&#34;)
+            self.user_interface.show_error(&#34;No category selected&#34;)
+            return
+
+        if len(selected_categories) &gt; 1:
+            logger.error(&#34;Only one category can be displayed&#34;)
+            logger.debug(f&#34;selected categories: {selected_categories}&#34;)
+            self.user_interface.show_warning(&#34;Please select only one category&#34;)
+            return
+
+        # Assign new currently displayed category
+        new_current_category = selected_categories.pop()
+        logger.info(
+            f&#34;Calling data model to set new currently displayed category: {new_current_category}&#34;
+        )
+        self.data_model.currently_displayed_category = new_current_category
+
+        self.display_category_results()
+
+    def display_category_results(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves `currently_selected_category` and its associated data from the data model, and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling data model to get currently displayed category and data&#34;)
+        category = self.data_model.currently_displayed_category
+        responses_and_counts = self.data_model.get_responses_and_counts(category)
+        logger.info(&#34;Calling UI to display category results&#34;)
+        self.user_interface.display_category_results(category, responses_and_counts)
+
+    def display_categories(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the formatted categories and their metrics from the data model, and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling UI to get is_including_missing_data bool&#34;)
+        is_including_missing_data = self.user_interface.is_including_missing_data.get()
+        logger.info(&#34;Calling data model to format category metrics&#34;)
+        formatted_categories_metrics = self.data_model.format_categories_metrics(
+            is_including_missing_data
+        )
+        logger.info(&#34;Calling UI to display categories and metrics&#34;)
+        self.user_interface.display_categories(formatted_categories_metrics)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="src.controller.Controller"><code class="flex name class">
+<span>class <span class="ident">Controller</span></span>
+<span>(</span><span>user_interface: fuzzy_ui.FuzzyUI, data_model: data_model.DataModel)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The main controller class that acts as an intermediary between the user interface (UI) and the data model.
+It handles user interactions, delegates data processing tasks to the data model, and updates the UI.</p>
+<h2 id="attributes">Attributes</h2>
+<ul>
+<li><code>user_interface</code>: An instance of the <code>FuzzyUI</code> class to manage the user interface.</li>
+<li><code>data_model</code>: An instance of the <code>DataModel</code> class to manage and process the data.</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li><code>setup_UI_bindings</code>: Binds UI components to their respective handler functions.</li>
+<li><code>run</code>: Starts the main loop of the application.</li>
+<li><code>fuzzy_match_logic</code>: Handles the logic for initiating a fuzzy match based on user input.</li>
+<li><code>categorize_selected_responses</code>: Categorizes user-selected responses into selected categories.</li>
+<li><code>recategorize_selected_responses</code>: Recategorizes user-selected responses into new categories.</li>
+<li><code>create_category</code>: Handles the creation of a new category based on user input.</li>
+<li><code>rename_category</code>: Handles the renaming of an existing category based on user input.</li>
+<li><code>on_rename_category_entry</code>: Finalizes the renaming of a category and updates the UI and data model.</li>
+<li><code>delete_categories</code>: Handles the deletion of user-selected categories.</li>
+<li><code>new_project</code>: Initiates the process of starting a new project.</li>
+<li><code>populate_data_structures_on_new_project</code>: Populates data structures for a new project.</li>
+<li><code>ask_categorization_type</code>: Prompts the user to select a categorization type for the new project.</li>
+<li><code>load_project</code>: Initiates the process of loading an existing project.</li>
+<li><code>populate_data_structures_on_load_project</code>: Populates data structures when loading a project.</li>
+<li><code>append_data_logic</code>: Initiates the process of appending data to the current project.</li>
+<li><code>file_import_logic</code>: Handles the logic for importing files for new, load, or append data operations.</li>
+<li><code>save_project</code>: Handles the process of saving the current project to a file.</li>
+<li><code>export_data_to_csv</code>: Handles the process of exporting the current project's data to a CSV file.</li>
+<li><code>refresh_treeviews</code>: Refreshes the display of fuzzy match results, categories, and category results in the UI.</li>
+<li><code>display_fuzzy_match_results</code>: Displays the results of fuzzy matching in the UI.</li>
+<li><code>on_display_selected_category_results</code>: Handles the selection and display of category results in the UI.</li>
+<li><code>display_category_results</code>: Displays the results of a specific category in the UI.</li>
+<li><code>display_categories</code>: Displays the list of categories and related metrics in the UI.</li>
+</ul>
+<p>Sets up UI bindings and triggers initial UI display functions.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>user_interface</code></strong> :&ensp;<code>FuzzyUI</code></dt>
+<dd>An instance of the FuzzyUI class to manage the user interface.</dd>
+<dt><strong><code>data_model</code></strong> :&ensp;<code>DataModel</code></dt>
+<dd>An instance of the DataModel class to manage and process the data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Controller:
+    &#34;&#34;&#34;
+    The main controller class that acts as an intermediary between the user interface (UI) and the data model.
+    It handles user interactions, delegates data processing tasks to the data model, and updates the UI.
+
+    Attributes:
+        - `user_interface`: An instance of the `FuzzyUI` class to manage the user interface.
+        - `data_model`: An instance of the `DataModel` class to manage and process the data.
+
+    Methods:
+        - `setup_UI_bindings`: Binds UI components to their respective handler functions.
+        - `run`: Starts the main loop of the application.
+        - `fuzzy_match_logic`: Handles the logic for initiating a fuzzy match based on user input.
+        - `categorize_selected_responses`: Categorizes user-selected responses into selected categories.
+        - `recategorize_selected_responses`: Recategorizes user-selected responses into new categories.
+        - `create_category`: Handles the creation of a new category based on user input.
+        - `rename_category`: Handles the renaming of an existing category based on user input.
+        - `on_rename_category_entry`: Finalizes the renaming of a category and updates the UI and data model.
+        - `delete_categories`: Handles the deletion of user-selected categories.
+        - `new_project`: Initiates the process of starting a new project.
+        - `populate_data_structures_on_new_project`: Populates data structures for a new project.
+        - `ask_categorization_type`: Prompts the user to select a categorization type for the new project.
+        - `load_project`: Initiates the process of loading an existing project.
+        - `populate_data_structures_on_load_project`: Populates data structures when loading a project.
+        - `append_data_logic`: Initiates the process of appending data to the current project.
+        - `file_import_logic`: Handles the logic for importing files for new, load, or append data operations.
+        - `save_project`: Handles the process of saving the current project to a file.
+        - `export_data_to_csv`: Handles the process of exporting the current project&#39;s data to a CSV file.
+        - `refresh_treeviews`: Refreshes the display of fuzzy match results, categories, and category results in the UI.
+        - `display_fuzzy_match_results`: Displays the results of fuzzy matching in the UI.
+        - `on_display_selected_category_results`: Handles the selection and display of category results in the UI.
+        - `display_category_results`: Displays the results of a specific category in the UI.
+        - `display_categories`: Displays the list of categories and related metrics in the UI.
+    &#34;&#34;&#34;
+
+    def __init__(self, user_interface: FuzzyUI, data_model: DataModel) -&gt; None:
+        &#34;&#34;&#34;
+        Sets up UI bindings and triggers initial UI display functions.
+
+        Args:
+            user_interface (FuzzyUI): An instance of the FuzzyUI class to manage the user interface.
+            data_model (DataModel): An instance of the DataModel class to manage and process the data.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Initializing controller&#34;)
+
+        self.user_interface = user_interface
+        self.data_model = data_model
+
+        self.setup_UI_bindings()
+
+        self.user_interface.after(100, self.display_categories)
+        self.user_interface.after(100, self.display_category_results)
+
+    def setup_UI_bindings(self) -&gt; None:
+        &#34;&#34;&#34;
+        Binds UI components to their respective handler functions defined in this controller.
+        &#34;&#34;&#34;
+
+        self.user_interface.match_string_entry.bind(
+            &#34;&lt;Return&gt;&#34;, lambda event: self.fuzzy_match_logic()
+        )
+        self.user_interface.threshold_slider.bind(
+            &#34;&lt;ButtonRelease-1&gt;&#34;, lambda val: self.display_fuzzy_match_results()
+        )
+        self.user_interface.match_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.fuzzy_match_logic())
+        self.user_interface.categorize_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.categorize_selected_responses()
+        )
+        self.user_interface.display_category_results_for_selected_category_button.bind(
+            &#34;&lt;Button-1&gt;&#34;,
+            lambda event: self.on_display_selected_category_results(),
+        )
+        self.user_interface.recategorize_selected_responses_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.recategorize_selected_responses()
+        )
+        self.user_interface.new_category_entry.bind(
+            &#34;&lt;Return&gt;&#34;, lambda event: self.create_category()
+        )
+        self.user_interface.add_category_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.create_category()
+        )
+        self.user_interface.rename_category_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.rename_category()
+        )
+        self.user_interface.delete_categories_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.delete_categories()
+        )
+        self.user_interface.is_including_missing_data.trace_add(
+            &#34;write&#34;, lambda *args: self.display_categories()
+        )  # Using trace_add() to make sure it calls the command only after setting the bool value.
+        self.user_interface.new_project_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.new_project())
+        self.user_interface.load_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.load_project())
+        self.user_interface.append_data_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.append_data_logic()
+        )
+        self.user_interface.save_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.save_project())
+        self.user_interface.export_csv_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.export_data_to_csv()
+        )
+
+    def run(self) -&gt; None:
+        &#34;&#34;&#34;
+        Starts the main loop of the application. This method should be called to start the user interface
+        and make the application responsive to user interactions.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Starting the app mainloop&#34;)
+        self.user_interface.mainloop()
+
+    ### ----------------------- Main Functionality ----------------------- ###
+    def fuzzy_match_logic(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the string entered by the user, initiates the fuzzy matching process in the data model,
+        and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting string entry&#34;)
+        string_to_match = self.user_interface.match_string_entry.get()
+        logger.info(f&#39;Calling data model to fuzzy match: &#34;{string_to_match}&#34;&#39;)
+        self.data_model.fuzzy_match_logic(string_to_match)
+        self.display_fuzzy_match_results()
+
+    def categorize_selected_responses(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves user-selected responses and categories, initiates the categorization process in the data model,
+        and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting selected categories and responses&#34;)
+        responses = self.user_interface.selected_match_responses()
+        categories = self.user_interface.selected_categories()
+        categorization_type = self.user_interface.categorization_type.get()
+
+        if not categories or not responses:
+            logger.warning(&#34;Both a category and response must be selected to categorize&#34;)
+            logger.debug(f&#34;selected categories:{categories}, selected responses:{responses}&#34;)
+            self.user_interface.show_warning(
+                &#34;Please select both a category and responses to categorize.&#34;
+            )
+            return
+
+        if categorization_type == &#34;Single&#34; and len(categories) &gt; 1:
+            logger.warning(&#34;Only one category can be selected in Single Categorization mode.&#34;)
+            logger.debug(f&#34;selected categories:{categories}&#34;)
+            self.user_interface.show_warning(
+                &#34;Only one category can be selected in Single Categorization mode.&#34;,
+            )
+            return
+
+        logger.info(&#34;Calling data model to categorize selected responses into selected categories&#34;)
+        self.data_model.categorize_responses(responses, categories, categorization_type)
+
+        self.refresh_treeviews()
+        self.user_interface.update_treeview_selections(
+            selected_categories=categories,
+            selected_responses=responses,
+        )
+
+    def recategorize_selected_responses(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves user-selected responses and new categories, initiates the process of recategorizing the responses in the data model,
+        and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting selected categories and responses&#34;)
+        responses, categories = (
+            self.user_interface.selected_category_responses(),
+            self.user_interface.selected_categories(),
+        )
+
+        if not categories or not responses:
+            logger.warning(
+                &#34;Both a category and response from the category results display must be selected to categorize&#34;
+            )
+            logger.debug(f&#34;selected categories:{categories}, selected responses:{responses}&#34;)
+            self.user_interface.show_warning(
+                &#34;Please select both a category and responses in the category results display to categorize.&#34;,
+            )
+            return
+
+        if self.user_interface.categorization_type.get() == &#34;Single&#34; and len(categories) &gt; 1:
+            logger.warning(&#34;Only one category can be selected in Single Categorization mode.&#34;)
+            logger.debug(f&#34;selected categories:{categories}&#34;)
+            self.user_interface.show_warning(
+                &#34;Only one category can be selected in Single Categorization mode.&#34;,
+            )
+            return
+
+        logger.info(
+            &#34;Calling data model to recategorize selected responses into selected categories&#34;
+        )
+        self.data_model.recategorize_responses(responses, categories)
+
+        self.refresh_treeviews()
+        self.user_interface.update_treeview_selections(
+            selected_categories=categories,
+            selected_responses=responses,
+        )
+
+    def create_category(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the new category name entered by the user, initiates the process of creating a new category in the data model,
+        and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting new category entry&#34;)
+        new_category = self.user_interface.new_category_entry.get()
+
+        if not new_category:
+            message = &#34;Category name cannot be empty&#34;
+            logger.warning(message)
+            logging_utils.format_and_log_data_for_debug(logger, {&#34;new_category&#34;: new_category})
+            return
+
+        logger.info(f&#39;Calling data model to create new category: &#34;{new_category}&#34;&#39;)
+        success, message = self.data_model.create_category(new_category)
+
+        if success:
+            self.display_categories()
+        else:
+            self.user_interface.show_error(message)
+
+    def rename_category(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the selected category from the UI, prompts the user to enter a new category name,
+        initiates the process of renaming the category in the data model, and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting selected categories&#34;)
+        selected_categories = self.user_interface.selected_categories()
+
+        if len(selected_categories) != 1:
+            logger.warning(&#34;One category to be renamed has not been selected&#34;)
+            logger.debug(f&#34;selected_categories: {selected_categories}&#34;)
+            self.user_interface.show_warning(&#34;Please select one category to rename.&#34;)
+            return
+
+        if &#34;Uncategorized&#34; in selected_categories:
+            logger.warning(&#39;Category &#34;Uncategorized&#34; cannot be renamed&#39;)
+            logger.debug(f&#34;selected_categories: {selected_categories}&#34;)
+            self.user_interface.show_warning(
+                &#39;You may not rename the category &#34;Uncategorized&#34;.&#39;,
+            )
+            return
+
+        old_category = selected_categories.pop()
+
+        # Create popup
+        logger.info(&#34;Calling UI to create rename popup&#34;)
+        self.user_interface.create_rename_category_popup(old_category)
+
+        # Bind widgets to commands
+        self.user_interface.ok_button.bind(
+            &#34;&lt;Button-1&gt;&#34;, lambda event: self.on_rename_category_entry()
+        )
+        self.user_interface.rename_category_entry.bind(
+            &#34;&lt;Return&gt;&#34;, lambda event: self.on_rename_category_entry()
+        )
+        self.user_interface.cancel_button.bind(
+            &#34;&lt;Button-1&gt;&#34;,
+            lambda event: self.user_interface.rename_dialog_popup.destroy(),
+        )
+
+    def on_rename_category_entry(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the new category name entered by the user and finalizes the renaming of the category in the data model.
+        Closes the rename category popup and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        old_category = self.user_interface.selected_categories().pop()
+        logger.info(&#34;Getting new category entry&#34;)
+        new_category = self.user_interface.rename_category_entry.get()
+
+        if not new_category:
+            logger.error(&#34;New category entry must be non-empty&#34;)
+            logger.debug(f&#39;new_category: &#34;{new_category}&#34;&#39;)
+            self.user_interface.show_error(&#34;Please enter a non-empty category name.&#34;)
+            return
+
+        logger.info(
+            f&#34;Calling data model to rename category. Old category: {old_category}, new category: {new_category}&#34;
+        )
+        success, message = self.data_model.rename_category(old_category, new_category)
+
+        if success:
+            self.user_interface.rename_dialog_popup.destroy()
+            self.display_categories()
+            self.display_category_results()
+        else:
+            self.user_interface.show_error(message)
+
+    def delete_categories(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves user-selected categories and initiates the process of deleting those categories in the data model.
+        After confirmation, updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Getting selected categories&#34;)
+        selected_categories = self.user_interface.selected_categories()
+
+        if not selected_categories:
+            logger.warning(&#34;No categories selected to delete&#34;)
+            logger.debug(f&#34;Selected categories: {selected_categories}&#34;)
+            self.user_interface.show_warning(&#34;Please select categories to delete.&#34;)
+            return
+
+        if &#34;Uncategorized&#34; in selected_categories:
+            logger.warning(&#39;Category &#34;Uncategorized&#34; cannot be deleted&#39;)
+            logger.debug(f&#34;selected_categories: {selected_categories}&#34;)
+            self.user_interface.show_warning(
+                &#39;You may not delete the category &#34;Uncategorized&#34;.&#39;,
+            )
+            return
+
+        logger.info(&#34;Calling UI to get confirmation&#34;)
+        if self.user_interface.show_askyesno(
+            &#34;Confirmation&#34;, &#34;Are you sure you want to delete the selected categories?&#34;
+        ):
+            logger.info(
+                f&#34;Category deletion confirmed. Calling data model to delete categories: {selected_categories}&#34;
+            )
+            self.data_model.delete_categories(
+                selected_categories, self.user_interface.categorization_type.get()
+            )
+            self.display_categories()
+            self.display_category_results()
+        else:
+            logger.info(&#34;Category deletion aborted&#34;)
+
+    ### ----------------------- Project Management ----------------------- ###
+    def new_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initiates the process of starting a new project by prompting the user to select a data file.
+        Populates the data structures for the new project and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Starting new project&#34;)
+        try:
+            if self.file_import_logic(
+                file_types=[(&#34;CSV files&#34;, &#34;*.csv&#34;), (&#34;XLSX files&#34;, &#34;*.xlsx&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+                title=&#34;Please select a file containing your dataset&#34;,
+                data_model_method=self.data_model.file_import_on_new_project,
+            ):
+                self.populate_data_structures_on_new_project()
+                self.refresh_treeviews()
+                self.user_interface.show_info(&#34;Data imported successfully&#34;)
+                self.ask_categorization_type()
+                logger.info(&#34;New project setup successfully&#34;)
+
+        except Exception as e:
+            logger.exception(&#34;&#34;)
+            self.user_interface.show_error(f&#34;Failed to initialize new project: {e}&#34;)
+
+    def populate_data_structures_on_new_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Populates data structures in the data model for a new project
+        and resets is_including_missing_data boolian variable in the UI to False.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling data model to populate data structures&#34;)
+        self.data_model.populate_data_structures_on_new_project()
+        logger.info(&#34;Resetting UI variables&#34;)
+        self.user_interface.is_including_missing_data.set(False)
+
+    def ask_categorization_type(self) -&gt; None:
+        &#34;&#34;&#34;
+        Creates a popup to prompts the user to select the categorization type (Single or Multi) for the new project.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling UI to create popup for categorization type&#34;)
+        self.user_interface.create_ask_categorization_type_popup()
+
+    def load_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initiates the process of loading an existing project by prompting the user to select a project JSON file.
+        Populates the data structures for the loaded project and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Starting load project&#34;)
+        try:
+            if self.file_import_logic(
+                file_types=[(&#34;JSON files&#34;, &#34;*.json&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+                title=&#34;Load Project&#34;,
+                data_model_method=self.data_model.file_import_on_load_project,
+            ):
+                self.populate_data_structures_on_load_project()
+                self.user_interface.set_categorization_type_label()
+                self.refresh_treeviews()
+                logger.info(&#34;Project loaded successfully&#34;)
+                self.user_interface.show_info(&#34;Project loaded successfully&#34;)
+
+        except Exception as e:
+            logger.exception(&#34;&#34;)
+            self.user_interface.show_error(f&#34;Failed to load project: {e}&#34;)
+
+    def populate_data_structures_on_load_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Populates data structures in the data model when loading a project JSON file.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling data model to popuate data structures&#34;)
+        (
+            categorization_type,
+            is_including_missing_data,
+        ) = self.data_model.populate_data_structures_on_load_project()
+
+        logger.info(&#34;Setting UI variables&#34;)
+        self.user_interface.categorization_type.set(categorization_type)
+        self.user_interface.is_including_missing_data.set(is_including_missing_data)
+
+    def append_data_logic(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initiates the process of appending data to the current project by prompting the user to select a data file.
+        Populates the data structures for the appended data and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Starting append data&#34;)
+        try:
+            if self.file_import_logic(
+                file_types=[(&#34;CSV files&#34;, &#34;*.csv&#34;), (&#34;XLSX files&#34;, &#34;*.xlsx&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+                title=&#34;Select file containing data to append&#34;,
+                data_model_method=self.data_model.file_import_on_append_data,
+            ):
+                self.data_model.populate_data_structures_on_append_data(
+                    self.user_interface.categorization_type.get()
+                )
+                self.refresh_treeviews()
+                logger.info(&#34;Data appended successfully&#34;)
+                self.user_interface.show_info(&#34;Data appended successfully&#34;)
+        except Exception as e:
+            logger.exception(&#34;&#34;)
+            self.user_interface.show_error(f&#34;Failed to append data: {e}&#34;)
+
+    def file_import_logic(
+        self, file_types: list[Tuple[str, str]], title: str, data_model_method: Callable
+    ) -&gt; bool:
+        &#34;&#34;&#34;
+        Handles the logic for importing files for new, load, or append data operations.
+        Prompts the user to select a file and calls the specified method in the data model to update itself.
+
+        Args:
+            file_types (list[Tuple[str, str]]): A list of file types to be accepted in the file dialog.
+            title (str): The title of the file dialog window.
+            data_model_method (Callable): The method to be called in the data model to update itself after file selection.
+
+        Returns:
+            bool: True if the file import operation was successful, False otherwise.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling UI to get file path&#34;)
+        file_path = self.user_interface.show_open_file_dialog(
+            filetypes=file_types,
+            title=title,
+        )
+
+        if not file_path:
+            logger.info(&#34;No file path selected&#34;)
+            return False
+
+        logger.info(&#34;Calling data model to import file&#34;)
+        success, message = data_model_method(file_path)
+
+        if not success:
+            logger.error(message)
+            self.user_interface.show_error(message)
+            return False
+
+        return True
+
+    def save_project(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initiates the process of saving the current project variables to a JSON file by prompting the user to select a file location.
+        Calls the data model to save the project data.
+        &#34;&#34;&#34;
+
+        # TODO: Possibly abstract out this method and export_data_to_csv method to inherit from single method?
+        logger.info(&#34;Starting save project&#34;)
+        try:
+            logger.info(&#34;Calling UI to get file path&#34;)
+            if file_path := self.user_interface.show_save_file_dialog(
+                defaultextension=&#34;.json&#34;,
+                filetypes=[(&#34;JSON files&#34;, &#34;*.json&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+                title=&#34;Save Project As&#34;,
+            ):
+                user_interface_variables_to_add = {
+                    &#34;categorization_type&#34;: self.user_interface.categorization_type.get(),
+                    &#34;is_including_missing_data&#34;: self.user_interface.is_including_missing_data.get(),
+                }
+
+                logger.info(&#34;Calling data model to save project&#34;)
+                self.data_model.save_project(file_path, user_interface_variables_to_add)
+                logger.info(&#34;Project saved successfully&#34;)
+                self.user_interface.show_info(&#34;Project saved successfully to:\n\n&#34; + file_path)
+
+            else:
+                logger.info(&#34;No file path selected&#34;)
+
+        except Exception as e:
+            logger.exception(&#34;&#34;)
+            self.user_interface.show_error(f&#34;Failed to save project: {e}&#34;)
+
+    def export_data_to_csv(self) -&gt; None:
+        &#34;&#34;&#34;
+        Initiates the process of exporting the categorized data to a CSV file by prompting the user to select a file location.
+        Calls the data model to export the data.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Starting data export&#34;)
+        try:
+            logger.info(&#34;Calling UI to get file path&#34;)
+            if file_path := self.user_interface.show_save_file_dialog(
+                defaultextension=&#34;.csv&#34;,
+                filetypes=[(&#34;CSV files&#34;, &#34;*.csv&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+                title=&#34;Save As&#34;,
+            ):
+                categorization_type = self.user_interface.categorization_type.get()
+                logger.info(&#34;Calling data model to export data&#34;)
+                self.data_model.export_data_to_csv(file_path, categorization_type)
+                logger.info(&#34;Data exported successfully&#34;)
+                self.user_interface.show_info(&#34;Data exported successfully to:\n\n&#34; + file_path)
+
+            else:
+                logger.info(&#34;No file path selected&#34;)
+
+        except Exception as e:
+            logger.exception(&#34;&#34;)
+            self.user_interface.show_error(f&#34;Failed to export data to csv: {e}&#34;)
+
+    ### ----------------------- UI management ----------------------- ###
+    def refresh_treeviews(self) -&gt; None:
+        &#34;&#34;&#34;
+        Refreshes the display of fuzzy match results, category results, and categories in the UI.
+        &#34;&#34;&#34;
+
+        self.display_fuzzy_match_results()
+        self.display_category_results()
+        self.display_categories()
+
+    def display_fuzzy_match_results(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the fuzzy match threshold from the UI, processes the fuzzy match results in the data model, and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling UI to get fuzzy threshold&#34;)
+        threshold = self.user_interface.threshold_slider.get()
+        logger.info(&#34;Calling data model to process and return fuzzy match results&#34;)
+        processed_results = self.data_model.process_fuzzy_match_results(threshold)
+        logger.info(&#34;Calling UI to display fuzzy match results&#34;)
+        self.user_interface.display_fuzzy_match_results(processed_results)
+
+    def on_display_selected_category_results(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the selected category from the UI, and calls a method to retrieve the data
+        and update the UI with the results of the selected category.
+        Updates `currently_selected_category` to the selected category.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling UI to get selected categories&#34;)
+        selected_categories = self.user_interface.selected_categories()
+
+        if len(selected_categories) == 0:
+            logger.error(&#34;No category selected to display results of&#34;)
+            logger.debug(f&#34;selected categories: {selected_categories}&#34;)
+            self.user_interface.show_error(&#34;No category selected&#34;)
+            return
+
+        if len(selected_categories) &gt; 1:
+            logger.error(&#34;Only one category can be displayed&#34;)
+            logger.debug(f&#34;selected categories: {selected_categories}&#34;)
+            self.user_interface.show_warning(&#34;Please select only one category&#34;)
+            return
+
+        # Assign new currently displayed category
+        new_current_category = selected_categories.pop()
+        logger.info(
+            f&#34;Calling data model to set new currently displayed category: {new_current_category}&#34;
+        )
+        self.data_model.currently_displayed_category = new_current_category
+
+        self.display_category_results()
+
+    def display_category_results(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves `currently_selected_category` and its associated data from the data model, and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling data model to get currently displayed category and data&#34;)
+        category = self.data_model.currently_displayed_category
+        responses_and_counts = self.data_model.get_responses_and_counts(category)
+        logger.info(&#34;Calling UI to display category results&#34;)
+        self.user_interface.display_category_results(category, responses_and_counts)
+
+    def display_categories(self) -&gt; None:
+        &#34;&#34;&#34;
+        Retrieves the formatted categories and their metrics from the data model, and updates the UI with the results.
+        &#34;&#34;&#34;
+
+        logger.info(&#34;Calling UI to get is_including_missing_data bool&#34;)
+        is_including_missing_data = self.user_interface.is_including_missing_data.get()
+        logger.info(&#34;Calling data model to format category metrics&#34;)
+        formatted_categories_metrics = self.data_model.format_categories_metrics(
+            is_including_missing_data
+        )
+        logger.info(&#34;Calling UI to display categories and metrics&#34;)
+        self.user_interface.display_categories(formatted_categories_metrics)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="src.controller.Controller.append_data_logic"><code class="name flex">
+<span>def <span class="ident">append_data_logic</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initiates the process of appending data to the current project by prompting the user to select a data file.
+Populates the data structures for the appended data and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append_data_logic(self) -&gt; None:
+    &#34;&#34;&#34;
+    Initiates the process of appending data to the current project by prompting the user to select a data file.
+    Populates the data structures for the appended data and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Starting append data&#34;)
+    try:
+        if self.file_import_logic(
+            file_types=[(&#34;CSV files&#34;, &#34;*.csv&#34;), (&#34;XLSX files&#34;, &#34;*.xlsx&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+            title=&#34;Select file containing data to append&#34;,
+            data_model_method=self.data_model.file_import_on_append_data,
+        ):
+            self.data_model.populate_data_structures_on_append_data(
+                self.user_interface.categorization_type.get()
+            )
+            self.refresh_treeviews()
+            logger.info(&#34;Data appended successfully&#34;)
+            self.user_interface.show_info(&#34;Data appended successfully&#34;)
+    except Exception as e:
+        logger.exception(&#34;&#34;)
+        self.user_interface.show_error(f&#34;Failed to append data: {e}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.ask_categorization_type"><code class="name flex">
+<span>def <span class="ident">ask_categorization_type</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a popup to prompts the user to select the categorization type (Single or Multi) for the new project.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ask_categorization_type(self) -&gt; None:
+    &#34;&#34;&#34;
+    Creates a popup to prompts the user to select the categorization type (Single or Multi) for the new project.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Calling UI to create popup for categorization type&#34;)
+    self.user_interface.create_ask_categorization_type_popup()</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.categorize_selected_responses"><code class="name flex">
+<span>def <span class="ident">categorize_selected_responses</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves user-selected responses and categories, initiates the categorization process in the data model,
+and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def categorize_selected_responses(self) -&gt; None:
+    &#34;&#34;&#34;
+    Retrieves user-selected responses and categories, initiates the categorization process in the data model,
+    and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Getting selected categories and responses&#34;)
+    responses = self.user_interface.selected_match_responses()
+    categories = self.user_interface.selected_categories()
+    categorization_type = self.user_interface.categorization_type.get()
+
+    if not categories or not responses:
+        logger.warning(&#34;Both a category and response must be selected to categorize&#34;)
+        logger.debug(f&#34;selected categories:{categories}, selected responses:{responses}&#34;)
+        self.user_interface.show_warning(
+            &#34;Please select both a category and responses to categorize.&#34;
+        )
+        return
+
+    if categorization_type == &#34;Single&#34; and len(categories) &gt; 1:
+        logger.warning(&#34;Only one category can be selected in Single Categorization mode.&#34;)
+        logger.debug(f&#34;selected categories:{categories}&#34;)
+        self.user_interface.show_warning(
+            &#34;Only one category can be selected in Single Categorization mode.&#34;,
+        )
+        return
+
+    logger.info(&#34;Calling data model to categorize selected responses into selected categories&#34;)
+    self.data_model.categorize_responses(responses, categories, categorization_type)
+
+    self.refresh_treeviews()
+    self.user_interface.update_treeview_selections(
+        selected_categories=categories,
+        selected_responses=responses,
+    )</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.create_category"><code class="name flex">
+<span>def <span class="ident">create_category</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves the new category name entered by the user, initiates the process of creating a new category in the data model,
+and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_category(self) -&gt; None:
+    &#34;&#34;&#34;
+    Retrieves the new category name entered by the user, initiates the process of creating a new category in the data model,
+    and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Getting new category entry&#34;)
+    new_category = self.user_interface.new_category_entry.get()
+
+    if not new_category:
+        message = &#34;Category name cannot be empty&#34;
+        logger.warning(message)
+        logging_utils.format_and_log_data_for_debug(logger, {&#34;new_category&#34;: new_category})
+        return
+
+    logger.info(f&#39;Calling data model to create new category: &#34;{new_category}&#34;&#39;)
+    success, message = self.data_model.create_category(new_category)
+
+    if success:
+        self.display_categories()
+    else:
+        self.user_interface.show_error(message)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.delete_categories"><code class="name flex">
+<span>def <span class="ident">delete_categories</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves user-selected categories and initiates the process of deleting those categories in the data model.
+After confirmation, updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delete_categories(self) -&gt; None:
+    &#34;&#34;&#34;
+    Retrieves user-selected categories and initiates the process of deleting those categories in the data model.
+    After confirmation, updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Getting selected categories&#34;)
+    selected_categories = self.user_interface.selected_categories()
+
+    if not selected_categories:
+        logger.warning(&#34;No categories selected to delete&#34;)
+        logger.debug(f&#34;Selected categories: {selected_categories}&#34;)
+        self.user_interface.show_warning(&#34;Please select categories to delete.&#34;)
+        return
+
+    if &#34;Uncategorized&#34; in selected_categories:
+        logger.warning(&#39;Category &#34;Uncategorized&#34; cannot be deleted&#39;)
+        logger.debug(f&#34;selected_categories: {selected_categories}&#34;)
+        self.user_interface.show_warning(
+            &#39;You may not delete the category &#34;Uncategorized&#34;.&#39;,
+        )
+        return
+
+    logger.info(&#34;Calling UI to get confirmation&#34;)
+    if self.user_interface.show_askyesno(
+        &#34;Confirmation&#34;, &#34;Are you sure you want to delete the selected categories?&#34;
+    ):
+        logger.info(
+            f&#34;Category deletion confirmed. Calling data model to delete categories: {selected_categories}&#34;
+        )
+        self.data_model.delete_categories(
+            selected_categories, self.user_interface.categorization_type.get()
+        )
+        self.display_categories()
+        self.display_category_results()
+    else:
+        logger.info(&#34;Category deletion aborted&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.display_categories"><code class="name flex">
+<span>def <span class="ident">display_categories</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves the formatted categories and their metrics from the data model, and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def display_categories(self) -&gt; None:
+    &#34;&#34;&#34;
+    Retrieves the formatted categories and their metrics from the data model, and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Calling UI to get is_including_missing_data bool&#34;)
+    is_including_missing_data = self.user_interface.is_including_missing_data.get()
+    logger.info(&#34;Calling data model to format category metrics&#34;)
+    formatted_categories_metrics = self.data_model.format_categories_metrics(
+        is_including_missing_data
+    )
+    logger.info(&#34;Calling UI to display categories and metrics&#34;)
+    self.user_interface.display_categories(formatted_categories_metrics)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.display_category_results"><code class="name flex">
+<span>def <span class="ident">display_category_results</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves <code>currently_selected_category</code> and its associated data from the data model, and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def display_category_results(self) -&gt; None:
+    &#34;&#34;&#34;
+    Retrieves `currently_selected_category` and its associated data from the data model, and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Calling data model to get currently displayed category and data&#34;)
+    category = self.data_model.currently_displayed_category
+    responses_and_counts = self.data_model.get_responses_and_counts(category)
+    logger.info(&#34;Calling UI to display category results&#34;)
+    self.user_interface.display_category_results(category, responses_and_counts)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.display_fuzzy_match_results"><code class="name flex">
+<span>def <span class="ident">display_fuzzy_match_results</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves the fuzzy match threshold from the UI, processes the fuzzy match results in the data model, and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def display_fuzzy_match_results(self) -&gt; None:
+    &#34;&#34;&#34;
+    Retrieves the fuzzy match threshold from the UI, processes the fuzzy match results in the data model, and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Calling UI to get fuzzy threshold&#34;)
+    threshold = self.user_interface.threshold_slider.get()
+    logger.info(&#34;Calling data model to process and return fuzzy match results&#34;)
+    processed_results = self.data_model.process_fuzzy_match_results(threshold)
+    logger.info(&#34;Calling UI to display fuzzy match results&#34;)
+    self.user_interface.display_fuzzy_match_results(processed_results)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.export_data_to_csv"><code class="name flex">
+<span>def <span class="ident">export_data_to_csv</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initiates the process of exporting the categorized data to a CSV file by prompting the user to select a file location.
+Calls the data model to export the data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def export_data_to_csv(self) -&gt; None:
+    &#34;&#34;&#34;
+    Initiates the process of exporting the categorized data to a CSV file by prompting the user to select a file location.
+    Calls the data model to export the data.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Starting data export&#34;)
+    try:
+        logger.info(&#34;Calling UI to get file path&#34;)
+        if file_path := self.user_interface.show_save_file_dialog(
+            defaultextension=&#34;.csv&#34;,
+            filetypes=[(&#34;CSV files&#34;, &#34;*.csv&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+            title=&#34;Save As&#34;,
+        ):
+            categorization_type = self.user_interface.categorization_type.get()
+            logger.info(&#34;Calling data model to export data&#34;)
+            self.data_model.export_data_to_csv(file_path, categorization_type)
+            logger.info(&#34;Data exported successfully&#34;)
+            self.user_interface.show_info(&#34;Data exported successfully to:\n\n&#34; + file_path)
+
+        else:
+            logger.info(&#34;No file path selected&#34;)
+
+    except Exception as e:
+        logger.exception(&#34;&#34;)
+        self.user_interface.show_error(f&#34;Failed to export data to csv: {e}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.file_import_logic"><code class="name flex">
+<span>def <span class="ident">file_import_logic</span></span>(<span>self, file_types: list[typing.Tuple[str, str]], title: str, data_model_method: Callable) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles the logic for importing files for new, load, or append data operations.
+Prompts the user to select a file and calls the specified method in the data model to update itself.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>file_types</code></strong> :&ensp;<code>list[Tuple[str, str]]</code></dt>
+<dd>A list of file types to be accepted in the file dialog.</dd>
+<dt><strong><code>title</code></strong> :&ensp;<code>str</code></dt>
+<dd>The title of the file dialog window.</dd>
+<dt><strong><code>data_model_method</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>The method to be called in the data model to update itself after file selection.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bool</code></dt>
+<dd>True if the file import operation was successful, False otherwise.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def file_import_logic(
+    self, file_types: list[Tuple[str, str]], title: str, data_model_method: Callable
+) -&gt; bool:
+    &#34;&#34;&#34;
+    Handles the logic for importing files for new, load, or append data operations.
+    Prompts the user to select a file and calls the specified method in the data model to update itself.
+
+    Args:
+        file_types (list[Tuple[str, str]]): A list of file types to be accepted in the file dialog.
+        title (str): The title of the file dialog window.
+        data_model_method (Callable): The method to be called in the data model to update itself after file selection.
+
+    Returns:
+        bool: True if the file import operation was successful, False otherwise.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Calling UI to get file path&#34;)
+    file_path = self.user_interface.show_open_file_dialog(
+        filetypes=file_types,
+        title=title,
+    )
+
+    if not file_path:
+        logger.info(&#34;No file path selected&#34;)
+        return False
+
+    logger.info(&#34;Calling data model to import file&#34;)
+    success, message = data_model_method(file_path)
+
+    if not success:
+        logger.error(message)
+        self.user_interface.show_error(message)
+        return False
+
+    return True</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.fuzzy_match_logic"><code class="name flex">
+<span>def <span class="ident">fuzzy_match_logic</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves the string entered by the user, initiates the fuzzy matching process in the data model,
+and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fuzzy_match_logic(self) -&gt; None:
+    &#34;&#34;&#34;
+    Retrieves the string entered by the user, initiates the fuzzy matching process in the data model,
+    and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Getting string entry&#34;)
+    string_to_match = self.user_interface.match_string_entry.get()
+    logger.info(f&#39;Calling data model to fuzzy match: &#34;{string_to_match}&#34;&#39;)
+    self.data_model.fuzzy_match_logic(string_to_match)
+    self.display_fuzzy_match_results()</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.load_project"><code class="name flex">
+<span>def <span class="ident">load_project</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initiates the process of loading an existing project by prompting the user to select a project JSON file.
+Populates the data structures for the loaded project and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_project(self) -&gt; None:
+    &#34;&#34;&#34;
+    Initiates the process of loading an existing project by prompting the user to select a project JSON file.
+    Populates the data structures for the loaded project and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Starting load project&#34;)
+    try:
+        if self.file_import_logic(
+            file_types=[(&#34;JSON files&#34;, &#34;*.json&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+            title=&#34;Load Project&#34;,
+            data_model_method=self.data_model.file_import_on_load_project,
+        ):
+            self.populate_data_structures_on_load_project()
+            self.user_interface.set_categorization_type_label()
+            self.refresh_treeviews()
+            logger.info(&#34;Project loaded successfully&#34;)
+            self.user_interface.show_info(&#34;Project loaded successfully&#34;)
+
+    except Exception as e:
+        logger.exception(&#34;&#34;)
+        self.user_interface.show_error(f&#34;Failed to load project: {e}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.new_project"><code class="name flex">
+<span>def <span class="ident">new_project</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initiates the process of starting a new project by prompting the user to select a data file.
+Populates the data structures for the new project and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def new_project(self) -&gt; None:
+    &#34;&#34;&#34;
+    Initiates the process of starting a new project by prompting the user to select a data file.
+    Populates the data structures for the new project and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Starting new project&#34;)
+    try:
+        if self.file_import_logic(
+            file_types=[(&#34;CSV files&#34;, &#34;*.csv&#34;), (&#34;XLSX files&#34;, &#34;*.xlsx&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+            title=&#34;Please select a file containing your dataset&#34;,
+            data_model_method=self.data_model.file_import_on_new_project,
+        ):
+            self.populate_data_structures_on_new_project()
+            self.refresh_treeviews()
+            self.user_interface.show_info(&#34;Data imported successfully&#34;)
+            self.ask_categorization_type()
+            logger.info(&#34;New project setup successfully&#34;)
+
+    except Exception as e:
+        logger.exception(&#34;&#34;)
+        self.user_interface.show_error(f&#34;Failed to initialize new project: {e}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.on_display_selected_category_results"><code class="name flex">
+<span>def <span class="ident">on_display_selected_category_results</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves the selected category from the UI, and calls a method to retrieve the data
+and update the UI with the results of the selected category.
+Updates <code>currently_selected_category</code> to the selected category.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def on_display_selected_category_results(self) -&gt; None:
+    &#34;&#34;&#34;
+    Retrieves the selected category from the UI, and calls a method to retrieve the data
+    and update the UI with the results of the selected category.
+    Updates `currently_selected_category` to the selected category.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Calling UI to get selected categories&#34;)
+    selected_categories = self.user_interface.selected_categories()
+
+    if len(selected_categories) == 0:
+        logger.error(&#34;No category selected to display results of&#34;)
+        logger.debug(f&#34;selected categories: {selected_categories}&#34;)
+        self.user_interface.show_error(&#34;No category selected&#34;)
+        return
+
+    if len(selected_categories) &gt; 1:
+        logger.error(&#34;Only one category can be displayed&#34;)
+        logger.debug(f&#34;selected categories: {selected_categories}&#34;)
+        self.user_interface.show_warning(&#34;Please select only one category&#34;)
+        return
+
+    # Assign new currently displayed category
+    new_current_category = selected_categories.pop()
+    logger.info(
+        f&#34;Calling data model to set new currently displayed category: {new_current_category}&#34;
+    )
+    self.data_model.currently_displayed_category = new_current_category
+
+    self.display_category_results()</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.on_rename_category_entry"><code class="name flex">
+<span>def <span class="ident">on_rename_category_entry</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves the new category name entered by the user and finalizes the renaming of the category in the data model.
+Closes the rename category popup and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def on_rename_category_entry(self) -&gt; None:
+    &#34;&#34;&#34;
+    Retrieves the new category name entered by the user and finalizes the renaming of the category in the data model.
+    Closes the rename category popup and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    old_category = self.user_interface.selected_categories().pop()
+    logger.info(&#34;Getting new category entry&#34;)
+    new_category = self.user_interface.rename_category_entry.get()
+
+    if not new_category:
+        logger.error(&#34;New category entry must be non-empty&#34;)
+        logger.debug(f&#39;new_category: &#34;{new_category}&#34;&#39;)
+        self.user_interface.show_error(&#34;Please enter a non-empty category name.&#34;)
+        return
+
+    logger.info(
+        f&#34;Calling data model to rename category. Old category: {old_category}, new category: {new_category}&#34;
+    )
+    success, message = self.data_model.rename_category(old_category, new_category)
+
+    if success:
+        self.user_interface.rename_dialog_popup.destroy()
+        self.display_categories()
+        self.display_category_results()
+    else:
+        self.user_interface.show_error(message)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.populate_data_structures_on_load_project"><code class="name flex">
+<span>def <span class="ident">populate_data_structures_on_load_project</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Populates data structures in the data model when loading a project JSON file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def populate_data_structures_on_load_project(self) -&gt; None:
+    &#34;&#34;&#34;
+    Populates data structures in the data model when loading a project JSON file.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Calling data model to popuate data structures&#34;)
+    (
+        categorization_type,
+        is_including_missing_data,
+    ) = self.data_model.populate_data_structures_on_load_project()
+
+    logger.info(&#34;Setting UI variables&#34;)
+    self.user_interface.categorization_type.set(categorization_type)
+    self.user_interface.is_including_missing_data.set(is_including_missing_data)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.populate_data_structures_on_new_project"><code class="name flex">
+<span>def <span class="ident">populate_data_structures_on_new_project</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Populates data structures in the data model for a new project
+and resets is_including_missing_data boolian variable in the UI to False.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def populate_data_structures_on_new_project(self) -&gt; None:
+    &#34;&#34;&#34;
+    Populates data structures in the data model for a new project
+    and resets is_including_missing_data boolian variable in the UI to False.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Calling data model to populate data structures&#34;)
+    self.data_model.populate_data_structures_on_new_project()
+    logger.info(&#34;Resetting UI variables&#34;)
+    self.user_interface.is_including_missing_data.set(False)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.recategorize_selected_responses"><code class="name flex">
+<span>def <span class="ident">recategorize_selected_responses</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves user-selected responses and new categories, initiates the process of recategorizing the responses in the data model,
+and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def recategorize_selected_responses(self) -&gt; None:
+    &#34;&#34;&#34;
+    Retrieves user-selected responses and new categories, initiates the process of recategorizing the responses in the data model,
+    and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Getting selected categories and responses&#34;)
+    responses, categories = (
+        self.user_interface.selected_category_responses(),
+        self.user_interface.selected_categories(),
+    )
+
+    if not categories or not responses:
+        logger.warning(
+            &#34;Both a category and response from the category results display must be selected to categorize&#34;
+        )
+        logger.debug(f&#34;selected categories:{categories}, selected responses:{responses}&#34;)
+        self.user_interface.show_warning(
+            &#34;Please select both a category and responses in the category results display to categorize.&#34;,
+        )
+        return
+
+    if self.user_interface.categorization_type.get() == &#34;Single&#34; and len(categories) &gt; 1:
+        logger.warning(&#34;Only one category can be selected in Single Categorization mode.&#34;)
+        logger.debug(f&#34;selected categories:{categories}&#34;)
+        self.user_interface.show_warning(
+            &#34;Only one category can be selected in Single Categorization mode.&#34;,
+        )
+        return
+
+    logger.info(
+        &#34;Calling data model to recategorize selected responses into selected categories&#34;
+    )
+    self.data_model.recategorize_responses(responses, categories)
+
+    self.refresh_treeviews()
+    self.user_interface.update_treeview_selections(
+        selected_categories=categories,
+        selected_responses=responses,
+    )</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.refresh_treeviews"><code class="name flex">
+<span>def <span class="ident">refresh_treeviews</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Refreshes the display of fuzzy match results, category results, and categories in the UI.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def refresh_treeviews(self) -&gt; None:
+    &#34;&#34;&#34;
+    Refreshes the display of fuzzy match results, category results, and categories in the UI.
+    &#34;&#34;&#34;
+
+    self.display_fuzzy_match_results()
+    self.display_category_results()
+    self.display_categories()</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.rename_category"><code class="name flex">
+<span>def <span class="ident">rename_category</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieves the selected category from the UI, prompts the user to enter a new category name,
+initiates the process of renaming the category in the data model, and updates the UI with the results.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rename_category(self) -&gt; None:
+    &#34;&#34;&#34;
+    Retrieves the selected category from the UI, prompts the user to enter a new category name,
+    initiates the process of renaming the category in the data model, and updates the UI with the results.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Getting selected categories&#34;)
+    selected_categories = self.user_interface.selected_categories()
+
+    if len(selected_categories) != 1:
+        logger.warning(&#34;One category to be renamed has not been selected&#34;)
+        logger.debug(f&#34;selected_categories: {selected_categories}&#34;)
+        self.user_interface.show_warning(&#34;Please select one category to rename.&#34;)
+        return
+
+    if &#34;Uncategorized&#34; in selected_categories:
+        logger.warning(&#39;Category &#34;Uncategorized&#34; cannot be renamed&#39;)
+        logger.debug(f&#34;selected_categories: {selected_categories}&#34;)
+        self.user_interface.show_warning(
+            &#39;You may not rename the category &#34;Uncategorized&#34;.&#39;,
+        )
+        return
+
+    old_category = selected_categories.pop()
+
+    # Create popup
+    logger.info(&#34;Calling UI to create rename popup&#34;)
+    self.user_interface.create_rename_category_popup(old_category)
+
+    # Bind widgets to commands
+    self.user_interface.ok_button.bind(
+        &#34;&lt;Button-1&gt;&#34;, lambda event: self.on_rename_category_entry()
+    )
+    self.user_interface.rename_category_entry.bind(
+        &#34;&lt;Return&gt;&#34;, lambda event: self.on_rename_category_entry()
+    )
+    self.user_interface.cancel_button.bind(
+        &#34;&lt;Button-1&gt;&#34;,
+        lambda event: self.user_interface.rename_dialog_popup.destroy(),
+    )</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.run"><code class="name flex">
+<span>def <span class="ident">run</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Starts the main loop of the application. This method should be called to start the user interface
+and make the application responsive to user interactions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run(self) -&gt; None:
+    &#34;&#34;&#34;
+    Starts the main loop of the application. This method should be called to start the user interface
+    and make the application responsive to user interactions.
+    &#34;&#34;&#34;
+
+    logger.info(&#34;Starting the app mainloop&#34;)
+    self.user_interface.mainloop()</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.save_project"><code class="name flex">
+<span>def <span class="ident">save_project</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initiates the process of saving the current project variables to a JSON file by prompting the user to select a file location.
+Calls the data model to save the project data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_project(self) -&gt; None:
+    &#34;&#34;&#34;
+    Initiates the process of saving the current project variables to a JSON file by prompting the user to select a file location.
+    Calls the data model to save the project data.
+    &#34;&#34;&#34;
+
+    # TODO: Possibly abstract out this method and export_data_to_csv method to inherit from single method?
+    logger.info(&#34;Starting save project&#34;)
+    try:
+        logger.info(&#34;Calling UI to get file path&#34;)
+        if file_path := self.user_interface.show_save_file_dialog(
+            defaultextension=&#34;.json&#34;,
+            filetypes=[(&#34;JSON files&#34;, &#34;*.json&#34;), (&#34;All files&#34;, &#34;*.*&#34;)],
+            title=&#34;Save Project As&#34;,
+        ):
+            user_interface_variables_to_add = {
+                &#34;categorization_type&#34;: self.user_interface.categorization_type.get(),
+                &#34;is_including_missing_data&#34;: self.user_interface.is_including_missing_data.get(),
+            }
+
+            logger.info(&#34;Calling data model to save project&#34;)
+            self.data_model.save_project(file_path, user_interface_variables_to_add)
+            logger.info(&#34;Project saved successfully&#34;)
+            self.user_interface.show_info(&#34;Project saved successfully to:\n\n&#34; + file_path)
+
+        else:
+            logger.info(&#34;No file path selected&#34;)
+
+    except Exception as e:
+        logger.exception(&#34;&#34;)
+        self.user_interface.show_error(f&#34;Failed to save project: {e}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.controller.Controller.setup_UI_bindings"><code class="name flex">
+<span>def <span class="ident">setup_UI_bindings</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Binds UI components to their respective handler functions defined in this controller.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setup_UI_bindings(self) -&gt; None:
+    &#34;&#34;&#34;
+    Binds UI components to their respective handler functions defined in this controller.
+    &#34;&#34;&#34;
+
+    self.user_interface.match_string_entry.bind(
+        &#34;&lt;Return&gt;&#34;, lambda event: self.fuzzy_match_logic()
+    )
+    self.user_interface.threshold_slider.bind(
+        &#34;&lt;ButtonRelease-1&gt;&#34;, lambda val: self.display_fuzzy_match_results()
+    )
+    self.user_interface.match_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.fuzzy_match_logic())
+    self.user_interface.categorize_button.bind(
+        &#34;&lt;Button-1&gt;&#34;, lambda event: self.categorize_selected_responses()
+    )
+    self.user_interface.display_category_results_for_selected_category_button.bind(
+        &#34;&lt;Button-1&gt;&#34;,
+        lambda event: self.on_display_selected_category_results(),
+    )
+    self.user_interface.recategorize_selected_responses_button.bind(
+        &#34;&lt;Button-1&gt;&#34;, lambda event: self.recategorize_selected_responses()
+    )
+    self.user_interface.new_category_entry.bind(
+        &#34;&lt;Return&gt;&#34;, lambda event: self.create_category()
+    )
+    self.user_interface.add_category_button.bind(
+        &#34;&lt;Button-1&gt;&#34;, lambda event: self.create_category()
+    )
+    self.user_interface.rename_category_button.bind(
+        &#34;&lt;Button-1&gt;&#34;, lambda event: self.rename_category()
+    )
+    self.user_interface.delete_categories_button.bind(
+        &#34;&lt;Button-1&gt;&#34;, lambda event: self.delete_categories()
+    )
+    self.user_interface.is_including_missing_data.trace_add(
+        &#34;write&#34;, lambda *args: self.display_categories()
+    )  # Using trace_add() to make sure it calls the command only after setting the bool value.
+    self.user_interface.new_project_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.new_project())
+    self.user_interface.load_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.load_project())
+    self.user_interface.append_data_button.bind(
+        &#34;&lt;Button-1&gt;&#34;, lambda event: self.append_data_logic()
+    )
+    self.user_interface.save_button.bind(&#34;&lt;Button-1&gt;&#34;, lambda event: self.save_project())
+    self.user_interface.export_csv_button.bind(
+        &#34;&lt;Button-1&gt;&#34;, lambda event: self.export_data_to_csv()
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src" href="index.html">src</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="src.controller.Controller" href="#src.controller.Controller">Controller</a></code></h4>
+<ul class="">
+<li><code><a title="src.controller.Controller.append_data_logic" href="#src.controller.Controller.append_data_logic">append_data_logic</a></code></li>
+<li><code><a title="src.controller.Controller.ask_categorization_type" href="#src.controller.Controller.ask_categorization_type">ask_categorization_type</a></code></li>
+<li><code><a title="src.controller.Controller.categorize_selected_responses" href="#src.controller.Controller.categorize_selected_responses">categorize_selected_responses</a></code></li>
+<li><code><a title="src.controller.Controller.create_category" href="#src.controller.Controller.create_category">create_category</a></code></li>
+<li><code><a title="src.controller.Controller.delete_categories" href="#src.controller.Controller.delete_categories">delete_categories</a></code></li>
+<li><code><a title="src.controller.Controller.display_categories" href="#src.controller.Controller.display_categories">display_categories</a></code></li>
+<li><code><a title="src.controller.Controller.display_category_results" href="#src.controller.Controller.display_category_results">display_category_results</a></code></li>
+<li><code><a title="src.controller.Controller.display_fuzzy_match_results" href="#src.controller.Controller.display_fuzzy_match_results">display_fuzzy_match_results</a></code></li>
+<li><code><a title="src.controller.Controller.export_data_to_csv" href="#src.controller.Controller.export_data_to_csv">export_data_to_csv</a></code></li>
+<li><code><a title="src.controller.Controller.file_import_logic" href="#src.controller.Controller.file_import_logic">file_import_logic</a></code></li>
+<li><code><a title="src.controller.Controller.fuzzy_match_logic" href="#src.controller.Controller.fuzzy_match_logic">fuzzy_match_logic</a></code></li>
+<li><code><a title="src.controller.Controller.load_project" href="#src.controller.Controller.load_project">load_project</a></code></li>
+<li><code><a title="src.controller.Controller.new_project" href="#src.controller.Controller.new_project">new_project</a></code></li>
+<li><code><a title="src.controller.Controller.on_display_selected_category_results" href="#src.controller.Controller.on_display_selected_category_results">on_display_selected_category_results</a></code></li>
+<li><code><a title="src.controller.Controller.on_rename_category_entry" href="#src.controller.Controller.on_rename_category_entry">on_rename_category_entry</a></code></li>
+<li><code><a title="src.controller.Controller.populate_data_structures_on_load_project" href="#src.controller.Controller.populate_data_structures_on_load_project">populate_data_structures_on_load_project</a></code></li>
+<li><code><a title="src.controller.Controller.populate_data_structures_on_new_project" href="#src.controller.Controller.populate_data_structures_on_new_project">populate_data_structures_on_new_project</a></code></li>
+<li><code><a title="src.controller.Controller.recategorize_selected_responses" href="#src.controller.Controller.recategorize_selected_responses">recategorize_selected_responses</a></code></li>
+<li><code><a title="src.controller.Controller.refresh_treeviews" href="#src.controller.Controller.refresh_treeviews">refresh_treeviews</a></code></li>
+<li><code><a title="src.controller.Controller.rename_category" href="#src.controller.Controller.rename_category">rename_category</a></code></li>
+<li><code><a title="src.controller.Controller.run" href="#src.controller.Controller.run">run</a></code></li>
+<li><code><a title="src.controller.Controller.save_project" href="#src.controller.Controller.save_project">save_project</a></code></li>
+<li><code><a title="src.controller.Controller.setup_UI_bindings" href="#src.controller.Controller.setup_UI_bindings">setup_UI_bindings</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
