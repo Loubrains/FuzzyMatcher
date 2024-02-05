@@ -5,17 +5,17 @@ Serves as the central coordinator for the Fuzzy Matcher application, bridging th
 It manages user interactions, delegating data processing tasks to the data model, and uses data served by the data model to update the UI.
 
 Key functionalities:
-- Setting up UI bindings and initiating the application loop.
-- Handling the fuzzy match logic based on user inputs.
-- Categorizing and recategorizing responses based on user selections.
-- Creating, renaming, and deleting categories.
-- Project management, such as creating a new project, loading an existing project, appending data, 
-    saving projects, and exporting data to CSV files.
-- Refreshing and updating different components of the UI based on data model changes.
+    - Setting up UI bindings and initiating the application loop.
+    - Handling the fuzzy match logic based on user inputs.
+    - Categorizing and recategorizing responses based on user selections.
+    - Creating, renaming, and deleting categories.
+    - Project management, such as creating a new project, loading an existing project, appending data, 
+        saving projects, and exporting data to CSV files.
+    - Refreshing and updating different components of the UI based on data model changes.
 
-Main Dependencies:
-- fuzzy_ui: The user interface module from this project.
-- data_model: The data model module from this project.
+Main dependencies:
+    - fuzzy_ui: The user interface module from this project.
+    - data_model: The data model module from this project.
 
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """

@@ -1,18 +1,16 @@
 """
-This module provides functionality for handling file operations, specifically focusing on reading from and writing to CSV, XLSX, and JSON files. It includes the FileHandler class which encompasses methods for:
+This module provides a `FileHandler` class for the FuzzyMatcher application.
 
-- Reading data from CSV or XLSX files and returning it as a pandas DataFrame.
-- Loading data from JSON files and returning it as a dictionary.
-- Exporting pandas DataFrames to CSV files.
-- Saving data to JSON files.
+Key functionalities:
+    - Reading data from CSV or XLSX files and returning it as a pandas DataFrame.
+    - Loading data from JSON files and returning it as a dictionary.
+    - Exporting pandas DataFrames to CSV files.
+    - Saving data to JSON files.
 
-The FileHandler class utilizes the pandas library for DataFrame manipulation, the chardet library for character encoding detection in CSV files, and the json library for JSON file interactions. Exception handling and logging are integral parts of the file operations to ensure reliability and traceability of the operations performed.
-
-External Libraries Used:
-- pandas: For data manipulation and analysis.
-- chardet: For detecting the character encoding of CSV files.
-- json: For parsing and saving JSON files.
-- logging: For logging information, warnings, and errors during file operations.
+Main dependenices:
+    - pandas: for data manipulation.
+    - chardet: for detecting the character encoding of CSV files.
+    - json: for parsing and saving JSON files.
 
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
@@ -28,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 class FileHandler:
     """
-    A class for handling file operations including reading from and writing to CSV, XLSX, and JSON files.
+    A class for handling file operations.
 
     Methods:
         __init__: Initializes the FileHandler object.

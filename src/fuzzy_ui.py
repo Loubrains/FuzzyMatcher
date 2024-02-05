@@ -4,16 +4,16 @@ This module provides a `FuzzyUI` class for the FuzzyMatcher application, which i
 Responsible for displaying information to the user and getting user-input to serve to the controller of the application.
 
 Key functionalities:
-- Fuzzy matching: Users can input strings and adjust the fuzziness threshold to find similar responses.
-- Category management: Users can add, rename, or delete categories to organize matched responses effectively.
-- Displaying data: Match results and categorized responses are displayed in Treeview widgets.
-- File management: Users have options to start new projects, load existing projects, append data, save progress, and export results.
+    - Fuzzy matching: Users can input strings and adjust the fuzziness threshold to find similar responses.
+    - Category management: Users can add, rename, or delete categories to organize matched responses effectively.
+    - Displaying data: Match results and categorized responses are displayed in Treeview widgets.
+    - File management: Users have options to start new projects, load existing projects, append data, save progress, and export results.
 
 Main dependencies:
-- tkinter: for the GUI components.
-- pandas: for data manipulation.
-- inspect: for cleaner error message displays.
-- ctypes: for DPI awareness, ensuring the UI scales correctly on high-resolution displays.
+    - tkinter: for the GUI components.
+    - pandas: for data manipulation.
+    - inspect: for cleaner error message displays.
+    - ctypes: for DPI awareness, ensuring the UI scales correctly on high-resolution displays.
 
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """

@@ -6,6 +6,8 @@
 !/src/*.py
 !/tests
 !/tests/*.py
+!/docs
+!/docs/**
 
 # Include files at the root
 !/README.md

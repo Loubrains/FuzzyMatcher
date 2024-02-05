@@ -4,22 +4,22 @@ This module provides a `DataModel` class for the FuzzyMatcher application.
 Responsible for storing and manipulating the data involved in the fuzzy matching and categorization processes
 and serving data to the `controller` of the FuzzyMatcher application.
 
-Key Functionalities:
-- Initializing and managing the data structures.
-- Preprocessing text and handling missing data.
-- Performing fuzzy matching of responses against a provided string and processing the results.
-- Categorizing responses into user-defined categories and recategorizing them as needed.
-- Category management (category creation, renaming, and deletion)
-- Handling importing of data for new projects, appending data, saving and loading projects, and exporting categorized data to CSV.
-- Validating loaded/saved data.
-- Calculating and formatting data for display.
+Key functionalities:
+    - Initializing and managing the data structures.
+    - Preprocessing text and handling missing data.
+    - Performing fuzzy matching of responses against a provided string and processing the results.
+    - Categorizing responses into user-defined categories and recategorizing them as needed.
+    - Category management (category creation, renaming, and deletion)
+    - Handling importing of data for new projects, appending data, saving and loading projects, and exporting categorized data to CSV.
+    - Validating loaded/saved data.
+    - Calculating and formatting data for display.
 
 Main dependencies:
-- thefuzz: for performing fuzzy matching.
-- pandas: for data manipulation.
-- re: for pattern matching during data cleaning.
-- io: for converting data to json serializable format.
-- file_handler: a module from this project for performing file saving and loading functions.
+    - thefuzz: for performing fuzzy matching.
+    - pandas: for data manipulation.
+    - re: for pattern matching during data cleaning.
+    - io: for converting data to json serializable format.
+    - file_handler: a module from this project for performing file saving and loading functions.
 
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """

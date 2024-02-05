@@ -1,10 +1,11 @@
 """
-This module provides utility functions for logging and debugging within the application. It includes functionality to set up logging configurations and to format various types of data for clear and concise logging.
+This module provides utility functions for logging and debugging within the application.
+
+Logs are written to 'app.log' file in the project root directory.
 
 Functions:
-    setup_logging(): Configures the logging settings for the application. It specifies the log level, format, and output file. Additionally, it sets the log level for certain verbose third-party libraries to avoid cluttering the logs.
-
-    format_and_log_data_for_debug(logger, attributes): Accepts a logger instance and a dictionary of attributes. It formats and logs the attributes based on their data types for improved readability in debugging. The function handles pandas DataFrames, dictionaries with various types of values, and other basic data types, ensuring that the logged information is concise and informative, especially for large or complex data structures.
+    - setup_logging: Configures the logging settings for the application.
+    - format_and_log_data_for_debug: Formats and logs attributes based on their data types for improved readability in debugging.
     
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
@@ -17,10 +18,8 @@ import inspect
 
 def setup_logging():
     """
-    Sets up the logging configuration for the application. Initializes the logging with a specified format, log level, and output file.
-
-    The logger's basic configuration is set to INFO level, and logs are formatted to include the timestamp, filename, line number, log level, and the log message.
-    Logs are written to 'app.log' file. Also, the log level for the 'chardet' library is set to WARNING to avoid overly verbose logging.
+    Initializes logging with a specified format, log level, and output file. Logs are written to 'app.log' file.
+    Also supresses noisy libraries.
     """
 
     logging.basicConfig(
@@ -40,16 +39,21 @@ def format_and_log_data_for_debug(logger: logging.Logger, attributes: dict[str, 
     """
     Formats various types of class attributes and logs them for debugging purposes.
 
-    It handles pandas DataFrames, dictionaries, and other data types differently to provide clear and concise log messages. For large collections or data frames, it provides a summarized view to avoid cluttering the logs.
-
     Args:
         logger (logging.Logger): The logger instance used to log the messages.
         attributes (dict[str, Any]): A dictionary containing the attribute names and their values from a class instance.
 
-        The method inspects each attribute and decides on a logging format based on its data type:
+    The method inspects each attribute and decides on a logging format based on its data type:
         - For pandas DataFrames, it logs the head of the DataFrame.
-        - For dictionaries, it handles dictionaries of types differently from those with collection values.
+        - For dictionaries:
+            - If dictionary where values are types, it show everything.
+            - If dictionary where keys have more than 10 values, it show keys and counts of values.
+            - For any other dictionary, it just show the first 5 items.
         - For other data types, it logs the value directly.
+
+    Usage:
+        Can be used on specific variables, or can be used on all class attributes of a data model, like so:
+        `logging_utils.format_and_log_data_for_debug(logger, vars(self))`
     """
 
     log_messages = ["Class attributes:\n"]

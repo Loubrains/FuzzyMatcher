@@ -1,13 +1,22 @@
 """
-The 'src' package forms the core of the Fuzzy Matcher Application, encapsulating the data model, user interface, application control logic, and supporting utilities. It is structured to promote separation of concerns, ensuring that each module within the package has a distinct responsibility, leading to a codebase that is more maintainable, modular, and scalable.
+FuzzyMatcher Application
 
-Modules included in the 'src' package:
+This application is designed to provide a user-friendly interface for performing fuzzy matching and categorization of survey data.
 
-- Main (main.py): Serves as the entry point of the application. It initializes and configures the main components of the application, including setting up logging, instantiating the data model, user interface, and controller, and starting the application loop.
-- Data Model (data_model.py): Defines the DataModel class, responsible for handling all data-related operations, including data manipulation, fuzzy matching logic, categorization of responses, and interaction with the file system for data persistence.
-- User Interface (fuzzy_ui.py): Implements the FuzzyUI class, managing the graphical user interface of the application. It handles the layout, widgets, and user interactions, providing a user-friendly interface for interacting with the application's core functionality.
-- Controller (controller.py): Contains the Controller class, serving as the intermediary between the user interface and the data model. It processes user actions, invokes data model operations based on user input, and updates the user interface based on the results of these operations.
-- Logging Tools (logging_utils.py): Provides utility functions and configurations for application-wide logging, ensuring that meaningful log messages are generated and recorded, facilitating debugging and monitoring of application behavior.
+Key features:
+    - Fuzzy Matching: Users to input a string and find similar responses within the dataset based on a fuzziness threshold.
+    - Category Management: Users can create, rename, and delete categories.
+    - Categorization: Users can categorize selected responses into selected categories, or recategorize responses.
+    - Categorization type: Users can select "Single" or "Multi" categorization type for whether responses can go into only one category or multiple.
+    - Project Management: Users can start new projects, loading existing projects, appending data to projects, saving progress, and exporting results to CSV files.
+
+Modules:
+    - main: The entry point of the application, initializing the application components and starting the application loop.
+    - controller: Acts as the intermediary between the user interface and the data model, managing the flow of data upon user interaction.
+    - fuzzy_ui: Manages the user interface, displaying data and receiving user input.
+    - data_model: Handles the core data processing, including fuzzy matching, category management, categorization, and project management.
+    - file_handler: Provides functionalities for reading, saving, and exporting files.
+    - logging_utils: Configures logging for the application and provides utility functions for formatting logs.
 
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
