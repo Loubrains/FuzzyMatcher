@@ -14,8 +14,8 @@ Key functionalities:
     - Refreshing and updating different components of the UI based on data model changes.
 
 Main dependencies:
-    - fuzzy_ui: The user interface module from this project.
-    - data_model: The data model module from this project.
+    - `fuzzy_ui`: The user interface module from this project.
+    - `data_model`: The data model module from this project.
 
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
@@ -35,33 +35,33 @@ class Controller:
     It handles user interactions, delegates data processing tasks to the data model, and updates the UI.
 
     Attributes:
-        user_interface (FuzzyUI): An instance of the FuzzyUI class to manage the user interface.
-        data_model (DataModel): An instance of the DataModel class to manage and process the data.
+        - `user_interface`: An instance of the `FuzzyUI` class to manage the user interface.
+        - `data_model`: An instance of the `DataModel` class to manage and process the data.
 
     Methods:
-        setup_UI_bindings: Binds UI components to their respective handler functions.
-        run: Starts the main loop of the application.
-        fuzzy_match_logic: Handles the logic for initiating a fuzzy match based on user input.
-        categorize_selected_responses: Categorizes user-selected responses into selected categories.
-        recategorize_selected_responses: Recategorizes user-selected responses into new categories.
-        create_category: Handles the creation of a new category based on user input.
-        rename_category: Handles the renaming of an existing category based on user input.
-        on_rename_category_entry: Finalizes the renaming of a category and updates the UI and data model.
-        delete_categories: Handles the deletion of user-selected categories.
-        new_project: Initiates the process of starting a new project.
-        populate_data_structures_on_new_project: Populates data structures for a new project.
-        ask_categorization_type: Prompts the user to select a categorization type for the new project.
-        load_project: Initiates the process of loading an existing project.
-        populate_data_structures_on_load_project: Populates data structures when loading a project.
-        append_data_logic: Initiates the process of appending data to the current project.
-        file_import_logic: Handles the logic for importing files for new, load, or append data operations.
-        save_project: Handles the process of saving the current project to a file.
-        export_data_to_csv: Handles the process of exporting the current project's data to a CSV file.
-        refresh_treeviews: Refreshes the display of fuzzy match results, categories, and category results in the UI.
-        display_fuzzy_match_results: Displays the results of fuzzy matching in the UI.
-        on_display_selected_category_results: Handles the selection and display of category results in the UI.
-        display_category_results: Displays the results of a specific category in the UI.
-        display_categories: Displays the list of categories and related metrics in the UI.
+        - `setup_UI_bindings`: Binds UI components to their respective handler functions.
+        - `run`: Starts the main loop of the application.
+        - `fuzzy_match_logic`: Handles the logic for initiating a fuzzy match based on user input.
+        - `categorize_selected_responses`: Categorizes user-selected responses into selected categories.
+        - `recategorize_selected_responses`: Recategorizes user-selected responses into new categories.
+        - `create_category`: Handles the creation of a new category based on user input.
+        - `rename_category`: Handles the renaming of an existing category based on user input.
+        - `on_rename_category_entry`: Finalizes the renaming of a category and updates the UI and data model.
+        - `delete_categories`: Handles the deletion of user-selected categories.
+        - `new_project`: Initiates the process of starting a new project.
+        - `populate_data_structures_on_new_project`: Populates data structures for a new project.
+        - `ask_categorization_type`: Prompts the user to select a categorization type for the new project.
+        - `load_project`: Initiates the process of loading an existing project.
+        - `populate_data_structures_on_load_project`: Populates data structures when loading a project.
+        - `append_data_logic`: Initiates the process of appending data to the current project.
+        - `file_import_logic`: Handles the logic for importing files for new, load, or append data operations.
+        - `save_project`: Handles the process of saving the current project to a file.
+        - `export_data_to_csv`: Handles the process of exporting the current project's data to a CSV file.
+        - `refresh_treeviews`: Refreshes the display of fuzzy match results, categories, and category results in the UI.
+        - `display_fuzzy_match_results`: Displays the results of fuzzy matching in the UI.
+        - `on_display_selected_category_results`: Handles the selection and display of category results in the UI.
+        - `display_category_results`: Displays the results of a specific category in the UI.
+        - `display_categories`: Displays the list of categories and related metrics in the UI.
     """
 
     def __init__(self, user_interface: FuzzyUI, data_model: DataModel) -> None:

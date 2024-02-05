@@ -10,10 +10,10 @@ Key functionalities:
     - File management: Users have options to start new projects, load existing projects, append data, save progress, and export results.
 
 Main dependencies:
-    - tkinter: for the GUI components.
-    - pandas: for data manipulation.
-    - inspect: for cleaner error message displays.
-    - ctypes: for DPI awareness, ensuring the UI scales correctly on high-resolution displays.
+    - `tkinter`: for the GUI components.
+    - `pandas`: for data manipulation.
+    - `inspect`: for cleaner error message displays.
+    - `ctypes`: for DPI awareness, ensuring the UI scales correctly on high-resolution displays.
 
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
@@ -37,29 +37,29 @@ class FuzzyUI(tk.Tk):
     A tkinter user interface class for fuzzy matching and categorizing survey responses.
 
     Attributes:
-        WINDOW_SIZE_MULTIPLIER (float): Defines the size of the main window relative to the screen size.
-        is_including_missing_data (tk.BooleanVar): A variable to track the inclusion of missing data when calculating category percentages for display.
-        categorization_type (tk.StringVar): A variable to track the type of categorization (Single or Multi)
+        - `WINDOW_SIZE_MULTIPLIER` (float): Defines the size of the main window relative to the screen size.
+        - `is_including_missing_data` (tk.BooleanVar): A variable to track the inclusion of missing data when calculating category percentages for display.
+        - `categorization_type` (tk.StringVar): A variable to track the type of categorization (Single or Multi)
             Single allows only one category per response, Multi allows multiple.
 
     Methods:
-        display_fuzzy_match_results: Displays the results of fuzzy matching in the corresponding Treeview.
-        display_category_results: Displays the categorized results in the corresponding Treeview.
-        display_categories: Displays the list of categories and related metrics in the corresponding Treeview.
-        set_categorization_type_label: Sets the label indicating the current categorization type.
-        create_popup: Creates a general purpose popup window.
-        create_rename_category_popup: Creates a popup window for renaming a category.
-        create_ask_categorization_type_popup: Creates a popup window for selecting the categorization type.
-        show_open_file_dialog: Displays a dialog to open a file.
-        show_save_file_dialog: Displays a dialog to save a file.
-        show_askyesno: Displays a Yes/No dialog.
-        show_error: Displays an error message dialog.
-        show_info: Displays an informational message dialog.
-        show_warning: Displays a warning message dialog.
-        selected_match_responses: Returns a set of selected responses from the match results Treeview.
-        selected_category_responses: Returns a set of selected responses from the category results Treeview.
-        selected_categories: Returns a set of selected categories from the categories Treeview.
-        update_treeview_selections: Updates the selections in Treeview widgets based on specified criteria.
+        - `display_fuzzy_match_results`: Displays the results of fuzzy matching in the corresponding Treeview.
+        - `display_category_results`: Displays the categorized results in the corresponding Treeview.
+        - `display_categories`: Displays the list of categories and related metrics in the corresponding Treeview.
+        - `set_categorization_type_label`: Sets the label indicating the current categorization type.
+        - `create_popup`: Creates a general purpose popup window.
+        - `create_rename_category_popup`: Creates a popup window for renaming a category.
+        - `create_ask_categorization_type_popup`: Creates a popup window for selecting the categorization type.
+        - `show_open_file_dialog`: Displays a dialog to open a file.
+        - `show_save_file_dialog`: Displays a dialog to save a file.
+        - `show_askyesno`: Displays a Yes/No dialog.
+        - `show_error`: Displays an error message dialog.
+        - `show_info`: Displays an informational message dialog.
+        - `show_warning`: Displays a warning message dialog.
+        - `selected_match_responses`: Returns a set of selected responses from the match results Treeview.
+        - `selected_category_responses`: Returns a set of selected responses from the category results Treeview.
+        - `selected_categories`: Returns a set of selected categories from the categories Treeview.
+        - `update_treeview_selections`: Updates the selections in Treeview widgets based on specified criteria.
     """
 
     def __init__(self) -> None:

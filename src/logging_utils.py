@@ -7,6 +7,10 @@ Functions:
     - setup_logging: Configures the logging settings for the application.
     - format_and_log_data_for_debug: Formats and logs attributes based on their data types for improved readability in debugging.
     
+Main dependencies:
+    - pandas: for data manipulation
+    - inspect: for formatting log messages
+
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
 

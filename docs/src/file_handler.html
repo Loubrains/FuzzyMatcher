@@ -29,9 +29,9 @@
 - Exporting pandas DataFrames to CSV files.
 - Saving data to JSON files.</p>
 <p>Main dependenices:
-- pandas: for data manipulation.
-- chardet: for detecting the character encoding of CSV files.
-- json: for parsing and saving JSON files.</p>
+- <code>pandas</code>: for data manipulation.
+- <code>chardet</code>: for detecting the character encoding of CSV files.
+- <code>json</code>: for parsing and saving JSON files.</p>
 <p>Author: Louie Atkins-Turkish (louie@tapestryresearch.com)</p>
 <details class="source">
 <summary>
@@ -47,9 +47,9 @@ Key functionalities:
     - Saving data to JSON files.
 
 Main dependenices:
-    - pandas: for data manipulation.
-    - chardet: for detecting the character encoding of CSV files.
-    - json: for parsing and saving JSON files.
+    - `pandas`: for data manipulation.
+    - `chardet`: for detecting the character encoding of CSV files.
+    - `json`: for parsing and saving JSON files.
 
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 &#34;&#34;&#34;
@@ -68,11 +68,11 @@ class FileHandler:
     A class for handling file operations.
 
     Methods:
-        __init__: Initializes the FileHandler object.
-        read_csv_or_xlsx_to_dataframe: Reads data from a CSV or XLSX file and returns it as a pandas DataFrame.
-        load_json: Loads data from a JSON file and returns it as a dictionary.
-        export_dataframe_to_csv: Exports a pandas DataFrame to a CSV file.
-        save_data_to_json: Saves data to a JSON file.
+        - `__init__`: Initializes the `FileHandler` object.
+        - `read_csv_or_xlsx_to_dataframe`: Reads data from a CSV or XLSX file and returns it as a pandas DataFrame.
+        - `load_json`: Loads data from a JSON file and returns it as a dictionary.
+        - `export_dataframe_to_csv`: Exports a pandas DataFrame to a CSV file.
+        - `save_data_to_json`: Saves data to a JSON file.
     &#34;&#34;&#34;
 
     def __init__(self) -&gt; None:
@@ -225,11 +225,13 @@ class FileHandler:
 <dd>
 <div class="desc"><p>A class for handling file operations.</p>
 <h2 id="methods">Methods</h2>
-<p><strong>init</strong>: Initializes the FileHandler object.
-read_csv_or_xlsx_to_dataframe: Reads data from a CSV or XLSX file and returns it as a pandas DataFrame.
-load_json: Loads data from a JSON file and returns it as a dictionary.
-export_dataframe_to_csv: Exports a pandas DataFrame to a CSV file.
-save_data_to_json: Saves data to a JSON file.</p></div>
+<ul>
+<li><code>__init__</code>: Initializes the <code><a title="src.file_handler.FileHandler" href="#src.file_handler.FileHandler">FileHandler</a></code> object.</li>
+<li><code>read_csv_or_xlsx_to_dataframe</code>: Reads data from a CSV or XLSX file and returns it as a pandas DataFrame.</li>
+<li><code>load_json</code>: Loads data from a JSON file and returns it as a dictionary.</li>
+<li><code>export_dataframe_to_csv</code>: Exports a pandas DataFrame to a CSV file.</li>
+<li><code>save_data_to_json</code>: Saves data to a JSON file.</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -239,11 +241,11 @@ save_data_to_json: Saves data to a JSON file.</p></div>
     A class for handling file operations.
 
     Methods:
-        __init__: Initializes the FileHandler object.
-        read_csv_or_xlsx_to_dataframe: Reads data from a CSV or XLSX file and returns it as a pandas DataFrame.
-        load_json: Loads data from a JSON file and returns it as a dictionary.
-        export_dataframe_to_csv: Exports a pandas DataFrame to a CSV file.
-        save_data_to_json: Saves data to a JSON file.
+        - `__init__`: Initializes the `FileHandler` object.
+        - `read_csv_or_xlsx_to_dataframe`: Reads data from a CSV or XLSX file and returns it as a pandas DataFrame.
+        - `load_json`: Loads data from a JSON file and returns it as a dictionary.
+        - `export_dataframe_to_csv`: Exports a pandas DataFrame to a CSV file.
+        - `save_data_to_json`: Saves data to a JSON file.
     &#34;&#34;&#34;
 
     def __init__(self) -&gt; None:

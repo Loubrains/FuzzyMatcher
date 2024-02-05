@@ -15,11 +15,11 @@ Key functionalities:
     - Calculating and formatting data for display.
 
 Main dependencies:
-    - thefuzz: for performing fuzzy matching.
-    - pandas: for data manipulation.
-    - re: for pattern matching during data cleaning.
-    - io: for converting data to json serializable format.
-    - file_handler: a module from this project for performing file saving and loading functions.
+    - `thefuzz`: for performing fuzzy matching.
+    - `pandas`: for data manipulation.
+    - `re`: for pattern matching during data cleaning.
+    - `io`: for converting data to json serializable format.
+    - `file_handler`: a module from this project for performing file saving and loading functions.
 
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
@@ -42,50 +42,50 @@ class DataModel:
     A class responsible for managing and processing the data for fuzzy matching and categorization of responses.
 
     Attributes:
-        file_handler (FileHandler): An instance of FileHandler for handling file operations.
-        raw_data (pd.DataFrame): DataFrame containing the raw imported data. Expects first column to be uuids and subsequent columns to contain responses.
-        data_to_append (pd.DataFrame): DataFrame of imported data to append onto the current project data.
-        data_loaded (dict[str, Any]): Loaded project data (all the relevant class attributes) from json file.
-        response_columns (list[str]): List of response column names.
-        preprocessed_responses (pd.DataFrame): DataFrame of cleaned response columns from raw_data.
-        stacked_responses (pd.Series): Series containing the stacked, deduplicated responses, excluding missing data.
-        response_counts (dict[str, int]): Dictionary holding counts of responses, including missing data.
-        categorized_data (pd.DataFrame): DataFrame containing categorized responses. This is the main DataFrame of the application.
+        - `file_handler` (FileHandler): An instance of FileHandler for handling file operations.
+        - `raw_data` (pd.DataFrame): DataFrame containing the raw imported data. Expects first column to be uuids and subsequent columns to contain responses.
+        - `data_to_append` (pd.DataFrame): DataFrame of imported data to append onto the current project data.
+        - `data_loaded` (dict[str, Any]): Loaded project data (all the relevant class attributes) from json file.
+        - `response_columns` (list[str]): List of response column names.
+        - `preprocessed_responses` (pd.DataFrame): DataFrame of cleaned response columns from raw_data.
+        - `stacked_responses` (pd.Series): Series containing the stacked, deduplicated responses, excluding missing data.
+        - `response_counts` (dict[str, int]): Dictionary holding counts of responses, including missing data.
+        - `categorized_data` (pd.DataFrame): DataFrame containing categorized responses. This is the main DataFrame of the application.
             First column contains uuids, the next columns are the response columns, and then the subsequent columns are for each category, repeated out for each response column (with the name appended on the end).
             The values of the category columns are 1, 0, or pd.NA, depending on whether or not the responses in their associated response column are categorized into that category, or missing data.
-        categorized_dict (dict[str, str]): Dictionary of categories to deduplicated responses, excluding missing data.
-        fuzzy_match_results (pd.DataFrame): DataFrame holding results and score of fuzzy matching.
-        currently_displayed_category (str): The category currently being displayed in the UI.
-        expected_json_structure (dict[str, type]): A dictionary of types for each class attribute, for validation loaded project data.
-        export_df (pd.DataFrame): categorized_data with the response columns removed, for exporting to CSV.
+        - `categorized_dict` (dict[str, str]): Dictionary of categories to deduplicated responses, excluding missing data.
+        - `fuzzy_match_results` (pd.DataFrame): DataFrame holding results and score of fuzzy matching.
+        - `currently_displayed_category` (str): The category currently being displayed in the UI.
+        - `expected_json_structure` (dict[str, type]): A dictionary of types for each class attribute, for validation loaded project data.
+        - `export_df` (pd.DataFrame): The finalized data to export to CSV.
 
     Methods:
-        initialize_data_structures: Initializes empty data structures used in the model.
-        fuzzy_match_logic: Handles the logic for performing fuzzy matching on the data.
-        fuzzy_match: Used by fuzzy_match_logic to perform the fuzzy matching.
-        categorize_responses: Categorizes selected responses into selected categories.
-        recategorize_responses: Recategorizes selected responses into selected categories.
-        add_responses_to_category: Used by categorize_responses and recategorize_responses to add specified responses to a category in categorized_data and categorized_dict.
-        remove_responses_from_category: Used by categorize_responses and recategorize_responses to remove specified responses from a category in categorized_data and categorized_dict.
-        create_category: Creates a new category in categorized_data and categorized_dict.
-        rename_category: Renames an existing category in categorized_data and categorized_dict.
-        delete_categories: Deletes selected categories from categorized_data and categorized_dict, and handles associated data cleanup.
-        file_import_on_new_project: Handles importing data for a new project.
-        populate_data_structures_on_new_project: Populates data structures for a new project.
-        file_import_on_load_project: Handles importing data for loading an existing project.
-        populate_data_structures_on_load_project: Populates data structures when loading a project.
-        file_import_on_append_data: Handles importing data to append to the current project.
-        populate_data_structures_on_append_data: Populates data structures when appending data.
-        save_project: Saves all the current project's relevant data (the class attributes) to a JSON file.
-        export_data_to_csv: Exports the categorized data to a CSV file.
-        preprocess_text: Cleans text data (e.g. response text).
-        process_fuzzy_match_results: Filters, aggregates and sorts the fuzzy match results for display.
-        handle_missing_data: Handles missing data in categorized_data and categorized_dict.
-        validate_loaded_json: Validates the structure of loaded JSON project data.
-        get_responses_and_counts: Retrieves responses and their counts for a specific category.
-        format_categories_metrics: Formats metrics for categories to be displayed.
-        sum_response_counts: Sums the response counts for a set of responses.
-        calculate_percentage: Calculates the percentage of responses for a category, with or without missing data.
+        - `initialize_data_structures`: Initializes empty data structures used in the model.
+        - `fuzzy_match_logic`: Handles the logic for performing fuzzy matching on the data.
+        - `fuzzy_match`: Used by `fuzzy_match_logic` to perform the fuzzy matching.
+        - `categorize_responses`: Categorizes selected responses into selected categories.
+        - `recategorize_responses`: Recategorizes selected responses into selected categories.
+        - `add_responses_to_category`: Used by `categorize_responses` and `recategorize_responses` to add specified responses to a category in categorized_data and categorized_dict.
+        - `remove_responses_from_category`: Used by `categorize_responses` and `recategorize_responses` to remove specified responses from a category in categorized_data and categorized_dict.
+        - `create_category`: Creates a new category in categorized_data and `categorized_dict`.
+        - `rename_category`: Renames an existing category in categorized_data and `categorized_dict`.
+        - `delete_categories`: Deletes selected categories from categorized_data and `categorized_dict`, and handles associated data cleanup.
+        - `file_import_on_new_project`: Handles importing data for a new project.
+        - `populate_data_structures_on_new_project`: Populates data structures for a new project.
+        - `file_import_on_load_project`: Handles importing data for loading an existing project.
+        - `populate_data_structures_on_load_project`: Populates data structures when loading a project.
+        - `file_import_on_append_data`: Handles importing data to append to the current project.
+        - `populate_data_structures_on_append_data`: Populates data structures when appending data.
+        - `save_project`: Saves all the current project's relevant data (the class attributes) to a JSON file.
+        - `export_data_to_csv`: Exports the categorized data to a CSV file.
+        - `preprocess_text`: Cleans text data (e.g. response text).
+        - `process_fuzzy_match_results`: Filters, aggregates and sorts the fuzzy match results for display.
+        - `handle_missing_data`: Handles missing data in categorized_data and `categorized_dict`.
+        - `validate_loaded_json`: Validates the structure of loaded JSON project data.
+        - `get_responses_and_counts`: Retrieves responses and their counts for a specific category.
+        - `format_categories_metrics`: Formats metrics for categories to be displayed.
+        - `sum_response_counts`: Sums the response counts for a set of responses.
+        - `calculate_percentage`: Calculates the percentage of responses for a category, with or without missing data.
     """
 
     def __init__(self, file_handler: FileHandler) -> None:

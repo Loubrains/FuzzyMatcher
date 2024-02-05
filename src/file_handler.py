@@ -8,9 +8,9 @@ Key functionalities:
     - Saving data to JSON files.
 
 Main dependenices:
-    - pandas: for data manipulation.
-    - chardet: for detecting the character encoding of CSV files.
-    - json: for parsing and saving JSON files.
+    - `pandas`: for data manipulation.
+    - `chardet`: for detecting the character encoding of CSV files.
+    - `json`: for parsing and saving JSON files.
 
 Author: Louie Atkins-Turkish (louie@tapestryresearch.com)
 """
@@ -29,11 +29,11 @@ class FileHandler:
     A class for handling file operations.
 
     Methods:
-        __init__: Initializes the FileHandler object.
-        read_csv_or_xlsx_to_dataframe: Reads data from a CSV or XLSX file and returns it as a pandas DataFrame.
-        load_json: Loads data from a JSON file and returns it as a dictionary.
-        export_dataframe_to_csv: Exports a pandas DataFrame to a CSV file.
-        save_data_to_json: Saves data to a JSON file.
+        - `__init__`: Initializes the `FileHandler` object.
+        - `read_csv_or_xlsx_to_dataframe`: Reads data from a CSV or XLSX file and returns it as a pandas DataFrame.
+        - `load_json`: Loads data from a JSON file and returns it as a dictionary.
+        - `export_dataframe_to_csv`: Exports a pandas DataFrame to a CSV file.
+        - `save_data_to_json`: Saves data to a JSON file.
     """
 
     def __init__(self) -> None:
