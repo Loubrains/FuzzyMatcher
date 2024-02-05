@@ -1,9 +1,9 @@
 """
-This module provides a tkinter-based user interface via a `FuzzyUI` class for the FuzzyMatcher application.
+This module provides a `FuzzyUI` class for the FuzzyMatcher application, which is a tkinter user-interface.
 
 Responsible for displaying information to the user and getting user-input to serve to the controller of the application.
 
-Key functionality:
+Key functionalities:
 - Fuzzy matching: Users can input strings and adjust the fuzziness threshold to find similar responses.
 - Category management: Users can add, rename, or delete categories to organize matched responses effectively.
 - Displaying data: Match results and categorized responses are displayed in Treeview widgets.

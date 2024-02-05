@@ -1,5 +1,5 @@
 """
-Provides a `DataModel` class for the FuzzyMatcher application.
+This module provides a `DataModel` class for the FuzzyMatcher application.
 
 Responsible for storing and manipulating the data involved in the fuzzy matching and categorization processes
 and serving data to the `controller` of the FuzzyMatcher application.
