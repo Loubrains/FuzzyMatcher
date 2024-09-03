@@ -108,7 +108,6 @@ pytest -v
 
 # Author
 
-Louie Atkins-Turkish  
-Data Analyst at Tapestry Research  
-Email: louie@tapestryresearch.com  
+Louie Atkins-Turkish
+Email: louie.atk@gmail.com
 Created on: November 30, 2023
