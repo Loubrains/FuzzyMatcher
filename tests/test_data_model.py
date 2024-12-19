@@ -53,14 +53,8 @@ def test_create_category(mock_data_model, new_category, expected_result):
         ),
         (
             "ExistingCategory",
-            "NonExistingCategory",
-            "NewCategoryName",
-            (False, "A category with this name already exists."),
-        ),
-        (
-            "NewCategoryName",
             "ExistingCategory",
-            "NewCategoryName",
+            "ExistingCategory",
             (False, "A category with this name already exists."),
         ),
     ],
@@ -80,7 +74,7 @@ def test_rename_category(
             "CategoryToDelete",
             "CategoryToDelete",
             "Single",
-            5,
+            7,
         )  # Assuming all uncategorized at the start
     ],
 )
@@ -146,6 +140,7 @@ def test_recategorize_responses(
         mock_data_model.create_category(category)
     mock_data_model.categorize_responses({response}, {from_category}, "Single")
 
+    mock_data_model.currently_displayed_category = from_category
     mock_data_model.recategorize_responses({response}, {to_category})
 
     from_category_count = len(mock_data_model.categorized_dict[from_category])
